@@ -70,14 +70,14 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
         return;
       }
       store.setLighting(measureLighting(ctx, createOffscreen(THUMB_SIZE.w, THUMB_SIZE.h, true), points, w, h));
-      const lab = sampleSkin(ctx, points, w, h);
-      if (!lab) {
+      const skin = sampleSkin(ctx, points, w, h);
+      if (!skin) {
         setError(STILL_ERRORS.noSkin);
         return;
       }
       imageRef.current = img;
       setLandmarks(points);
-      store.finish(classifyTone(lab));
+      store.finish({ ...classifyTone(skin.lab), corrected: skin.corrected });
     },
     [canvasRef, landmarkerRef],
   );
