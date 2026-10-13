@@ -8,11 +8,17 @@ import { BLUSH_STYLES, LIP_STYLES } from "@/features/lipTryOn/render";
 import { productSwatches } from "@/features/recommend/getProducts";
 import { CONFIDENCE_LABEL, SEASON_INFO, SEASONS, sortSwatches, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
 import { resultPath } from "@/features/share/resultUrl";
+import { ShotsPanel } from "./ShotsPanel";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
 const BUTTON = "rounded-lg px-5 py-3 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
-export function ResultPanel() {
+interface ResultPanelProps {
+  onAddPhoto: (file: File) => void;
+  onMeasureMore: () => void;
+}
+
+export function ResultPanel({ onAddPhoto, onMeasureMore }: ResultPanelProps) {
   const result = useAnalysisStore((s) => s.result);
   const lipId = useAnalysisStore((s) => s.lipId);
   const blushId = useAnalysisStore((s) => s.blushId);
@@ -52,6 +58,8 @@ export function ResultPanel() {
           {result.undertone === "neutral" && ". 웜과 쿨의 중간, 뉴트럴에 가까워요"}
         </p>
       </div>
+
+      <ShotsPanel onAddPhoto={onAddPhoto} onMeasureMore={onMeasureMore} />
 
       <details open className="rounded-2xl bg-card p-4 text-sm">
         <summary className="cursor-pointer font-medium">왜 이렇게 나왔나요</summary>

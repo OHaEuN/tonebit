@@ -1,5 +1,5 @@
 import type { Lab, LinearRgb } from "@/types/analysis";
-import { CLIP_MAX, LUMA_MIN, MAD_K, MIN_PIXELS, SCLERA_BRIGHT_QUANTILE, SCLERA_MAX_CLIPPED, SCLERA_MIN_PIXELS } from "./constants";
+import { CLIP_MAX, LUMA_MIN, MAD_K, MIN_PIXELS } from "./constants";
 import { linearize, linearRgbToLab, luma } from "./color";
 
 export function median(values: number[]): number {
@@ -80,31 +80,18 @@ export function meanRgb(pixels: ArrayLike<number>): { r: number; g: number; b: n
   return n ? { r: r / n, g: g / n, b: b / n } : { r: 0, g: 0, b: 0 };
 }
 
-/**
- * 눈 흰자 패치 픽셀 → 흰자의 평균 선형 RGB. 패치엔 홍채·속눈썹·눈꺼풀이 섞이므로
- * 휘도 상위 구간만 쓴다. 클리핑된 픽셀은 색 정보가 없어 버린다. 너무 적거나,
- * 밝은 쪽이 많이 날아가 실제 밝기를 알 수 없으면 null.
- */
-export function scleraWhite(pixels: ArrayLike<number>): LinearRgb | null {
-  const all: { r: number; g: number; b: number; y: number; clipped: boolean }[] = [];
-  for (let i = 0; i + 2 < pixels.length; i += 4) {
-    const r = pixels[i];
-    const g = pixels[i + 1];
-    const b = pixels[i + 2];
-    all.push({ r, g, b, y: luma(r, g, b), clipped: r >= CLIP_MAX || g >= CLIP_MAX || b >= CLIP_MAX });
+/** RGBA 버퍼에서 include(x, y)가 참인 픽셀의 평균 선형 RGB. 해당 픽셀이 너무 적으면 null */
+export function meanLinearRgbMasked(pixels: ArrayLike<number>, width: number, include: (x: number, y: number) => boolean): LinearRgb | null {
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let n = 0;
+  for (let i = 0, p = 0; i + 2 < pixels.length; i += 4, p++) {
+    if (!include(p % width, Math.floor(p / width))) continue;
+    r += linearize(pixels[i]);
+    g += linearize(pixels[i + 1]);
+    b += linearize(pixels[i + 2]);
+    n++;
   }
-  if (all.length < SCLERA_MIN_PIXELS) return null;
-  const cut = [...all].sort((a, b) => a.y - b.y)[Math.floor(all.length * SCLERA_BRIGHT_QUANTILE)].y;
-  const top = all.filter((p) => p.y >= cut);
-  if (top.filter((p) => p.clipped).length / top.length > SCLERA_MAX_CLIPPED) return null;
-  const bright = top.filter((p) => !p.clipped);
-  if (bright.length < SCLERA_MIN_PIXELS / 2) return null;
-  const sum = bright.reduce((s, p) => ({ r: s.r + linearize(p.r), g: s.g + linearize(p.g), b: s.b + linearize(p.b) }), { r: 0, g: 0, b: 0 });
-  return { r: sum.r / bright.length, g: sum.g / bright.length, b: sum.b / bright.length };
-}
-
-/** RGBA 픽셀 버퍼의 평균 선형 RGB */
-export function meanLinearRgb(pixels: ArrayLike<number>): LinearRgb {
-  const { r, g, b } = meanRgb(pixels);
-  return { r: linearize(r), g: linearize(g), b: linearize(b) };
+  return n >= MIN_PIXELS ? { r: r / n, g: g / n, b: b / n } : null;
 }

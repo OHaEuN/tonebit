@@ -4,6 +4,13 @@ import type { NextConfig } from "next";
 /** wasm 경로에 넣을 tasks-vision 버전. scripts/copy-wasm.mjs와 같은 값 */
 const mediapipeVersion: string = JSON.parse(readFileSync("node_modules/@mediapipe/tasks-vision/package.json", "utf8")).version;
 
+/**
+ * 공유 링크·메타데이터에 쓰는 사이트 주소. Vercel이면 미리보기 배포에서도 프로덕션 도메인을 쓴다
+ * (미리보기 주소는 길고, Vercel 로그인을 요구할 수 있어서 남에게 보내면 안 열린다). 다른 호스팅은 NEXT_PUBLIC_SITE_URL을 준다
+ */
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? (vercelHost ? `https://${vercelHost}` : "");
+
 const isDev = process.env.NODE_ENV === "development";
 
 /**
@@ -26,7 +33,7 @@ const strictCsp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  env: { NEXT_PUBLIC_MEDIAPIPE_VERSION: mediapipeVersion },
+  env: { NEXT_PUBLIC_MEDIAPIPE_VERSION: mediapipeVersion, NEXT_PUBLIC_SITE_ORIGIN: siteOrigin },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

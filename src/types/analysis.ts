@@ -57,7 +57,7 @@ export interface ToneResult {
   lab: Lab;
   ita: number;
   hue: number;
-  /** 눈 흰자 기준으로 조명(색온도·노출)을 보정했는지 */
+  /** 배경 색으로 조명(색온도·노출)을 보정했는지 */
   corrected?: boolean;
 }
 

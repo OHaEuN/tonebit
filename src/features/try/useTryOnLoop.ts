@@ -6,7 +6,6 @@ import type { Lab } from "@/types/analysis";
 import { MEASURE_FRAMES } from "@/features/analysis/constants";
 import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, THUMB_SIZE } from "@/features/analysis/frame";
 import { medianLab } from "@/features/analysis/sample";
-import { classifyTone } from "@/features/analysis/tone";
 import { drawOverlays } from "@/features/lipTryOn/render";
 import { findSwatchById } from "@/features/recommend/palettes";
 import { useAnalysisStore } from "@/stores/analysisStore";
@@ -74,7 +73,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
             // 깜빡임 등으로 보정된 프레임과 안 된 프레임이 섞이면, 더 많은 쪽만 모아 median을 낸다
             const corrected = samples.filter((s) => s.corrected).length * 2 >= samples.length;
             const labs = samples.filter((s) => s.corrected === corrected).map((s) => s.lab);
-            store.finish({ ...classifyTone(medianLab(labs)), corrected });
+            store.addShot({ lab: medianLab(labs), corrected });
             samples = [];
           }
         }
