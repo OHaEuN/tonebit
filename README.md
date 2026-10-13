@@ -6,6 +6,7 @@
 얼굴 이미지는 어떤 경우에도 서버로 가지 않습니다. 분석·렌더링 전부가 브라우저 안에서 끝납니다.
 
 - 스택: Next.js 16 (App Router, Cache Components) · React 19 · TypeScript strict · Tailwind v4 · Zustand · MediaPipe Tasks Vision (Face Landmarker)
+- 결과: 웜·쿨과 12시즌 세부 타입, 그렇게 판정한 근거 문장, 톤별 설명과 어울리는 색, 시즌 팔레트와 인기 립·블러셔 제품 색으로 가상 체험
 - 테스트: Vitest (색 분석 순수 함수) · Playwright (가짜 카메라 + 고정 셀카 fixture)
 - CI: GitHub Actions (lint → typecheck → unit → e2e)
 
@@ -18,10 +19,9 @@
 | 온디바이스 추론 | MediaPipe Face Landmarker가 wasm + WebGL로 브라우저에서 돌아갑니다. 프레임은 `<canvas>` 밖으로 나가지 않습니다. |
 | 모델·wasm 자체 호스팅 | `public/models/face_landmarker.task`(커밋)와 `public/wasm/`(postinstall로 node_modules에서 복사). CDN을 쓰지 않습니다. |
 | CSP `connect-src 'self'` | `next.config.ts`에서 모든 응답에 붙습니다. 외부 도메인으로의 fetch/XHR/WebSocket이 브라우저 레벨에서 차단됩니다. 실제로 tasks-vision이 `odml.pa.googleapis.com/v1/log`로 보내려는 텔레메트리가 이 정책에 막히는 걸 E2E 콘솔에서 확인할 수 있습니다. |
-| 공유 URL | `/r/{season}` 뿐입니다. 측정값, 이미지, 식별자 어떤 것도 싣지 않습니다. |
-| 공유 카드 | `next/og`로 서버에서 그리는 OG 이미지는 시즌 이름과 팔레트만 담습니다. 얼굴이 들어갈 입력 자체가 없습니다. |
-
-광고 스크립트를 붙일 때는 `/r` 라우트에만 광고 도메인을 허용하고 `/try`는 그대로 둡니다. 헤더는 라우트별로 나눌 수 있게 `headers()`에 모아 두었습니다.
+| 공유 URL | `/r/{tone}` 뿐입니다 (예: `/r/spring-light`). 측정값, 이미지, 식별자 어떤 것도 싣지 않습니다. |
+| 공유 카드 | `next/og`로 서버에서 그리는 OG 이미지는 톤 이름과 팔레트만 담습니다. 얼굴이 들어갈 입력 자체가 없습니다. |
+| 방문 통계 | Umami(쿠키 없음)를 `/stats`로 프록시해서 씁니다. 브라우저는 우리 도메인만 보고, 이벤트에는 단계 이름과 톤 이름만 싣습니다. |
 
 ## 아키텍처
 
@@ -30,18 +30,20 @@ src/
   app/
     page.tsx                        랜딩. 서버 컴포넌트, 클라이언트 JS 거의 없음
     try/page.tsx                    카메라·업로드 → 조명 체크 → 측정 → 립 체험 (한 화면)
-    r/[season]/page.tsx             결과 페이지. 네 시즌 정적 생성
-    r/[season]/opengraph-image.tsx  공유 카드. 한글 서브셋 폰트 동봉, 정적 생성
+    r/[tone]/page.tsx               결과 페이지. 12톤 + 시즌 별칭 4개 정적 생성
+    r/[tone]/opengraph-image.tsx    톤별 공유 카드. 한글 서브셋 폰트 동봉, 정적 생성
+    opengraph-image.tsx             사이트 공통 링크 썸네일
+    icon.tsx, apple-icon.tsx        파비콘. BrandMark를 next/og로 렌더
   features/
     camera/      useCameraStream (getUserMedia, 권한 분기, iOS)
     landmark/    useFaceLandmarker (tasks-vision lazy import), indices, geometry
-    analysis/    color · sample · lighting · tone · constants  ← 순수 함수, Vitest 대상
+    analysis/    color · sample · lighting · tone · explain · constants  ← 순수 함수, Vitest 대상
                  frame.ts  ← 캔버스에서 픽셀을 읽어 순수 함수에 넘기는 유일한 DOM 어댑터
     lipTryOn/    render.ts (마스크·페더링·블렌딩), ColorPicker
     try/         useTryOnLoop (rAF 루프), useStillAnalysis (업로드), TrySession 및 하위 UI
-    recommend/   palettes, products.json, getProducts (데이터 교체 지점), ProductCard
+    recommend/   palettes(시즌·12톤 설명), products.json(인기 립·블러셔), getProducts, affiliate, ProductCard
+    analytics/   track (Umami 이벤트), Analytics (스크립트 로더)
     share/       resultUrl, ShareButtons (Web Share API, 복사 fallback)
-    ads/         AdSlot (320×100 고정, CLS 0)
   stores/analysisStore.ts           Zustand. 단계·조명·결과·선택 색
   types/                            도메인 타입
 ```
@@ -87,6 +89,17 @@ tasks-vision(약 10MB)은 `/try`의 훅이 마운트될 때 `import()`로 처음
 
 시즌 = 웜/쿨 × 명/암 (웜·light 봄, 웜·deep 가을, 쿨·light 여름, 쿨·deep 겨울). 뉴트럴이면 채도로 가릅니다 (light·clear 봄, light·muted 여름, deep·muted 가을, deep·clear 겨울). 확신도는 각 축에서 임계값까지의 거리로 높음·보통·낮음만 보여 주고 숫자는 노출하지 않습니다. 뉴트럴은 항상 "낮음"입니다.
 
+**12시즌 세부 타입.** Sci\ART 방식의 "가장 두드러진 특징"을 따릅니다. 세 축이 임계값에서 벗어난 정도를 `AXIS_MARGIN`(hue 4°, ITA 6°, chroma 4) 단위로 점수화하고, 시즌에 허용된 세 타입 중 점수가 가장 큰 쪽을 고릅니다.
+
+| 시즌 | 허용 타입 | 점수 |
+|---|---|---|
+| 봄 | 라이트 · 브라이트 · 트루 | light = (ITA − 41)/6, bright = (C* − 20)/4, true = 웜·쿨 초과 거리/4 |
+| 여름 | 라이트 · 뮤트 · 트루 | soft = (20 − C*)/4 |
+| 가을 | 뮤트 · 딥 · 트루 | deep = (41 − ITA)/6 |
+| 겨울 | 딥 · 브라이트 · 트루 | |
+
+**근거 문장.** `explainTone`이 측정 수치를 임계값과 함께 문장으로 풀어 결과 화면에 보여 줍니다. "색상각 61°인데 57° 이상이면 웜으로 봐요" 같은 식이라 사용자가 숫자의 의미를 알 수 있습니다.
+
 **조명 체크.** 측정 전 실시간 배지. 얼굴 패치 평균 휘도 70 미만이면 어두움, 200 초과 또는 클리핑 5% 초과면 과노출. 프레임을 64×48로 줄여 gray-world(장면 평균은 회색에 가깝다)로 R/G·B/G가 0.8~1.25를 벗어나면 색편향. 얼굴 bbox 폭이 프레임의 25% 미만이면 가까이 오라고 합니다.
 
 **한계.** L*는 노출에, h°는 화이트밸런스에 종속됩니다. 기준 흰색 없이는 절대값을 못 구하고, ITA 경계가 모집단 중앙에 있어 노출이 조금만 바뀌어도 light/deep이 뒤집힐 수 있습니다. 그래서 "재미로"이고 UI에 그대로 적어 두었습니다. 올리브톤(a* 낮음)은 h°가 커져 웜으로 쏠리는 경향도 있습니다.
@@ -101,6 +114,18 @@ tasks-vision(약 10MB)은 `/try`의 훅이 마운트될 때 `import()`로 처음
   - `soft-light`: 어두운 입술엔 거의 안 묻습니다.
 - 성능: 입력 해상도 720px 상한, 프레임이 밀리면 큐에 쌓지 않고 건너뜀. 고급 패널에 FPS 표시. Web Worker/OffscreenCanvas는 실측 후 30fps 미달일 때 넣기로 하고 넣지 않았습니다.
 
+## 인기 제품 데이터
+
+`products.json`은 롬앤, 맥, 디올, 나스, 클리니크 같은 브랜드의 널리 알려진 립·블러셔 색을 손으로 고른 목록입니다. 쇼핑몰을 크롤링하지 않았고, `hex`는 공식 색상명을 보고 적은 근사치라 UI에도 그렇게 표기합니다. 체험 화면에서는 이 색을 시즌 팔레트와 함께 입술·볼에 얹어 볼 수 있습니다.
+
+## 사용 흐름 분석 (Umami)
+
+쿠키 없는 Umami Cloud(무료, 월 10만 이벤트)를 씁니다. 스크립트와 수집 엔드포인트를 `/stats`로 리라이트해서 브라우저는 우리 도메인만 호출하므로 CSP `connect-src 'self'`가 그대로 유지됩니다.
+
+1. umami.is 가입 → 웹사이트 추가(배포 도메인) → Website ID 복사.
+2. Vercel 환경변수 `NEXT_PUBLIC_UMAMI_WEBSITE_ID`에 넣고 재배포. 비어 있으면 스크립트를 싣지 않습니다.
+3. 이벤트: `try-start`(source), `camera-denied`, `model-error`, `face-not-found`, `measure-done`(tone, confidence, source), `swatch-select`(kind, product), `share`, `card-download`, `product-click`(id). 얼굴·측정 수치는 싣지 않습니다. `features/analytics/track.ts`에 타입으로 고정되어 있습니다.
+
 ## 개발
 
 ```bash
@@ -114,16 +139,16 @@ pnpm build
 
 Next 16은 디렉토리당 dev 서버를 하나만 허용합니다. E2E는 3100 포트에 자체 dev 서버를 띄우므로 다른 dev 서버가 떠 있으면 먼저 내려야 합니다.
 
-OG 카드 문구를 바꿨으면 한글 서브셋 폰트를 다시 만듭니다 (카드에 쓰는 글자만 담아 약 35KB).
+OG 카드나 톤 설명 문구를 바꿨으면 한글 서브셋 폰트를 다시 만듭니다 (카드에 쓰는 글자만 담아 약 60KB).
 
 ```bash
 node -e '
 const fs=require("fs");
-const text=fs.readFileSync("src/features/recommend/palettes.ts","utf8")+fs.readFileSync("src/app/r/[season]/opengraph-image.tsx","utf8");
-const chars=[...new Set([...text].filter(c=>/[가-힣A-Za-z0-9·,.!?%&()\-\s]/.test(c)))].join("");
+const text=["src/features/recommend/palettes.ts","src/app/r/[tone]/opengraph-image.tsx","src/app/opengraph-image.tsx"].map(f=>fs.readFileSync(f,"utf8")).join("");
+const chars=[...new Set([...text].filter(c=>/[가-힣A-Za-z0-9·,.!?%&()\-\s:]/.test(c)))].join("");
 (async()=>{const css=await(await fetch(`https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700&text=${encodeURIComponent(chars)}`)).text();
 const url=css.match(/src: url\((.+?)\) format\(\x27(?:opentype|truetype)\x27\)/)[1];
-fs.writeFileSync("src/app/r/[season]/NotoSansKR-700-subset.ttf",Buffer.from(await(await fetch(url)).arrayBuffer()));})()'
+fs.writeFileSync("src/app/NotoSansKR-700-subset.ttf",Buffer.from(await(await fetch(url)).arrayBuffer()));})()'
 ```
 
 E2E fixture `e2e/fixtures/face.jpg`는 MediaPipe 공식 예제 이미지(미국 정부 공개 초상, 퍼블릭 도메인)입니다.
@@ -136,18 +161,12 @@ Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수�
 
 ## 수익화 연결
 
-**카카오 AdFit (결과 페이지 320×100 배너)**
-1. adfit.kakao.com에서 매체(웹사이트, 배포된 도메인) 등록 → 광고단위 생성(320×100) → `DAN-…` ID 발급.
-2. Vercel 환경변수 `NEXT_PUBLIC_ADFIT_UNIT_RESULT`에 그 ID를 넣고 재배포. 이 변수가 비어 있으면 placeholder가 보인다.
-3. AdFit은 스크립트가 실제로 광고 요청을 보내는 것을 확인한 뒤 심사한다(영업일 1~2일). 승인 전까지는 빈 영역으로 보인다.
-4. 광고 스크립트는 `AdSlot`이 마운트될 때 `<ins class="kakao_ad_area">`와 `ba.min.js`를 넣는 방식이라 결과 페이지에서만 로드되고, `/r/:path*` 전용 CSP(`next.config.ts`)가 카카오 도메인만 허용한다. 체험 페이지는 외부 연결이 전부 막힌 그대로다.
-
 **쿠팡 파트너스 (제품 카드 링크)**
 - 파트너스 ID는 `features/recommend/affiliate.ts`에 있다. 링크에 노출되는 공개값이다.
 - `products.json`의 각 항목은 `keyword`로 쿠팡 검색 결과 제휴 링크(`link.coupang.com/re/AFFSRP?lptag=…&subid=tonepick&pageKey=검색어`)를 만든다. 검색어는 `q`가 아니라 `pageKey`다. `q`는 쿠팡 홈으로 떨어진다. 특정 상품을 밀고 싶으면 콘솔에서 만든 상품 링크를 `url`에 넣으면 그게 우선한다. 카드의 `rel="sponsored"`와 결과 페이지의 수수료 고지 문구는 들어 있다.
 - 최종 승인(누적 판매 금액 기준, 콘솔 공지에서 확인)이 나야 정산과 Open API(상품 검색·딥링크)를 쓸 수 있다. API를 쓰게 되면 `getProducts`만 fetch로 바꾼다.
 
-개인정보처리방침은 `/privacy`에 있고 푸터에서 링크된다. 배포 전에 `src/app/privacy/page.tsx`의 연락처를 채운다.
+개인정보처리방침은 `/privacy`에 있고 푸터에서 링크된다. 수집하는 개인정보가 없어 연락처 대신 GitHub 이슈를 안내한다. 광고 네트워크는 붙이지 않았다.
 
 ## 데이터 교체
 

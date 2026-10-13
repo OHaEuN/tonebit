@@ -20,25 +20,6 @@ const strictCsp = [
   "frame-ancestors 'none'",
 ].join("; ");
 
-/**
- * 결과 페이지(/r)만 카카오 AdFit을 허용한다. 얼굴 데이터가 있는 /try는 strictCsp 그대로.
- * ponytail: 광고 소재 이미지는 출처가 제각각이라 img-src https:로 열어 뒀다. 광고가 빈 채로 나오면 콘솔의 CSP 오류를 보고 도메인을 넓힌다
- */
-const AD_HOSTS = "https://*.daum.net https://*.daumcdn.net https://*.kakao.com https://*.kakaocdn.net";
-const adsCsp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${AD_HOSTS}${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' blob: data: https:",
-  "media-src 'self' blob:",
-  `connect-src 'self' ${AD_HOSTS}${isDev ? " ws: wss:" : ""}`,
-  `frame-src ${AD_HOSTS}`,
-  "font-src 'self'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "frame-ancestors 'none'",
-].join("; ");
-
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
@@ -50,21 +31,19 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  /** Umami 분석 스크립트·수집 엔드포인트를 같은 오리진으로 프록시. 브라우저는 우리 도메인만 본다 */
+  async rewrites() {
+    return [
+      { source: "/stats/script.js", destination: "https://cloud.umami.is/script.js" },
+      { source: "/stats/api/send", destination: "https://cloud.umami.is/api/send" },
+    ];
+  },
   async headers() {
     return [
       {
-        // /r/* 를 제외한 전부. 같은 키의 덮어쓰기에 기대지 않고 매칭을 분리한다
-        source: "/((?!r/).*)",
+        source: "/(.*)",
         headers: [
           { key: "Content-Security-Policy", value: strictCsp },
-          { key: "Permissions-Policy", value: "camera=(self)" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-        ],
-      },
-      {
-        source: "/r/:path*",
-        headers: [
-          { key: "Content-Security-Policy", value: adsCsp },
           { key: "Permissions-Policy", value: "camera=(self)" },
           { key: "X-Content-Type-Options", value: "nosniff" },
         ],
