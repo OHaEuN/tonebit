@@ -1,6 +1,6 @@
 import type { Point, Rect } from "@/types/analysis";
-import { PATCH_RATIO, SCLERA_PATCH_RATIO } from "@/features/analysis/constants";
-import { CHEEK_AXES, EYE_CORNERS, EYE_OUTER_PAIR, IRIS_CENTERS, MOUTH_CENTER, MOUTH_CORNERS, MOUTH_VERTICAL, SKIN_CENTERS } from "./indices";
+import { PATCH_RATIO } from "@/features/analysis/constants";
+import { CHEEK_AXES, EYE_CORNERS, EYE_OUTER_PAIR, MOUTH_CENTER, MOUTH_CORNERS, MOUTH_VERTICAL, SKIN_CENTERS } from "./indices";
 
 /** 눈 바깥꼬리 사이 픽셀 거리. 얼굴 크기 기준 단위. */
 export function interocular(lm: Point[], w: number, h: number): number {
@@ -20,28 +20,6 @@ export function skinPatches(lm: Point[], w: number, h: number): Rect[] {
   return SKIN_CENTERS.map((i) =>
     clampRect({ x: lm[i].x * w - size / 2, y: lm[i].y * h - size / 2, w: size, h: size }, w, h),
   );
-}
-
-/**
- * 눈 흰자 패치. 홍채 중심과 양쪽 눈꼬리의 중간, 즉 홍채 바로 바깥 흰자에 작은 사각형을 둔다.
- * 홍채 점(468~477)이 없는 모델이면 빈 배열
- */
-export function scleraPatches(lm: Point[], w: number, h: number): Rect[] {
-  if (lm.length <= Math.max(...IRIS_CENTERS)) return [];
-  const size = Math.max(3, Math.round(interocular(lm, w, h) * SCLERA_PATCH_RATIO));
-  const irises = IRIS_CENTERS.map((i) => lm[i]);
-  return EYE_CORNERS.flatMap((corners) => {
-    const mid = { x: (lm[corners[0]].x + lm[corners[1]].x) / 2, y: (lm[corners[0]].y + lm[corners[1]].y) / 2 };
-    // 홍채 점의 좌우 번호 규칙에 기대지 않고, 이 눈 가운데에 더 가까운 홍채를 쓴다
-    const iris = irises.reduce((best, p) => (Math.hypot(p.x - mid.x, p.y - mid.y) < Math.hypot(best.x - mid.x, best.y - mid.y) ? p : best));
-    return corners.map((c) =>
-      clampRect(
-        { x: ((iris.x + lm[c].x) / 2) * w - size / 2, y: ((iris.y + lm[c].y) / 2) * h - size / 2, w: size, h: size },
-        w,
-        h,
-      ),
-    );
-  });
 }
 
 const px = (p: Point, w: number, h: number): Point => ({ x: p.x * w, y: p.y * h });
@@ -68,6 +46,21 @@ export function mouthFrame(lm: Point[], w: number, h: number): { center: Point; 
     height: Math.hypot(bottom.x - top.x, bottom.y - top.y),
     angle: Math.atan2(r.y - l.y, r.x - l.x),
   };
+}
+
+/** 랜드마크 bbox (정규화 좌표 0~1) */
+export function faceBounds(lm: Point[]): { minX: number; maxX: number; minY: number; maxY: number } {
+  let minX = 1;
+  let maxX = 0;
+  let minY = 1;
+  let maxY = 0;
+  for (const p of lm) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minY = Math.min(minY, p.y);
+    maxY = Math.max(maxY, p.y);
+  }
+  return { minX, maxX, minY, maxY };
 }
 
 /** 얼굴 bbox 폭 / 프레임 폭 */

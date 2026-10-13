@@ -13,59 +13,59 @@ function labOf(hueDeg: number, itaDeg: number, c: number): Lab {
 
 describe("classifyTone", () => {
   it("웜 + light → 봄", () => {
-    const r = classifyTone(labOf(65, 50, 22));
+    const r = classifyTone(labOf(60, 35, 26));
     expect(r.season).toBe("spring");
     expect(r.undertone).toBe("warm");
     expect(r.confidence).toBe("high");
   });
 
   it("웜 + deep → 가을", () => {
-    expect(classifyTone(labOf(65, 30, 18)).season).toBe("autumn");
+    expect(classifyTone(labOf(60, 0, 20)).season).toBe("autumn");
   });
 
   it("쿨 + light → 여름", () => {
-    expect(classifyTone(labOf(45, 50, 18)).season).toBe("summer");
+    expect(classifyTone(labOf(44, 35, 20)).season).toBe("summer");
   });
 
   it("쿨 + deep → 겨울", () => {
-    expect(classifyTone(labOf(45, 30, 24)).season).toBe("winter");
+    expect(classifyTone(labOf(44, 0, 28)).season).toBe("winter");
   });
 
   it("뉴트럴은 채도로 가르고 확신도는 low", () => {
-    const lightClear = classifyTone(labOf(55, 50, 24));
+    const lightClear = classifyTone(labOf(50.5, 35, 28));
     expect(lightClear.undertone).toBe("neutral");
     expect(lightClear.season).toBe("spring");
     expect(lightClear.confidence).toBe("low");
-    expect(classifyTone(labOf(55, 50, 16)).season).toBe("summer");
-    expect(classifyTone(labOf(55, 30, 16)).season).toBe("autumn");
-    expect(classifyTone(labOf(55, 30, 24)).season).toBe("winter");
+    expect(classifyTone(labOf(50.5, 35, 18)).season).toBe("summer");
+    expect(classifyTone(labOf(50.5, 0, 18)).season).toBe("autumn");
+    expect(classifyTone(labOf(50.5, 0, 28)).season).toBe("winter");
   });
 
-  it("임계값 경계: hue 57은 웜, 53은 쿨, ITA 41은 light", () => {
-    expect(classifyTone(labOf(57.01, 60, 20)).undertone).toBe("warm");
-    expect(classifyTone(labOf(52.99, 60, 20)).undertone).toBe("cool");
-    expect(classifyTone(labOf(65, 41.01, 20)).depth).toBe("light");
-    expect(classifyTone(labOf(65, 40.9, 20)).depth).toBe("deep");
+  it("임계값 경계: hue 52.5는 웜, 48.5는 쿨, ITA 17은 light", () => {
+    expect(classifyTone(labOf(52.51, 40, 24)).undertone).toBe("warm");
+    expect(classifyTone(labOf(48.49, 40, 24)).undertone).toBe("cool");
+    expect(classifyTone(labOf(60, 17.01, 24)).depth).toBe("light");
+    expect(classifyTone(labOf(60, 16.9, 24)).depth).toBe("deep");
   });
 
   it("12시즌: 시즌 안에서 가장 두드러진 축이 세부 타입이 된다", () => {
-    expect(classifyTone(labOf(60, 58, 21)).subtype).toBe("light");
-    expect(classifyTone(labOf(60, 44, 30)).subtype).toBe("bright");
-    expect(classifyTone(labOf(70, 44, 21)).subtype).toBe("true");
-    expect(classifyTone(labOf(45, 50, 10)).subtype).toBe("soft");
-    expect(classifyTone(labOf(60, 20, 18)).subtype).toBe("deep");
-    expect(classifyTone(labOf(50, 35, 34)).tone).toBe("winter-bright");
+    expect(classifyTone(labOf(56, 55, 25)).subtype).toBe("light");
+    expect(classifyTone(labOf(56, 25, 32)).subtype).toBe("bright");
+    expect(classifyTone(labOf(64, 25, 25)).subtype).toBe("true");
+    expect(classifyTone(labOf(44, 30, 18)).subtype).toBe("soft");
+    expect(classifyTone(labOf(56, -15, 23)).subtype).toBe("deep");
+    expect(classifyTone(labOf(44, 0, 28)).tone).toBe("winter-bright");
   });
 
   it("시즌에 없는 세부 타입은 나오지 않는다", () => {
-    const spring = classifyTone(labOf(65, 44, 14));
+    const spring = classifyTone(labOf(60, 22, 18));
     expect(spring.season).toBe("spring");
     expect(["light", "bright", "true"]).toContain(spring.subtype);
   });
 
   it("임계값에 가까우면 확신도가 내려간다", () => {
-    expect(classifyTone(labOf(59, 60, 20)).confidence).toBe("mid");
-    expect(classifyTone(labOf(58, 60, 20)).confidence).toBe("low");
-    expect(classifyTone(labOf(65, 43, 20)).confidence).toBe("low");
+    expect(classifyTone(labOf(55, 60, 24)).confidence).toBe("mid");
+    expect(classifyTone(labOf(54, 60, 24)).confidence).toBe("low");
+    expect(classifyTone(labOf(65, 21, 24)).confidence).toBe("low");
   });
 });

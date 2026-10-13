@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lumaStats, meanRgb, median, medianLab, representativeLab, scleraWhite } from "./sample";
+import { lumaStats, meanLinearRgbMasked, meanRgb, median, medianLab, representativeLab } from "./sample";
 
 function pixels(rgbs: [number, number, number][]): number[] {
   return rgbs.flatMap(([r, g, b]) => [r, g, b, 255]);
@@ -65,23 +65,16 @@ describe("조명 통계", () => {
   });
 });
 
-describe("scleraWhite", () => {
-  const WHITE: [number, number, number] = [228, 220, 212];
-  const IRIS: [number, number, number] = [60, 40, 30];
-
-  it("홍채·속눈썹이 섞여도 밝은 흰자 쪽 색을 돌려준다", () => {
-    const w = scleraWhite(pixels([...Array(20).fill(WHITE), ...Array(20).fill(IRIS)]))!;
-    expect(w.r).toBeGreaterThan(w.g);
-    expect(w.g).toBeGreaterThan(w.b);
-    expect(w.g).toBeGreaterThan(0.6);
+describe("meanLinearRgbMasked", () => {
+  it("마스크 안 픽셀만 평균한다 (선형 RGB)", () => {
+    // 4×10 버퍼: 왼쪽 두 열은 흰색, 오른쪽 두 열은 검정. 오른쪽(x ≥ 2)은 빼고 잰다
+    const buf = pixels(Array.from({ length: 40 }, (_, i) => (i % 4 < 2 ? [255, 255, 255] : [0, 0, 0])));
+    const m = meanLinearRgbMasked(buf, 4, (x) => x < 2)!;
+    expect(m.r).toBeCloseTo(1, 6);
   });
 
-  it("밝은 쪽이 하얗게 날아갔으면 실제 밝기를 알 수 없어 null", () => {
-    expect(scleraWhite(pixels([...Array(20).fill([255, 255, 255]), ...Array(20).fill(IRIS)]))).toBeNull();
-  });
-
-  it("픽셀이 너무 적으면 null", () => {
-    expect(scleraWhite(pixels(Array(5).fill(WHITE)))).toBeNull();
+  it("해당 픽셀이 너무 적으면 null", () => {
+    expect(meanLinearRgbMasked(pixels(Array(40).fill([10, 10, 10])), 4, () => false)).toBeNull();
   });
 });
 

@@ -19,43 +19,40 @@ export const PATCH_RATIO = 0.25;
 /** 측정 시 모으는 프레임 수. 30fps 기준 약 0.7초 */
 export const MEASURE_FRAMES = 20;
 
-// ---- 조명 보정 (눈 흰자 기준) ----
-/** 흰자 패치에서 휘도 이 분위수 이상만 흰자로 본다. 홍채·속눈썹·눈꺼풀 그늘을 뺀다 */
-export const SCLERA_BRIGHT_QUANTILE = 0.6;
-/** 흰자 패치(양 눈 합계)에서 최소한 필요한 픽셀 수 */
-export const SCLERA_MIN_PIXELS = 16;
-/** 흰자 후보 중 하얗게 날아간 픽셀이 이 비율을 넘으면 밝기를 알 수 없어 보정하지 않는다 */
-export const SCLERA_MAX_CLIPPED = 0.15;
+// ---- 조명 보정 (배경 기준) ----
 /**
- * 흰자는 피부보다 이만큼은 밝고(휘도 비), 피부는 흰자보다 이만큼은 붉어야((R/B) 비) 흰자로 믿는다.
- * 눈이 작거나 감겨 피부·눈꺼풀이 잡힌 경우를 거른다. 둘 다 조명 색·밝기가 바뀌어도 변하지 않는 비율이다
+ * 얼굴 밖 배경의 평균 선형 RGB가 이 값(조명 중립·적정 노출)이 되도록 피부에 게인을 곱한다.
+ * FairFace 동아시아인 사진 1,281장 배경의 중앙값이다. r·g·b는 휘도 1 기준의 색 비율, y는 휘도
  */
-export const SCLERA_MIN_CONTRAST = 1.1;
-export const SKIN_MIN_REDNESS_OVER_SCLERA = 1.05;
-/** 흰자 패치 한 변 = 눈 바깥꼬리 거리 × 이 비율 */
-export const SCLERA_PATCH_RATIO = 0.035;
+export const SCENE_REFERENCE = { r: 1.289, g: 0.936, b: 0.759, y: 0.132 } as const;
 /**
- * 기준 조명(자연광, 적정 노출)에서 흰자가 보이는 선형 RGB. CIELAB (78, 2, 6)에 해당한다.
- * 흰자는 완전한 무채색이 아니라 살짝 노랗고 붉은 기가 있어서 무채색 대신 이 색으로 맞춘다
+ * 보정 세기(로그 공간 비율). 배경 색은 조명뿐 아니라 벽·옷 색도 섞여 있어서 절반만 되돌린다.
+ * FairFace에서 0.5일 때 조명 변형에 대한 시즌 일치율이 73% → 84%로 오르면서 사람 간 분산은 늘지 않았다
  */
-export const SCLERA_REFERENCE = { r: 0.587, g: 0.522, b: 0.467 } as const;
-/** 보정 게인 한계. 흰자가 잘못 잡혔을 때 결과가 크게 망가지지 않게 */
-export const EXPOSURE_GAIN_RANGE = [0.5, 2.2] as const;
-export const COLOR_GAIN_RANGE = [0.7, 1.45] as const;
+export const SCENE_STRENGTH = 0.5;
+/** 게인 한계. 배경이 거의 검거나 하얗게 날아간 사진에서 결과가 튀지 않게 */
+export const SCENE_GAIN_RANGE = [0.5, 2] as const;
+/** 배경 평균을 낼 축소 해상도 */
+export const SCENE_THUMB = { w: 64, h: 64 } as const;
 
 // ---- 판정 ----
-/** 웜/쿨: Lab hue angle(°). 동아시아 피부 평균 h≈57°를 중심으로 ±2° 뉴트럴 구간 */
-export const HUE_WARM_MIN = 57;
-export const HUE_COOL_MAX = 53;
-/** 명/암: ITA°. Del Bino(2013) light/intermediate 경계 */
-export const ITA_LIGHT_MIN = 41;
-/** 선명/뮤트: chroma C*. 피부 C* 16~24의 중앙 */
-export const CHROMA_CLEAR_MIN = 20;
+/**
+ * 임계값은 FairFace 동아시아인 사진(10세 이상 1,281장, 얼굴 인식 1,075장)을 배경 보정한 뒤 잰 분포의 중앙값이다.
+ * 이전 값(웜 57°·ITA 41°·C* 20, 분광측색 문헌 기준)은 카메라 사진에선 한쪽으로 쏠려 55%가 겨울로 나왔다.
+ * 지금 값으로 네 시즌이 20~30%씩 고르게 나뉜다
+ */
+/** 웜/쿨: Lab hue angle(°). 중앙값 50.5°를 중심으로 ±2° 뉴트럴 구간 */
+export const HUE_WARM_MIN = 52.5;
+export const HUE_COOL_MAX = 48.5;
+/** 명/암: ITA°. 배경 보정 공간에서의 중앙값 */
+export const ITA_LIGHT_MIN = 17;
+/** 선명/뮤트: chroma C*. 중앙값 */
+export const CHROMA_CLEAR_MIN = 24;
 /**
  * 각 축에서 "충분히 떨어졌다"고 보는 거리. 확신도와 12시즌 세부 타입 판정에 같이 쓴다.
- * hue ±4°는 카메라 WB 흔들림 폭, ITA 6°와 chroma 4는 각 분포 폭의 절반
+ * 각 지표의 사분위 범위(IQR)의 1/4이다
  */
-export const AXIS_MARGIN = { hue: 4, ita: 6, chroma: 4 } as const;
+export const AXIS_MARGIN = { hue: 4, ita: 15, chroma: 3 } as const;
 
 // ---- 조명 체크 ----
 export const LIGHT_LUMA_MIN = 70;
