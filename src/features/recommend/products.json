@@ -1,10 +1,10 @@
 [
   { "id": "lip-romand-05", "category": "lip", "brand": "롬앤", "name": "쥬시 래스팅 틴트", "shade": "05 피치 미", "hex": "#F28A77", "finish": "glossy", "seasons": ["spring"], "keyword": "롬앤 쥬시래스팅틴트 05 피치미" },
   { "id": "lip-romand-09", "category": "lip", "brand": "롬앤", "name": "쥬시 래스팅 틴트", "shade": "09 리치 코랄", "hex": "#EE7A6E", "finish": "glossy", "seasons": ["spring"], "keyword": "롬앤 쥬시래스팅틴트 09 리치코랄" },
-  { "id": "lip-mac-ladydanger", "category": "lip", "brand": "맥", "name": "립스틱", "shade": "레이디 데인저", "hex": "#E64A2E", "finish": "matte", "seasons": ["spring"], "keyword": "맥 립스틱 레이디 데인저" },
-  { "id": "lip-dior-004", "category": "lip", "brand": "디올", "name": "어딕트 립 글로우", "shade": "004 코랄", "hex": "#F49A8A", "finish": "glossy", "seasons": ["spring"], "keyword": "디올 어딕트 립글로우 004 코랄" },
+  { "id": "lip-mac-ladydanger", "category": "lip", "brand": "맥", "name": "립스틱", "shade": "레이디 데인저", "hex": "#DE5A42", "finish": "matte", "seasons": ["spring"], "keyword": "맥 립스틱 레이디 데인저" },
+  { "id": "lip-dior-004", "category": "lip", "brand": "디올", "name": "어딕트 립 글로우", "shade": "004 코랄", "hex": "#EFA093", "finish": "glossy", "seasons": ["spring"], "keyword": "디올 어딕트 립글로우 004 코랄" },
   { "id": "lip-romand-25", "category": "lip", "brand": "롬앤", "name": "쥬시 래스팅 틴트", "shade": "25 베어 그레이프", "hex": "#B8718E", "finish": "glossy", "seasons": ["summer"], "keyword": "롬앤 쥬시래스팅틴트 25 베어그레이프" },
-  { "id": "lip-dior-001", "category": "lip", "brand": "디올", "name": "어딕트 립 글로우", "shade": "001 핑크", "hex": "#E9A3B8", "finish": "glossy", "seasons": ["summer"], "keyword": "디올 어딕트 립글로우 001 핑크" },
+  { "id": "lip-dior-001", "category": "lip", "brand": "디올", "name": "어딕트 립 글로우", "shade": "001 핑크", "hex": "#E6A8B9", "finish": "glossy", "seasons": ["summer"], "keyword": "디올 어딕트 립글로우 001 핑크" },
   { "id": "lip-mac-mehr", "category": "lip", "brand": "맥", "name": "립스틱", "shade": "미디", "hex": "#B4607A", "finish": "matte", "seasons": ["summer"], "keyword": "맥 립스틱 미디" },
   { "id": "lip-3ce-nearanddear", "category": "lip", "brand": "3CE", "name": "벨벳 립 틴트", "shade": "니어 앤 디어", "hex": "#CF6E86", "finish": "velvet", "seasons": ["summer"], "keyword": "3CE 벨벳 립틴트 니어앤디어" },
   { "id": "lip-mac-chili", "category": "lip", "brand": "맥", "name": "립스틱", "shade": "칠리", "hex": "#A83A2C", "finish": "matte", "seasons": ["autumn"], "keyword": "맥 립스틱 칠리" },
@@ -12,9 +12,9 @@
   { "id": "lip-romand-06", "category": "lip", "brand": "롬앤", "name": "쥬시 래스팅 틴트", "shade": "06 피그 피그", "hex": "#B35B5E", "finish": "glossy", "seasons": ["autumn"], "keyword": "롬앤 쥬시래스팅틴트 06 피그피그" },
   { "id": "lip-peripera-01", "category": "lip", "brand": "페리페라", "name": "잉크 더 벨벳", "shade": "01 굿 브릭", "hex": "#B2423B", "finish": "velvet", "seasons": ["autumn"], "keyword": "페리페라 잉크더벨벳 01 굿브릭" },
   { "id": "lip-romand-20", "category": "lip", "brand": "롬앤", "name": "쥬시 래스팅 틴트", "shade": "20 다크 코코넛", "hex": "#86443C", "finish": "glossy", "seasons": ["autumn"], "keyword": "롬앤 쥬시래스팅틴트 20 다크코코넛" },
-  { "id": "lip-mac-rubywoo", "category": "lip", "brand": "맥", "name": "립스틱", "shade": "루비 우", "hex": "#C41E3A", "finish": "matte", "seasons": ["winter"], "keyword": "맥 립스틱 루비우" },
-  { "id": "lip-romand-12", "category": "lip", "brand": "롬앤", "name": "쥬시 래스팅 틴트", "shade": "12 체리 밤", "hex": "#C8203F", "finish": "glossy", "seasons": ["winter"], "keyword": "롬앤 쥬시래스팅틴트 12 체리밤" },
-  { "id": "lip-ysl-slim21", "category": "lip", "brand": "입생로랑", "name": "루쥬 뽀 꾸뛰르 더 슬림", "shade": "21 루즈 파라독스", "hex": "#A5132F", "finish": "matte", "seasons": ["winter"], "keyword": "입생로랑 더슬림 21 루즈파라독스" },
+  { "id": "lip-mac-rubywoo", "category": "lip", "brand": "맥", "name": "립스틱", "shade": "루비 우", "hex": "#C22A40", "finish": "matte", "seasons": ["winter"], "keyword": "맥 립스틱 루비우" },
+  { "id": "lip-romand-12", "category": "lip", "brand": "롬앤", "name": "쥬시 래스팅 틴트", "shade": "12 체리 밤", "hex": "#C53A4E", "finish": "glossy", "seasons": ["winter"], "keyword": "롬앤 쥬시래스팅틴트 12 체리밤" },
+  { "id": "lip-ysl-slim21", "category": "lip", "brand": "입생로랑", "name": "루쥬 뽀 꾸뛰르 더 슬림", "shade": "21 루즈 파라독스", "hex": "#A2283A", "finish": "matte", "seasons": ["winter"], "keyword": "입생로랑 더슬림 21 루즈파라독스" },
   { "id": "lip-mac-diva", "category": "lip", "brand": "맥", "name": "립스틱", "shade": "디바", "hex": "#722432", "finish": "matte", "seasons": ["winter"], "keyword": "맥 립스틱 디바" },
   { "id": "blush-nars-orgasm", "category": "blush", "brand": "나스", "name": "블러쉬", "shade": "오가즘", "hex": "#F0A08E", "finish": "powder", "seasons": ["spring", "summer"], "keyword": "나스 블러쉬 오가즘" },
   { "id": "blush-mac-melba", "category": "blush", "brand": "맥", "name": "파우더 블러쉬", "shade": "멜바", "hex": "#F19B86", "finish": "powder", "seasons": ["spring"], "keyword": "맥 파우더 블러쉬 멜바" },
@@ -23,5 +23,5 @@
   { "id": "blush-clinique-berry", "category": "blush", "brand": "클리니크", "name": "치크 팝", "shade": "베리 팝", "hex": "#D4607E", "finish": "powder", "seasons": ["summer", "winter"], "keyword": "클리니크 치크팝 베리팝" },
   { "id": "blush-nars-douceur", "category": "blush", "brand": "나스", "name": "블러쉬", "shade": "도이스", "hex": "#C9867E", "finish": "powder", "seasons": ["autumn", "summer"], "keyword": "나스 블러쉬 도이스" },
   { "id": "blush-clinique-ginger", "category": "blush", "brand": "클리니크", "name": "치크 팝", "shade": "진저 팝", "hex": "#D8846A", "finish": "powder", "seasons": ["autumn"], "keyword": "클리니크 치크팝 진저팝" },
-  { "id": "blush-dior-999", "category": "blush", "brand": "디올", "name": "루즈 블러쉬", "shade": "999", "hex": "#D23545", "finish": "powder", "seasons": ["winter"], "keyword": "디올 루즈 블러쉬 999" }
+  { "id": "blush-dior-999", "category": "blush", "brand": "디올", "name": "루즈 블러쉬", "shade": "999", "hex": "#D5505A", "finish": "powder", "seasons": ["winter"], "keyword": "디올 루즈 블러쉬 999" }
 ]

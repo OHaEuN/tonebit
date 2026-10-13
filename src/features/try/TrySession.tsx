@@ -12,6 +12,7 @@ import { AdvancedPanel } from "./AdvancedPanel";
 import { LightingBadges } from "./LightingBadges";
 import { ResultPanel } from "./ResultPanel";
 import { UploadButton } from "./UploadButton";
+import { useIsMobile } from "./useIsMobile";
 import { useStillAnalysis } from "./useStillAnalysis";
 import { useTryOnLoop } from "./useTryOnLoop";
 
@@ -26,7 +27,8 @@ const BUTTON = "rounded-full px-5 py-3 font-medium focus-visible:outline-2 focus
 export function TrySession() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { status: modelStatus, landmarkerRef } = useFaceLandmarker();
+  const { status: modelStatus, error: modelError, landmarkerRef, retry } = useFaceLandmarker();
+  const isMobile = useIsMobile();
   const camera = useCameraStream(videoRef);
   const still = useStillAnalysis({ canvasRef, landmarkerRef });
 
@@ -80,7 +82,7 @@ export function TrySession() {
           <PrivacyNote />
           <p role="status" aria-live="polite" className="text-sm text-muted">
             {modelStatus === "loading" && "얼굴 인식 모듈을 불러오는 중이에요 (최초 1회, 약 10MB)"}
-            {modelStatus === "error" && "얼굴 인식 모듈을 불러오지 못했어요. 새로고침해 주세요."}
+            {modelStatus === "error" && "얼굴 인식 모듈을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해 주세요."}
             {modelReady && "준비됐어요. 자연광 아래, 정면을 비춰 주세요."}
           </p>
           {cameraFailed && (
@@ -88,18 +90,45 @@ export function TrySession() {
               {CAMERA_MESSAGES[camera.status as keyof typeof CAMERA_MESSAGES]}
             </p>
           )}
-          <div className="flex flex-wrap gap-2">
-            {camera.status !== "unsupported" && (
-              <button
-                type="button"
-                onClick={startCamera}
-                disabled={!modelReady || camera.status === "requesting"}
-                className={`${BUTTON} bg-accent text-white hover:opacity-90`}
-              >
-                {camera.status === "requesting" ? "카메라 여는 중…" : "카메라로 시작"}
+          {modelStatus === "error" && (
+            <>
+              <button type="button" onClick={retry} className={`${BUTTON} border border-line bg-card hover:bg-accent-soft`}>
+                다시 시도
               </button>
+              {modelError && <p className="break-all font-mono text-xs text-muted">{modelError}</p>}
+            </>
+          )}
+          {/* 모바일은 파일 선택창이 곧 카메라·앨범 선택이라 그걸 기본으로. 실시간 카메라는 보조 */}
+          <div className="flex flex-wrap gap-2">
+            {isMobile ? (
+              <>
+                <UploadButton disabled={!modelReady} onFile={uploadFile} variant="primary" label="사진으로 시작하기" />
+                {camera.status !== "unsupported" && (
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    disabled={!modelReady || camera.status === "requesting"}
+                    className={`${BUTTON} border border-line bg-card hover:bg-accent-soft`}
+                  >
+                    {camera.status === "requesting" ? "카메라 여는 중…" : "실시간 카메라로"}
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                {camera.status !== "unsupported" && (
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    disabled={!modelReady || camera.status === "requesting"}
+                    className={`${BUTTON} bg-accent text-white hover:opacity-90`}
+                  >
+                    {camera.status === "requesting" ? "카메라 여는 중…" : "카메라로 시작"}
+                  </button>
+                )}
+                <UploadButton disabled={!modelReady} onFile={uploadFile} variant={cameraFailed ? "primary" : "secondary"} />
+              </>
             )}
-            <UploadButton disabled={!modelReady} onFile={uploadFile} variant={cameraFailed ? "primary" : "secondary"} />
           </div>
         </section>
       )}

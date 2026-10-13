@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { track } from "@/features/analytics/track";
-import type { LightingIssue, ToneResult } from "@/types/analysis";
-import type { BlendPreset } from "@/features/lipTryOn/render";
+import type { LightingIssue, Season, ToneResult } from "@/types/analysis";
+import { DEFAULT_INTENSITY, type BlendPreset } from "@/features/lipTryOn/render";
 
 export type Stage = "setup" | "live" | "measuring" | "done";
 export type Source = "camera" | "image";
@@ -17,6 +17,10 @@ interface AnalysisState {
   lipId: string | null;
   blushId: string | null;
   blend: BlendPreset;
+  /** 발색 진하기 0~1 */
+  intensity: number;
+  /** 발라볼 팔레트의 시즌. null이면 진단된 시즌 */
+  paletteSeason: Season | null;
   debug: boolean;
   fps: number;
 
@@ -31,6 +35,8 @@ interface AnalysisState {
   selectLip: (id: string | null) => void;
   selectBlush: (id: string | null) => void;
   setBlend: (b: BlendPreset) => void;
+  setIntensity: (v: number) => void;
+  setPaletteSeason: (s: Season | null) => void;
   setDebug: (on: boolean) => void;
   setFps: (fps: number) => void;
   reset: () => void;
@@ -46,6 +52,8 @@ const initial = {
   lipId: null,
   blushId: null,
   blend: "natural" as BlendPreset,
+  intensity: DEFAULT_INTENSITY,
+  paletteSeason: null,
   debug: false,
   fps: 0,
 };
@@ -61,7 +69,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     track({ name: "measure-done", tone: result.tone, confidence: result.confidence, source: get().source ?? "camera" });
     set({ result, stage: "done", progress: 1 });
   },
-  remeasure: () => set({ stage: "live", result: null, lipId: null, blushId: null, progress: 0 }),
+  remeasure: () => set({ stage: "live", result: null, lipId: null, blushId: null, paletteSeason: null, progress: 0 }),
   selectLip: (lipId) => {
     if (lipId) track({ name: "swatch-select", kind: "lip", product: lipId.startsWith("lip-") });
     set({ lipId });
@@ -71,6 +79,8 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     set({ blushId });
   },
   setBlend: (blend) => set({ blend }),
+  setIntensity: (intensity) => set({ intensity }),
+  setPaletteSeason: (paletteSeason) => set({ paletteSeason }),
   setDebug: (debug) => set({ debug }),
   setFps: (fps) => set({ fps }),
   reset: () => set(initial),

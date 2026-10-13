@@ -6,6 +6,8 @@ interface UploadButtonProps {
   disabled?: boolean;
   onFile: (file: File) => void;
   variant?: "primary" | "secondary";
+  /** 모바일은 이 버튼 하나가 카메라·앨범 선택창을 띄운다 */
+  label?: string;
 }
 
 const STYLES = {
@@ -14,7 +16,7 @@ const STYLES = {
 } as const;
 
 /** capture 속성을 안 붙여야 iOS에서 '사진 보관함'도 고를 수 있다 */
-export function UploadButton({ disabled = false, onFile, variant = "secondary" }: UploadButtonProps) {
+export function UploadButton({ disabled = false, onFile, variant = "secondary", label = "사진 올리기" }: UploadButtonProps) {
   const id = useId();
   return (
     <>
@@ -34,7 +36,7 @@ export function UploadButton({ disabled = false, onFile, variant = "secondary" }
         htmlFor={id}
         className={`inline-flex cursor-pointer items-center justify-center rounded-full px-5 py-3 font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-50 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent ${STYLES[variant]}`}
       >
-        사진 올리기
+        {label}
       </label>
     </>
   );

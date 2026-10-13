@@ -11,22 +11,27 @@ export type BlendPreset = "natural" | "multiply" | "softLight";
  * soft-light 단독은 진한 색이 잘 안 묻는다. 고급 패널에서 눈으로 비교할 수 있다.
  */
 export const BLEND_PRESETS: Record<BlendPreset, { label: string; passes: [GlobalCompositeOperation, number][] }> = {
-  natural: { label: "자연스럽게 (color + multiply)", passes: [["color", 0.75], ["multiply", 0.3]] },
-  multiply: { label: "multiply", passes: [["multiply", 0.7]] },
+  natural: { label: "자연스럽게 (color + multiply)", passes: [["color", 0.9], ["multiply", 0.35]] },
+  multiply: { label: "multiply", passes: [["multiply", 1]] },
   softLight: { label: "soft-light", passes: [["soft-light", 1]] },
 };
+
+/** 진하기 기본값. 틴트 한 번 바른 정도 */
+export const DEFAULT_INTENSITY = 0.6;
 
 export interface OverlayOptions {
   lip: string | null;
   blush: string | null;
   blend: BlendPreset;
+  /** 0~1. 프리셋 알파에 곱한다 */
+  intensity: number;
   debug: boolean;
 }
 
 /** 페더링 반경은 얼굴 크기에 비례. 눈 거리 150px이면 약 2px */
 const FEATHER_RATIO = 0.015;
 const BLUSH_RADIUS_RATIO = 0.3;
-const BLUSH_ALPHA = 0.45;
+const BLUSH_ALPHA = 0.5;
 
 function tracePath(ctx: CanvasRenderingContext2D, lm: Point[], ring: readonly number[], w: number, h: number) {
   ring.forEach((i, k) => {
@@ -64,12 +69,12 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${hexToRgb(hex).join(", ")}, ${alpha})`;
 }
 
-function drawBlush(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: number, color: string, radius: number) {
+function drawBlush(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: number, color: string, radius: number, intensity: number) {
   ctx.save();
   ctx.globalCompositeOperation = "multiply";
   for (const c of cheekCenters(lm, w, h)) {
     const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, radius);
-    g.addColorStop(0, hexToRgba(color, BLUSH_ALPHA));
+    g.addColorStop(0, hexToRgba(color, BLUSH_ALPHA * intensity));
     g.addColorStop(1, hexToRgba(color, 0));
     ctx.fillStyle = g;
     ctx.fillRect(c.x - radius, c.y - radius, radius * 2, radius * 2);
@@ -101,13 +106,13 @@ export function drawOverlays(
   opts: OverlayOptions,
 ) {
   const unit = interocular(lm, w, h);
-  if (opts.blush) drawBlush(ctx, lm, w, h, opts.blush, unit * BLUSH_RADIUS_RATIO);
+  if (opts.blush) drawBlush(ctx, lm, w, h, opts.blush, unit * BLUSH_RADIUS_RATIO, opts.intensity);
   if (opts.lip) {
     drawLipMask(mask, lm, w, h, opts.lip, Math.max(1, unit * FEATHER_RATIO));
     ctx.save();
     for (const [op, alpha] of BLEND_PRESETS[opts.blend].passes) {
       ctx.globalCompositeOperation = op;
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = alpha * opts.intensity;
       ctx.drawImage(mask.canvas, 0, 0);
     }
     ctx.restore();

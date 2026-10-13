@@ -8,7 +8,8 @@ const isDev = process.env.NODE_ENV === "development";
  */
 const strictCsp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""}`,
+  // 'unsafe-eval'은 'wasm-unsafe-eval'을 모르거나(구형 iOS) 무시하는 WebKit 버전의 wasm 컴파일 차단을 피하기 위한 보강
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "media-src 'self' blob:",

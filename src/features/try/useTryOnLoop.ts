@@ -8,7 +8,7 @@ import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, T
 import { medianLab } from "@/features/analysis/sample";
 import { classifyTone } from "@/features/analysis/tone";
 import { drawOverlays } from "@/features/lipTryOn/render";
-import { findSwatch } from "@/features/recommend/palettes";
+import { findSwatchById } from "@/features/recommend/palettes";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
 const LIGHTING_EVERY_N_FRAMES = 10;
@@ -75,11 +75,11 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
             samples = [];
           }
         }
-        const season = store.result?.season;
         drawOverlays(ctx, mask, landmarks, w, h, {
-          lip: season ? (findSwatch(season, "lips", store.lipId)?.hex ?? null) : null,
-          blush: season ? (findSwatch(season, "blushes", store.blushId)?.hex ?? null) : null,
+          lip: findSwatchById("lips", store.lipId)?.hex ?? null,
+          blush: findSwatchById("blushes", store.blushId)?.hex ?? null,
           blend: store.blend,
+          intensity: store.intensity,
           debug: store.debug,
         });
       }
