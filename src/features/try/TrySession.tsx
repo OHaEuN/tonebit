@@ -41,6 +41,7 @@ export function TrySession() {
   const begin = useAnalysisStore((s) => s.begin);
   const startMeasuring = useAnalysisStore((s) => s.startMeasuring);
   const reset = useAnalysisStore((s) => s.reset);
+  const measureMore = useAnalysisStore((s) => s.measureMore);
 
   useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active: camera.status === "active" && source === "camera" });
 
@@ -60,6 +61,8 @@ export function TrySession() {
     track({ name: "try-start", source: "image" });
     void still.analyze(file);
   };
+
+  const addPhoto = (file: File) => void still.analyze(file, true);
 
   const restart = () => {
     camera.stop();
@@ -182,7 +185,7 @@ export function TrySession() {
 
         {stage === "done" && (
           <>
-            <ResultPanel />
+            <ResultPanel onAddPhoto={addPhoto} onMeasureMore={measureMore} />
             {lighting.length > 0 && (
               <p className="text-xs text-muted">
                 조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. 배경 색으로 조명을 일부 보정했지만 결과가 평소와 다를 수 있어요.
