@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Disclaimer } from "@/components/Disclaimer";
-import { DrapeHero, type DrapeSeason } from "@/components/DrapeHero";
 import { SEASON_INFO, SEASONS } from "@/features/recommend/palettes";
 
 const STEPS = [
@@ -9,18 +8,8 @@ const STEPS = [
   { title: "입술과 볼에 발라 봐요", body: "시즌 팔레트와 많이 찾는 립·블러셔 제품의 색을 실시간으로 얹어 보고, 결과 카드를 공유해요." },
 ];
 
-/** 히어로 드레이프·얼굴에 쓰는 시즌별 색. 팔레트 전체를 클라이언트로 보내지 않게 필요한 값만 추린다 */
-const HERO_SEASONS: DrapeSeason[] = SEASONS.map((season) => {
-  const info = SEASON_INFO[season];
-  return {
-    key: season,
-    label: `${info.label} ${info.tone}`,
-    accent: info.accent,
-    lip: info.lips[0].hex,
-    blush: info.blushes[0].hex,
-    drape: `linear-gradient(180deg, ${info.lips[1].hex} 0%, ${info.lips[0].hex} 48%, ${info.lips[3].hex} 100%)`,
-  };
-});
+/** 드레이프 각도. 가운데 두 장이 안쪽, 바깥 두 장이 바깥쪽 */
+const ANGLES = [-21, -7, 7, 21];
 
 export default function LandingPage() {
   return (
@@ -49,7 +38,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <DrapeHero seasons={HERO_SEASONS} />
+      <figure className="mt-14" aria-label="봄, 여름, 가을, 겨울 네 시즌의 립 팔레트를 드레이프처럼 펼친 모습">
+        <div className="relative mx-auto h-60 w-full max-w-sm overflow-visible">
+          {SEASONS.map((season, i) => {
+            const lips = SEASON_INFO[season].lips;
+            return (
+              <div
+                key={season}
+                className="drape absolute bottom-0 left-1/2 h-56 w-[88px] origin-bottom -translate-x-1/2 rounded-t-[44px] shadow-[0_18px_40px_-24px_rgba(23,19,17,0.5)]"
+                style={{
+                  ["--angle" as string]: `${ANGLES[i]}deg`,
+                  ["--delay" as string]: `${i * 70}ms`,
+                  background: `linear-gradient(180deg, ${lips[1].hex} 0%, ${lips[0].hex} 48%, ${lips[3].hex} 100%)`,
+                }}
+              />
+            );
+          })}
+        </div>
+        <figcaption className="mt-5 flex justify-center gap-6 text-sm text-muted">
+          {SEASONS.map((season) => (
+            <span key={season} style={{ color: SEASON_INFO[season].accent }} className="font-medium">
+              {SEASON_INFO[season].label} {SEASON_INFO[season].tone}
+            </span>
+          ))}
+        </figcaption>
+      </figure>
 
       <section aria-labelledby="privacy" className="mt-16 rounded-2xl bg-accent-soft p-6">
         <h2 id="privacy" className="text-xl font-semibold text-accent">
