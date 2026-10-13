@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { Noto_Serif_KR } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
+import { Analytics } from "@/features/analytics/Analytics";
 import "./globals.css";
+
+/** 제목용 명조. 본문은 시스템 산세리프 */
+const serif = Noto_Serif_KR({ weight: ["600"], subsets: ["latin"], variable: "--font-serif-kr", display: "swap" });
 
 /** Vercel이면 프로덕션 도메인, 없으면 배포 URL을 자동으로 쓴다. 다른 호스팅은 NEXT_PUBLIC_SITE_URL을 준다 */
 const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
@@ -9,15 +14,16 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? (vercelHost ? `https://${ver
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: "톤픽 · 퍼스널 컬러 & 립 가상 체험", template: "%s | 톤픽" },
-  description: "톤픽은 웹캠이나 셀카로 재미로 보는 퍼스널 컬러 테스트예요. 어울리는 립 컬러를 바로 발라볼 수 있어요. 사진은 기기 밖으로 나가지 않아요.",
+  description: "톤픽은 웹캠이나 셀카로 재미로 보는 퍼스널 컬러 테스트예요. 어울리는 립과 블러셔를 얼굴에 바로 발라볼 수 있어요. 사진은 기기 밖으로 나가지 않아요.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className="h-full">
+    <html lang="ko" className={`h-full ${serif.variable}`}>
       <body className="flex min-h-full flex-col font-sans">
         {children}
         <SiteFooter />
+        <Analytics />
       </body>
     </html>
   );

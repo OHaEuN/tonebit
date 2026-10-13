@@ -1,23 +1,55 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #fbf7f4;
-  --color-fg: #241f1d;
-  --color-muted: #6b605b;
-  --color-accent: #d6456b;
-  --color-accent-soft: #fde8ee;
-  --color-line: #e9dfda;
-  --color-card: #ffffff;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --color-bg: #ffffff;
+  --color-fg: #171311;
+  --color-muted: #6e6762;
+  --color-accent: #7a1e3f;
+  --color-accent-soft: #f6edf0;
+  --color-line: #e8e2dd;
+  --color-card: #f8f6f4;
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+}
+
+@theme inline {
+  --font-serif: var(--font-serif-kr), "Apple Myungjo", "Nanum Myeongjo", "Noto Serif KR", serif;
 }
 
 body {
+  word-break: keep-all;
   background: var(--color-bg);
   color: var(--color-fg);
   -webkit-font-smoothing: antialiased;
+  line-height: 1.65;
+}
+
+h1,
+h2 {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+/* 랜딩 히어로: 네 시즌 팔레트를 드레이프처럼 펼친다. 한 번만 움직이고 끝 */
+.drape {
+  transform: rotate(var(--angle));
+  animation: drape-fan 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes drape-fan {
+  from {
+    transform: rotate(0deg) translateY(16px);
+  }
+  to {
+    transform: rotate(var(--angle)) translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .drape {
+    animation: none;
+  }
   * {
     transition: none !important;
   }
