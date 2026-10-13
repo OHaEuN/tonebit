@@ -8,6 +8,8 @@ export interface Shot {
   id: number;
   lab: Lab;
   corrected: boolean;
+  /** 이용자가 찍은 흰색 기준으로 보정했는지 */
+  whiteFixed?: boolean;
 }
 
 /** 한 장만 봤을 때의 판정 */

@@ -25,19 +25,22 @@ export function ColorPicker({ name, label, sections, value, onChange }: ColorPic
         {label}
         <span className="ml-2 font-normal text-muted">{selected ? selected.name : "선택 안 함"}</span>
       </legend>
-      <div className="space-y-3">
-        <label className="inline-block cursor-pointer">
-          <input type="radio" name={name} className="peer sr-only" checked={value === null} onChange={() => onChange(null)} />
-          <span className="flex size-10 items-center justify-center rounded-full border border-line bg-card text-xs text-muted peer-checked:ring-2 peer-checked:ring-fg peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2">
-            없음
-          </span>
-        </label>
+      <div className="space-y-2.5">
         {sections.map((section, i) => (
           <div key={section.title ?? i}>
             {section.title && <p className="mb-1.5 text-xs text-muted">{section.title}</p>}
-            <div className="flex flex-wrap gap-2">
+            {/* 한 줄 가로 스크롤로 세로 길이를 줄인다. 첫 줄 맨 앞에 "없음" */}
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1.5">
+              {i === 0 && (
+                <label className="shrink-0 cursor-pointer">
+                  <input type="radio" name={name} className="peer sr-only" checked={value === null} onChange={() => onChange(null)} />
+                  <span className="flex size-10 items-center justify-center rounded-full border border-line bg-card text-xs text-muted peer-checked:ring-2 peer-checked:ring-fg peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2">
+                    없음
+                  </span>
+                </label>
+              )}
               {section.swatches.map((s) => (
-                <label key={s.id} className="cursor-pointer" title={s.name}>
+                <label key={s.id} className="shrink-0 cursor-pointer" title={s.name}>
                   <input type="radio" name={name} className="peer sr-only" checked={value === s.id} onChange={() => onChange(s.id)} />
                   <span className={CHIP} style={{ background: s.hex }} />
                   <span className="sr-only">{s.name}</span>

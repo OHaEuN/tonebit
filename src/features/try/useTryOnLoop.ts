@@ -77,7 +77,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
             samples = [];
           }
         }
-        drawOverlays(ctx, mask, landmarks, w, h, {
+        if (!store.comparing) drawOverlays(ctx, mask, landmarks, w, h, {
           lip: findSwatchById("lips", store.lipId)?.hex ?? null,
           blush: findSwatchById("blushes", store.blushId)?.hex ?? null,
           lipStyle: store.lipStyle,

@@ -40,12 +40,14 @@ test("셀카를 올리면 결과와 립 팔레트가 나오고 결과 카드로 
   await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
   const heading = page.getByRole("heading", { level: 2, name: /(봄|여름|가을|겨울) (웜|쿨)/ });
   await expect(heading).toBeVisible({ timeout: MODEL_TIMEOUT });
+  await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible();
+  await page.getByRole("tab", { name: "발라 보기", exact: true }).click();
   // 라디오는 sr-only라 색상 칩(label)을 클릭한다
-  // fieldset 순서: 팔레트 시즌 전환, 립, 블러셔
+  // 발라 보기 탭의 fieldset 순서: 팔레트 시즌 전환, 립(기본 선택)
   const firstLip = page.locator("fieldset").nth(1).locator("label[title]").first();
   await firstLip.click();
   await expect(firstLip.getByRole("radio")).toBeChecked();
-  await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible();
+  await page.getByRole("tab", { name: "결과", exact: true }).click();
   await page.getByRole("link", { name: "결과 카드와 추천 보기" }).click();
   await expect(page).toHaveURL(/\/r\/(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/);
 });
