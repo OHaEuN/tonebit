@@ -1,7 +1,7 @@
 import type { Lab } from "@/types/analysis";
 
 /** sRGB 감마 해제. IEC 61966-2-1 */
-function linearize(c: number): number {
+export function linearize(c: number): number {
   const v = c / 255;
   return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
 }
@@ -18,9 +18,11 @@ function labF(t: number): number {
 
 /** sRGB(0~255) → CIELAB. 피부색 문헌(ITA 등)이 전부 Lab 기준이라 이 공간에서 판정한다. */
 export function srgbToLab(r: number, g: number, b: number): Lab {
-  const R = linearize(r);
-  const G = linearize(g);
-  const B = linearize(b);
+  return linearRgbToLab(linearize(r), linearize(g), linearize(b));
+}
+
+/** 선형 RGB(0~1) → CIELAB. 화이트밸런스 보정을 선형 공간에서 곱한 뒤 변환할 때 쓴다 */
+export function linearRgbToLab(R: number, G: number, B: number): Lab {
   const x = (0.4124564 * R + 0.3575761 * G + 0.1804375 * B) / XN;
   const y = 0.2126729 * R + 0.7151522 * G + 0.072175 * B;
   const z = (0.0193339 * R + 0.119192 * G + 0.9503041 * B) / ZN;
@@ -28,6 +30,11 @@ export function srgbToLab(r: number, g: number, b: number): Lab {
   const fy = labF(y);
   const fz = labF(z);
   return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
+}
+
+/** 선형 RGB의 상대 휘도 Y (Rec.709) */
+export function relativeLuminance(R: number, G: number, B: number): number {
+  return 0.2126729 * R + 0.7151522 * G + 0.072175 * B;
 }
 
 /** 인코딩 휘도(Rec.601). 감마 해제 전 값이라 "화면에 보이는 밝기"에 가깝다. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lumaStats, meanRgb, median, medianLab, representativeLab } from "./sample";
+import { lumaStats, meanRgb, median, medianLab, representativeLab, scleraWhite } from "./sample";
 
 function pixels(rgbs: [number, number, number][]): number[] {
   return rgbs.flatMap(([r, g, b]) => [r, g, b, 255]);
@@ -62,5 +62,33 @@ describe("조명 통계", () => {
       { L: 3, a: 7, b: 6 },
     ]);
     expect(m).toEqual({ L: 2, a: 8, b: 5 });
+  });
+});
+
+describe("scleraWhite", () => {
+  const WHITE: [number, number, number] = [228, 220, 212];
+  const IRIS: [number, number, number] = [60, 40, 30];
+
+  it("홍채·속눈썹이 섞여도 밝은 흰자 쪽 색을 돌려준다", () => {
+    const w = scleraWhite(pixels([...Array(20).fill(WHITE), ...Array(20).fill(IRIS)]))!;
+    expect(w.r).toBeGreaterThan(w.g);
+    expect(w.g).toBeGreaterThan(w.b);
+    expect(w.g).toBeGreaterThan(0.6);
+  });
+
+  it("밝은 쪽이 하얗게 날아갔으면 실제 밝기를 알 수 없어 null", () => {
+    expect(scleraWhite(pixels([...Array(20).fill([255, 255, 255]), ...Array(20).fill(IRIS)]))).toBeNull();
+  });
+
+  it("픽셀이 너무 적으면 null", () => {
+    expect(scleraWhite(pixels(Array(5).fill(WHITE)))).toBeNull();
+  });
+});
+
+describe("representativeLab 게인", () => {
+  it("선형 RGB 게인을 곱한 뒤 Lab으로 바꾼다", () => {
+    const plain = representativeLab(pixels(Array(50).fill(SKIN)))!;
+    const darker = representativeLab(pixels(Array(50).fill(SKIN)), { r: 0.5, g: 0.5, b: 0.5 })!;
+    expect(darker.L).toBeLessThan(plain.L - 10);
   });
 });

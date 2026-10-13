@@ -12,7 +12,7 @@
 }
 
 @theme inline {
-  --font-serif: var(--font-serif-kr), "Apple Myungjo", "Nanum Myeongjo", "Noto Serif KR", serif;
+  --font-serif: var(--font-serif-kr), "Gowun Batang", "Apple Myungjo", "Nanum Myeongjo", "Noto Serif KR", serif;
 }
 
 body {

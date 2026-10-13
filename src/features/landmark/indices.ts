@@ -6,6 +6,15 @@
 /** 눈 바깥꼬리 한 쌍. 거리로 얼굴 크기를 정규화한다. */
 export const EYE_OUTER_PAIR = [33, 263] as const;
 
+/** 양 눈의 [바깥꼬리, 안쪽꼬리] */
+export const EYE_CORNERS = [
+  [33, 133],
+  [263, 362],
+] as const;
+
+/** 홍채 중심(refine 478점 모델에만 있음). 흰자를 찾을 때 쓴다 */
+export const IRIS_CENTERS = [468, 473] as const;
+
 /** 피부 샘플링 패치 중심: 양 볼 사과 부위 + 이마 중앙 */
 export const SKIN_CENTERS = [50, 280, 151] as const;
 

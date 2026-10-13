@@ -10,6 +10,13 @@ export interface Point {
   y: number;
 }
 
+/** 선형 RGB(0~1) 삼원색. 조명 보정 게인이나 기준 흰색에 쓴다 */
+export interface LinearRgb {
+  r: number;
+  g: number;
+  b: number;
+}
+
 export interface Rect {
   x: number;
   y: number;
@@ -50,6 +57,8 @@ export interface ToneResult {
   lab: Lab;
   ita: number;
   hue: number;
+  /** 눈 흰자 기준으로 조명(색온도·노출)을 보정했는지 */
+  corrected?: boolean;
 }
 
 export type LightingIssue =

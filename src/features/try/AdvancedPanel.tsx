@@ -36,7 +36,7 @@ export function AdvancedPanel() {
         {result && (
           <p className="font-mono text-xs text-muted">
             L* {result.lab.L.toFixed(1)} a* {result.lab.a.toFixed(1)} b* {result.lab.b.toFixed(1)} · hue {result.hue.toFixed(1)}° · ITA{" "}
-            {result.ita.toFixed(1)}° · {result.depth} · {result.chroma}
+            {result.ita.toFixed(1)}° · {result.depth} · {result.chroma} · {result.corrected ? "조명 보정" : "보정 없음"}
           </p>
         )}
       </div>

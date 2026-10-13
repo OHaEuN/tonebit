@@ -37,7 +37,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
     let raf = 0;
     let lastTime = -1;
     let frame = 0;
-    let samples: Lab[] = [];
+    let samples: { lab: Lab; corrected: boolean }[] = [];
     let fpsCount = 0;
     let fpsAt = performance.now();
 
@@ -67,11 +67,14 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
           store.setLighting(measureLighting(ctx, thumb, landmarks, w, h));
         }
         if (store.stage === "measuring") {
-          const lab = sampleSkin(ctx, landmarks, w, h);
-          if (lab) samples.push(lab);
+          const skin = sampleSkin(ctx, landmarks, w, h);
+          if (skin) samples.push(skin);
           store.setProgress(samples.length / MEASURE_FRAMES);
           if (samples.length >= MEASURE_FRAMES) {
-            store.finish(classifyTone(medianLab(samples)));
+            // 깜빡임 등으로 보정된 프레임과 안 된 프레임이 섞이면, 더 많은 쪽만 모아 median을 낸다
+            const corrected = samples.filter((s) => s.corrected).length * 2 >= samples.length;
+            const labs = samples.filter((s) => s.corrected === corrected).map((s) => s.lab);
+            store.finish({ ...classifyTone(medianLab(labs)), corrected });
             samples = [];
           }
         }

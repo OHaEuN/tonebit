@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import { Noto_Serif_KR } from "next/font/google";
+import { Gowun_Batang } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Analytics } from "@/features/analytics/Analytics";
+// 본문: Pretendard(OFL-1.1). 글자 범위별로 쪼갠 파일이라 화면에 쓰인 글자 묶음만 내려받는다
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 
-/** 제목용 명조. 본문은 시스템 산세리프 */
-const serif = Noto_Serif_KR({ weight: ["600"], subsets: ["latin"], variable: "--font-serif-kr", display: "swap" });
+/** 제목용 포인트 서체: 고운바탕(OFL-1.1). 부드러운 붓맛 명조라 화장품 톤과 어울린다 */
+// 한글은 글자 범위별로 100여 개 파일로 쪼개져 있어서, 미리 다 받지 않고(preload: false) 화면에 쓰인 범위만 받게 한다
+const serif = Gowun_Batang({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-serif-kr", display: "swap", preload: false });
 
 /** Vercel이면 프로덕션 도메인, 없으면 배포 URL을 자동으로 쓴다. 다른 호스팅은 NEXT_PUBLIC_SITE_URL을 준다 */
 const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
