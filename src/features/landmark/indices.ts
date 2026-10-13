@@ -18,8 +18,18 @@ export const IRIS_CENTERS = [468, 473] as const;
 /** 피부 샘플링 패치 중심: 양 볼 사과 부위 + 이마 중앙 */
 export const SKIN_CENTERS = [50, 280, 151] as const;
 
-/** 블러셔 중심: 양 볼 */
-export const CHEEK_CENTERS = [50, 280] as const;
+/** 블러셔 방향: 각 볼의 [볼 사과, 광대 바깥쪽]. 이 방향으로 길게, 살짝 바깥으로 비켜 바른다 */
+export const CHEEK_AXES = [
+  [50, 116],
+  [280, 345],
+] as const;
+
+/** 입꼬리 [왼, 오른] */
+export const MOUTH_CORNERS = [61, 291] as const;
+/** 윗입술 위 중앙, 아랫입술 아래 중앙 */
+export const MOUTH_VERTICAL = [0, 17] as const;
+/** 윗입술 안쪽 중앙, 아랫입술 안쪽 중앙 */
+export const MOUTH_CENTER = [13, 14] as const;
 
 /** 입술 바깥 윤곽, 시계 방향으로 닫힌 링 */
 export const LIP_OUTER = [
