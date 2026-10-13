@@ -33,7 +33,7 @@ export default async function ResultPage({ params }: PageProps<"/r/[season]">) {
   return (
     <main className="mx-auto w-full max-w-xl flex-1 space-y-8 px-4 py-8">
       <section className="space-y-3">
-        <p className="text-sm text-muted">재미로 보는 컬러 테스트 결과</p>
+        <p className="text-sm text-muted">톤픽 · 재미로 보는 컬러 테스트 결과</p>
         <h1 className="text-4xl font-bold" style={{ color: info.accent }}>
           {title}
         </h1>

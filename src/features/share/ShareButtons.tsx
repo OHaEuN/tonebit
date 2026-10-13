@@ -16,7 +16,7 @@ export function ShareButtons({ season, title }: ShareButtonsProps) {
     const url = window.location.href;
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: `${title} · 재미로 보는 컬러 테스트`, url });
+        await navigator.share({ title, text: `${title} · 톤픽 컬러 테스트`, url });
       } catch {
         // 사용자가 공유 시트를 닫은 경우. 아무것도 안 한다
       }

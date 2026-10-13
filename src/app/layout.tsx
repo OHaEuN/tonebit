@@ -8,8 +8,8 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: "퍼스널 컬러 & 립 가상 체험", template: "%s | 퍼스널 컬러 테스트" },
-  description: "웹캠이나 셀카로 재미로 보는 퍼스널 컬러 테스트. 어울리는 립 컬러를 바로 발라볼 수 있어요. 사진은 기기 밖으로 나가지 않아요.",
+  title: { default: "톤픽 · 퍼스널 컬러 & 립 가상 체험", template: "%s | 톤픽" },
+  description: "톤픽은 웹캠이나 셀카로 재미로 보는 퍼스널 컬러 테스트예요. 어울리는 립 컬러를 바로 발라볼 수 있어요. 사진은 기기 밖으로 나가지 않아요.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
