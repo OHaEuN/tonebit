@@ -36,6 +36,7 @@ export function TrySession() {
   const stage = useAnalysisStore((s) => s.stage);
   const source = useAnalysisStore((s) => s.source);
   const lighting = useAnalysisStore((s) => s.lighting);
+  const result = useAnalysisStore((s) => s.result);
   const faceFound = useAnalysisStore((s) => s.faceFound);
   const progress = useAnalysisStore((s) => s.progress);
   const begin = useAnalysisStore((s) => s.begin);
@@ -183,8 +184,16 @@ export function TrySession() {
         {stage === "done" && (
           <>
             <ResultPanel />
-            {lighting.length > 0 && (
-              <p className="text-xs text-muted">조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이라 결과가 평소와 다를 수 있어요.</p>
+            {result?.corrected ? (
+              <p className="text-xs text-muted">
+                눈 흰자를 기준으로 조명의 색과 밝기를 보정했어요
+                {lighting.length > 0 && ` (${lighting.map((i) => LIGHTING_LABELS[i]).join(", ")})`}.
+              </p>
+            ) : (
+              <p className="text-xs text-muted">
+                {lighting.length > 0 && `조명 참고: ${lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이라 결과가 평소와 다를 수 있어요. `}
+                눈 흰자가 잘 안 보여서 조명 보정을 못 했어요. 눈을 편하게 뜨고 정면을 보면 더 정확해져요.
+              </p>
             )}
           </>
         )}

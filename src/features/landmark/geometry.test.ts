@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Point } from "@/types/analysis";
-import { faceWidthRatio, interocular, skinPatches } from "./geometry";
+import { faceWidthRatio, interocular, scleraPatches, skinPatches } from "./geometry";
 
 /** 468점 전부 중앙에 두고 필요한 점만 덮어쓴다 */
 function face(overrides: Record<number, Point>): Point[] {
@@ -24,5 +24,23 @@ describe("geometry", () => {
 
   it("faceWidthRatio는 x의 범위", () => {
     expect(faceWidthRatio(face({ 0: { x: 0.2, y: 0 }, 1: { x: 0.6, y: 0 } }))).toBeCloseTo(0.4, 5);
+  });
+
+  it("흰자 패치는 홍채와 양쪽 눈꼬리 사이 중점에 놓인다 (홍채 번호 순서와 무관)", () => {
+    const lm = face({
+      33: { x: 0.3, y: 0.5 },
+      133: { x: 0.4, y: 0.5 },
+      263: { x: 0.7, y: 0.5 },
+      362: { x: 0.6, y: 0.5 },
+      // 일부러 반대 눈에 가까운 번호로 둔다
+      468: { x: 0.65, y: 0.5 },
+      473: { x: 0.35, y: 0.5 },
+    });
+    const centers = scleraPatches(lm, 1000, 1000).map((r) => r.x + r.w / 2);
+    expect(centers).toEqual([325, 375, 675, 625].map((c) => expect.closeTo(c, 0)));
+  });
+
+  it("홍채 점이 없는 468점 모델이면 흰자 패치가 없다", () => {
+    expect(scleraPatches(face({}).slice(0, 468), 1000, 1000)).toEqual([]);
   });
 });
