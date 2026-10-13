@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState, type RefObject } from "react";
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import type { Point } from "@/types/analysis";
-import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, THUMB_SIZE } from "@/features/analysis/frame";
+import { createContext, createOffscreen, fitSize, measureLighting, patchAt, sampleSkin, skinLuma, THUMB_SIZE } from "@/features/analysis/frame";
+import { WHITE_PATCH_RATIO } from "@/features/analysis/constants";
+import { checkWhitePatch, whiteGains } from "@/features/analysis/whitePoint";
 import { MAX_SHOTS } from "@/features/analysis/shots";
 import { detectImage } from "@/features/landmark/useFaceLandmarker";
 import { drawOverlays } from "@/features/lipTryOn/render";
@@ -44,6 +46,28 @@ export interface StillPhoto {
   landmarks: Point[];
   /** 미리보기 data URL */
   thumb: string;
+  /** 이용자가 찍은 흰색 기준 자리(정규화 좌표) */
+  white?: { u: number; v: number };
+}
+
+const WHITE_ERRORS = {
+  dark: "피부보다 밝은 흰색(흰 종이·흰 벽·흰 옷)을 눌러 주세요",
+  clipped: "너무 밝아서 하얗게 날아간 곳이에요. 조금 덜 밝은 흰색을 눌러 주세요",
+  colored: "색이 있는 곳이에요. 흰색이나 밝은 회색을 눌러 주세요",
+} as const;
+
+/** 흰색 기준을 찍은 자리 표시 */
+function drawWhiteMarker(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.save();
+  ctx.lineWidth = Math.max(2, r / 3);
+  ctx.strokeStyle = "rgba(0,0,0,0.55)";
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = Math.max(1, r / 6);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function makeThumb(img: HTMLImageElement): string {
@@ -125,7 +149,25 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
     [analyzeOne, canvasRef, landmarkerRef],
   );
 
+  /** 사진의 (u, v)를 흰색 기준으로 삼아 그 사진의 피부색을 다시 잰다. 실패하면 안내 문구를 돌려준다 */
+  const setWhitePoint = useCallback((id: number, u: number, v: number): string | null => {
+    const photo = photos.find((p) => p.id === id);
+    if (!photo) return "사진을 찾지 못했어요";
+    const { w, h } = fitSize(photo.img.naturalWidth, photo.img.naturalHeight);
+    const ctx = createOffscreen(w, h, true);
+    ctx.drawImage(photo.img, 0, 0, w, h);
+    const check = checkWhitePatch(patchAt(ctx, u, v, w * WHITE_PATCH_RATIO), skinLuma(ctx, photo.landmarks, w, h));
+    if ("error" in check) return WHITE_ERRORS[check.error];
+    const gains = whiteGains(check.white);
+    const skin = gains && sampleSkin(ctx, photo.landmarks, w, h, gains);
+    if (!skin) return "피부색을 다시 읽지 못했어요";
+    useAnalysisStore.getState().updateShot(id, { lab: skin.lab, corrected: true, whiteFixed: true });
+    setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, white: { u, v } } : p)));
+    return null;
+  }, [photos]);
+
   const view = useAnalysisStore((s) => s.view);
+  const comparing = useAnalysisStore((s) => s.comparing);
   const lipId = useAnalysisStore((s) => s.lipId);
   const blushId = useAnalysisStore((s) => s.blushId);
   const lipStyle = useAnalysisStore((s) => s.lipStyle);
@@ -150,6 +192,7 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
     ctx.drawImage(img, 0, 0, w, h);
+    if (comparing) return;
     drawOverlays(ctx, createOffscreen(w, h), landmarks, w, h, {
       lip: findSwatchById("lips", lipId)?.hex ?? null,
       blush: findSwatchById("blushes", blushId)?.hex ?? null,
@@ -159,12 +202,13 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
       blushIntensity,
       debug,
     });
-  }, [canvasRef, shown, lipId, blushId, lipStyle, blushStyle, lipIntensity, blushIntensity, debug]);
+    if (shown.white) drawWhiteMarker(ctx, shown.white.u * w, shown.white.v * h, Math.max(6, w * 0.02));
+  }, [canvasRef, shown, comparing, lipId, blushId, lipStyle, blushStyle, lipIntensity, blushIntensity, debug]);
 
   const clear = useCallback(() => {
     setPhotos([]);
     setError(null);
   }, []);
 
-  return { analyze, error, clear, photos };
+  return { analyze, error, clear, photos, shown, setWhitePoint };
 }

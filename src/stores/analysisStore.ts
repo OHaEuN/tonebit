@@ -43,6 +43,11 @@ interface AnalysisState {
   setProgress: (p: number) => void;
   /** 사진 한 장(또는 카메라 측정 한 번)을 더해 다시 판정한다. 붙인 id를 돌려준다 */
   addShot: (shot: Omit<Shot, "id">) => number;
+  /** 한 장의 측정값을 바꿔(흰색 기준 보정 등) 다시 합친다. 보고 있던 화면은 유지한다 */
+  updateShot: (id: number, patch: Partial<Omit<Shot, "id">>) => void;
+  /** 꾹 눌러 바르기 전 모습을 보는 중 */
+  comparing: boolean;
+  setComparing: (on: boolean) => void;
   /** 합친 결과(null) 또는 사진 한 장의 결과를 본다 */
   setView: (id: number | null) => void;
   /** 카메라로 한 번 더 측정한다. 지금까지의 측정은 유지한다 */
@@ -68,6 +73,7 @@ const initial = {
   faceFound: false,
   progress: 0,
   result: null,
+  comparing: false,
   combined: null,
   view: null,
   shots: [] as Shot[],
@@ -100,6 +106,14 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     set({ shots, votes, result, combined: result, view: null, stage: "done", progress: 1 });
     return id;
   },
+  updateShot: (id, patch) => {
+    const shots = get().shots.map((s) => (s.id === id ? { ...s, ...patch } : s));
+    const { result: combined, votes } = combineShots(shots);
+    const view = get().view;
+    const shot = view === null ? undefined : shots.find((s) => s.id === view);
+    set({ shots, votes, combined, result: shot ? shotResult(shot) : combined });
+  },
+  setComparing: (comparing) => set({ comparing }),
   setView: (view) => {
     const { shots, combined } = get();
     const shot = view === null ? undefined : shots.find((s) => s.id === view);

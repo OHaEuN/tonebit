@@ -32,6 +32,25 @@ export const SCENE_REFERENCE = { r: 1.289, g: 0.936, b: 0.759, y: 0.132 } as con
 export const SCENE_STRENGTH = 0.5;
 /** 게인 한계. 배경이 거의 검거나 하얗게 날아간 사진에서 결과가 튀지 않게 */
 export const SCENE_GAIN_RANGE = [0.5, 2] as const;
+// ---- 흰색 기준 보정 (이용자가 사진 속 흰 종이·흰 벽을 누름) ----
+/**
+ * 누른 흰색이 이 휘도가 되도록 노출을 맞춘다. 카메라는 장면 평균을 반사율 18% 회색으로 맞추고 흰 종이 반사율은 약 85%라,
+ * 배경 기준값(SCENE_REFERENCE.y)의 85/18 ≈ 4.7배를 흰색으로 둔다. 배경 보정과 같은 공간에 놓여 같은 임계값을 쓸 수 있다
+ */
+export const WHITE_TARGET_Y = 0.62;
+/** 흰색 게인 한계 */
+export const WHITE_GAIN_RANGE = [0.25, 4] as const;
+/**
+ * 흰색으로 믿는 조건: 인코딩 휘도 하한, 피부보다 밝은 정도, 클리핑 비율 상한, 선형 채도((max−min)/max) 상한.
+ * 전구색 아래 흰 종이는 선형 채도가 0.6까지 올라가 채도만으론 피부와 못 가르므로 "피부보다 밝다"를 같이 본다
+ */
+export const WHITE_MIN_LUMA = 90;
+export const WHITE_OVER_SKIN = 1.1;
+export const WHITE_MAX_CLIPPED = 0.3;
+export const WHITE_MAX_SATURATION = 0.65;
+/** 누른 자리에서 평균 낼 정사각형 한 변 = 이미지 폭 × 이 비율 */
+export const WHITE_PATCH_RATIO = 0.03;
+
 /** 배경 평균을 낼 축소 해상도 */
 export const SCENE_THUMB = { w: 64, h: 64 } as const;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { PrivacyNote } from "@/components/PrivacyNote";
 import { Disclaimer } from "@/components/Disclaimer";
 import { LIGHTING_LABELS } from "@/features/analysis/lighting";
@@ -42,6 +42,11 @@ export function TrySession() {
   const startMeasuring = useAnalysisStore((s) => s.startMeasuring);
   const reset = useAnalysisStore((s) => s.reset);
   const measureMore = useAnalysisStore((s) => s.measureMore);
+  const setComparing = useAnalysisStore((s) => s.setComparing);
+  const comparing = useAnalysisStore((s) => s.comparing);
+  /** 흰색 기준을 찍는 중 */
+  const [pickingWhite, setPickingWhite] = useState(false);
+  const [whiteMessage, setWhiteMessage] = useState<string | null>(null);
 
   useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active: camera.status === "active" && source === "camera" });
 
@@ -64,7 +69,25 @@ export function TrySession() {
 
   const addPhotos = (files: File[]) => void still.analyze(files, true);
 
+  /** 캔버스를 누른 자리: 흰색 찍는 중이면 기준으로 쓰고, 아니면 꾹 누르는 동안 바르기 전 모습을 보여 준다 */
+  const onCanvasDown = (e: PointerEvent<HTMLCanvasElement>) => {
+    if (stage !== "done") return;
+    if (pickingWhite && still.shown) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const message = still.setWhitePoint(still.shown.id, (e.clientX - rect.left) / rect.width, (e.clientY - rect.top) / rect.height);
+      setWhiteMessage(message);
+      if (!message) setPickingWhite(false);
+      return;
+    }
+    setComparing(true);
+  };
+  const stopCompare = () => {
+    if (comparing) setComparing(false);
+  };
+
   const restart = () => {
+    setPickingWhite(false);
+    setWhiteMessage(null);
     camera.stop();
     still.clear();
     reset();
@@ -105,7 +128,10 @@ export function TrySession() {
               {modelError && <p className="break-all font-mono text-xs text-muted">{modelError}</p>}
             </>
           )}
-          <p className="text-xs text-muted">사진은 한 번에 최대 5장까지 고를 수 있어요. 여러 장을 합치면 조명 운에 덜 흔들려요.</p>
+          <ul className="list-disc space-y-1 pl-5 text-xs text-muted">
+            <li>사진은 한 번에 최대 5장까지 고를 수 있어요. 여러 장을 합치면 조명 운에 덜 흔들려요.</li>
+            <li>흰 종이(A4)를 얼굴 옆에 들고 찍으면, 결과 화면에서 종이를 눌러 색을 가장 정확하게 맞출 수 있어요.</li>
+          </ul>
           {/* 모바일은 파일 선택창이 곧 카메라·앨범 선택이라 그걸 기본으로. 실시간 카메라는 보조 */}
           <div className="flex flex-wrap gap-2">
             {isMobile ? (
@@ -155,9 +181,19 @@ export function TrySession() {
             />
             <canvas
               ref={canvasRef}
-              aria-label="카메라 미리보기와 립 컬러 체험"
-              className={`relative block h-auto max-h-[min(34svh,300px)] w-auto max-w-full md:max-h-[min(50svh,440px)] ${source === "camera" ? "-scale-x-100" : ""}`}
+              aria-label="카메라 미리보기와 립 컬러 체험. 꾹 누르면 바르기 전 모습"
+              onPointerDown={onCanvasDown}
+              onPointerUp={stopCompare}
+              onPointerLeave={stopCompare}
+              onPointerCancel={stopCompare}
+              onContextMenu={(e) => e.preventDefault()}
+              className={`relative block touch-manipulation select-none ${pickingWhite ? "cursor-crosshair" : ""} h-auto max-h-[min(34svh,300px)] w-auto max-w-full md:max-h-[min(50svh,440px)] ${source === "camera" ? "-scale-x-100" : ""}`}
             />
+            {(comparing || pickingWhite) && (
+              <span className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium whitespace-nowrap text-white">
+                {pickingWhite ? "흰 종이·흰 벽을 눌러 주세요" : "바르기 전"}
+              </span>
+            )}
           </div>
         </div>
 
@@ -186,8 +222,26 @@ export function TrySession() {
 
         {stage === "done" && (
           <>
-            <ResultPanel onAddPhotos={addPhotos} onMeasureMore={measureMore} photos={still.photos} />
-            {lighting.length > 0 && (
+            <ResultPanel
+              onAddPhotos={addPhotos}
+              onMeasureMore={measureMore}
+              photos={still.photos}
+              whiteFix={
+                source === "image" && still.shown ? (
+                  <WhiteFixCard
+                    fixed={Boolean(still.shown.white)}
+                    picking={pickingWhite}
+                    message={whiteMessage}
+                    multiple={still.photos.length > 1}
+                    onToggle={() => {
+                      setWhiteMessage(null);
+                      setPickingWhite((v) => !v);
+                    }}
+                  />
+                ) : undefined
+              }
+            />
+            {lighting.length > 0 && !still.shown?.white && (
               <p className="text-xs text-muted">
                 조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. 배경 색으로 조명을 일부 보정했지만 결과가 평소와 다를 수 있어요.
               </p>
@@ -204,6 +258,44 @@ export function TrySession() {
         </div>
         <Disclaimer />
       </div>
+    </div>
+  );
+}
+
+interface WhiteFixCardProps {
+  fixed: boolean;
+  picking: boolean;
+  message: string | null;
+  multiple: boolean;
+  onToggle: () => void;
+}
+
+/** 사진 속 흰색을 눌러 조명을 완전히 되돌리는 보정. 같은 사람이 사진마다 다르게 나오는 걸 가장 크게 줄인다 */
+function WhiteFixCard({ fixed, picking, message, multiple, onToggle }: WhiteFixCardProps) {
+  return (
+    <div className="space-y-2 rounded-2xl border border-line p-4 text-sm">
+      <p className="font-medium">{fixed ? "흰색 기준으로 색을 맞췄어요" : "더 정확하게: 흰색 기준 맞추기"}</p>
+      <p className="text-muted">
+        {fixed
+          ? "사진 속 흰색을 기준으로 조명의 색과 밝기를 되돌렸어요. 다른 곳을 눌러 다시 맞출 수도 있어요."
+          : "사진에 흰 종이·흰 벽·흰 옷이 있으면 눌러 주세요. 조명 때문에 생긴 노란 기·푸른 기·밝기 차이를 없애서 사진마다 결과가 덜 달라져요."}
+        {multiple && " 사진마다 따로 맞춰요. 위에서 사진을 고른 뒤 눌러 주세요."}
+      </p>
+      {message && (
+        <p role="alert" className="text-amber-900">
+          {message}
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-pressed={picking}
+        className={`rounded-full px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+          picking ? "bg-fg text-white" : "border border-line bg-card hover:bg-accent-soft"
+        }`}
+      >
+        {picking ? "취소" : fixed ? "다시 맞추기" : "사진에서 흰색 누르기"}
+      </button>
     </div>
   );
 }
