@@ -48,6 +48,21 @@ describe("classifyTone", () => {
     expect(classifyTone(labOf(65, 40.9, 20)).depth).toBe("deep");
   });
 
+  it("12시즌: 시즌 안에서 가장 두드러진 축이 세부 타입이 된다", () => {
+    expect(classifyTone(labOf(60, 58, 21)).subtype).toBe("light");
+    expect(classifyTone(labOf(60, 44, 30)).subtype).toBe("bright");
+    expect(classifyTone(labOf(70, 44, 21)).subtype).toBe("true");
+    expect(classifyTone(labOf(45, 50, 10)).subtype).toBe("soft");
+    expect(classifyTone(labOf(60, 20, 18)).subtype).toBe("deep");
+    expect(classifyTone(labOf(50, 35, 34)).tone).toBe("winter-bright");
+  });
+
+  it("시즌에 없는 세부 타입은 나오지 않는다", () => {
+    const spring = classifyTone(labOf(65, 44, 14));
+    expect(spring.season).toBe("spring");
+    expect(["light", "bright", "true"]).toContain(spring.subtype);
+  });
+
   it("임계값에 가까우면 확신도가 내려간다", () => {
     expect(classifyTone(labOf(59, 60, 20)).confidence).toBe("mid");
     expect(classifyTone(labOf(58, 60, 20)).confidence).toBe("low");
