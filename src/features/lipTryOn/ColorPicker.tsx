@@ -20,7 +20,8 @@ const CHIP =
 export function ColorPicker({ name, label, sections, value, onChange }: ColorPickerProps) {
   const selected = sections.flatMap((s) => s.swatches).find((s) => s.id === value);
   return (
-    <fieldset>
+    // fieldset은 기본 min-inline-size가 min-content라 안의 가로 스크롤 줄만큼 넓어져 화면을 밀어낸다. min-w-0으로 막는다
+    <fieldset className="min-w-0">
       <legend className="mb-2 text-sm font-medium">
         {label}
         <span className="ml-2 font-normal text-muted">{selected ? selected.name : "선택 안 함"}</span>
@@ -29,8 +30,9 @@ export function ColorPicker({ name, label, sections, value, onChange }: ColorPic
         {sections.map((section, i) => (
           <div key={section.title ?? i}>
             {section.title && <p className="mb-1.5 text-xs text-muted">{section.title}</p>}
-            {/* 한 줄 가로 스크롤로 세로 길이를 줄인다. 첫 줄 맨 앞에 "없음" */}
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1.5">
+            {/* 한 줄 가로 스크롤로 세로 길이를 줄인다. 첫 줄 맨 앞에 "없음".
+                relative는 안의 sr-only 라디오(absolute)가 스크롤 영역 밖으로 빠져 페이지 폭을 넓히지 않게 한다 */}
+            <div className="relative -mx-1 flex gap-2 overflow-x-auto px-1 py-1.5">
               {i === 0 && (
                 <label className="shrink-0 cursor-pointer">
                   <input type="radio" name={name} className="peer sr-only" checked={value === null} onChange={() => onChange(null)} />

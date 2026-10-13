@@ -40,7 +40,7 @@ export function ShotsPanel({ onAddPhotos, onMeasureMore, photos }: ShotsPanelPro
       </p>
 
       {n > 1 && (
-        <div role="tablist" aria-label="사진별 결과" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        <div role="tablist" aria-label="사진별 결과" className="relative -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
           <button
             type="button"
             role="tab"
