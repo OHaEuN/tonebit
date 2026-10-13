@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { PrivacyNote } from "@/components/PrivacyNote";
 import { Disclaimer } from "@/components/Disclaimer";
 import { LIGHTING_LABELS } from "@/features/analysis/lighting";
+import { track } from "@/features/analytics/track";
 import { useCameraStream } from "@/features/camera/useCameraStream";
 import { ensureVideoMode, useFaceLandmarker } from "@/features/landmark/useFaceLandmarker";
 import { useAnalysisStore } from "@/stores/analysisStore";
@@ -47,11 +48,13 @@ export function TrySession() {
     const lm = landmarkerRef.current;
     if (lm) await ensureVideoMode(lm);
     begin("camera");
+    track({ name: "try-start", source: "camera" });
     await camera.start();
   };
 
   const uploadFile = (file: File) => {
     camera.stop();
+    track({ name: "try-start", source: "image" });
     void still.analyze(file);
   };
 
@@ -62,6 +65,12 @@ export function TrySession() {
   };
 
   const cameraFailed = camera.status === "denied" || camera.status === "unavailable" || camera.status === "unsupported";
+  useEffect(() => {
+    if (camera.status === "denied") track({ name: "camera-denied" });
+  }, [camera.status]);
+  useEffect(() => {
+    if (modelStatus === "error") track({ name: "model-error" });
+  }, [modelStatus]);
   const showStage = stage !== "setup" && !cameraFailed;
 
   return (

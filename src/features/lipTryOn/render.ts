@@ -1,4 +1,5 @@
 import type { Point } from "@/types/analysis";
+import { hexToRgb } from "@/features/analysis/color";
 import { cheekCenters, interocular, skinPatches } from "@/features/landmark/geometry";
 import { LIP_INNER, LIP_OUTER } from "@/features/landmark/indices";
 
@@ -60,8 +61,7 @@ function drawLipMask(mask: CanvasRenderingContext2D, lm: Point[], w: number, h: 
 }
 
 function hexToRgba(hex: string, alpha: number): string {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+  return `rgba(${hexToRgb(hex).join(", ")}, ${alpha})`;
 }
 
 function drawBlush(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: number, color: string, radius: number) {
