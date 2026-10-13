@@ -13,7 +13,7 @@ export default function LandingPage() {
   return (
     <main className="mx-auto w-full max-w-xl flex-1 space-y-10 px-4 py-10">
       <section className="space-y-5">
-        <p className="text-sm font-medium text-accent">재미로 보는 컬러 테스트</p>
+        <p className="text-sm font-medium text-accent">톤픽 · 재미로 보는 컬러 테스트</p>
         <h1 className="text-4xl font-bold leading-tight tracking-tight">
           내 피부톤에 맞는
           <br />

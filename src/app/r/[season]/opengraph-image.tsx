@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { isSeason, SEASON_INFO, SEASONS } from "@/features/recommend/palettes";
 
-export const alt = "재미로 보는 컬러 테스트 결과";
+export const alt = "톤픽 컬러 테스트 결과";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -11,7 +11,7 @@ export function generateStaticParams() {
   return SEASONS.map((season) => ({ season }));
 }
 
-const FOOTER = "재미로 보는 퍼스널 컬러 테스트 · 사진은 기기 밖으로 나가지 않아요";
+const FOOTER = "톤픽 tonepick · 사진은 기기 밖으로 나가지 않아요";
 
 /**
  * 한글 서브셋 폰트. 카드에 쓰이는 글자만 담아 수십 KB다. 문구를 바꾸면 README의 명령으로 다시 만든다.
@@ -37,7 +37,7 @@ export default async function Image({ params }: { params: Promise<{ season: stri
     >
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 28, color: "#6b605b" }}>재미로 보는 퍼스널 컬러 테스트</div>
+          <div style={{ fontSize: 28, color: "#6b605b" }}>톤픽 · 재미로 보는 퍼스널 컬러 테스트</div>
           <div style={{ fontSize: 120, fontWeight: 700, color: info.accent, lineHeight: 1.1, marginTop: 12 }}>
             {`${info.label} ${info.tone}`}
           </div>
