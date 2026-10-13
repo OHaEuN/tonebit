@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Point } from "@/types/analysis";
-import { faceWidthRatio, interocular, scleraPatches, skinPatches } from "./geometry";
+import { blushSpots, faceWidthRatio, interocular, scleraPatches, skinPatches } from "./geometry";
 
 /** 468점 전부 중앙에 두고 필요한 점만 덮어쓴다 */
 function face(overrides: Record<number, Point>): Point[] {
@@ -42,5 +42,13 @@ describe("geometry", () => {
 
   it("홍채 점이 없는 468점 모델이면 흰자 패치가 없다", () => {
     expect(scleraPatches(face({}).slice(0, 468), 1000, 1000)).toEqual([]);
+  });
+
+  it("블러셔 자리는 볼 사과에서 광대 쪽으로 옮겨지고 광대를 향해 기운다", () => {
+    const lm = face({ 50: { x: 0.4, y: 0.6 }, 116: { x: 0.2, y: 0.5 }, 280: { x: 0.6, y: 0.6 }, 345: { x: 0.8, y: 0.5 } });
+    const [left, right] = blushSpots(lm, 1000, 1000, 0.25);
+    expect(left).toMatchObject({ x: expect.closeTo(350, 6), y: expect.closeTo(575, 6) });
+    expect(right).toMatchObject({ x: expect.closeTo(650, 6), y: expect.closeTo(575, 6) });
+    expect(right.angle).toBeCloseTo(Math.atan2(-100, 200), 6);
   });
 });

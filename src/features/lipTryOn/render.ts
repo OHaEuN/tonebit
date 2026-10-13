@@ -1,6 +1,6 @@
 import type { Point } from "@/types/analysis";
 import { hexToRgb } from "@/features/analysis/color";
-import { cheekCenters, interocular, scleraPatches, skinPatches } from "@/features/landmark/geometry";
+import { blushSpots, interocular, scleraPatches, skinPatches } from "@/features/landmark/geometry";
 import { LIP_INNER, LIP_OUTER } from "@/features/landmark/indices";
 
 export type BlendPreset = "natural" | "multiply" | "softLight";
@@ -30,8 +30,6 @@ export interface OverlayOptions {
 
 /** 페더링 반경은 얼굴 크기에 비례. 눈 거리 150px이면 약 2px */
 const FEATHER_RATIO = 0.015;
-const BLUSH_RADIUS_RATIO = 0.3;
-const BLUSH_ALPHA = 0.5;
 
 function tracePath(ctx: CanvasRenderingContext2D, lm: Point[], ring: readonly number[], w: number, h: number) {
   ring.forEach((i, k) => {
@@ -69,15 +67,39 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${hexToRgb(hex).join(", ")}, ${alpha})`;
 }
 
-function drawBlush(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: number, color: string, radius: number, intensity: number) {
+/** 블러셔 모양: 볼 사과에서 광대 쪽으로 옮기는 비율, 타원 가로·세로 반지름(눈 거리 대비) */
+const BLUSH_SHIFT = 0.25;
+const BLUSH_RX = 0.27;
+const BLUSH_RY = 0.15;
+/** 덧바르기로 색을 얹고 multiply를 얇게 섞어 피부 결이 비치게 한다 */
+const BLUSH_PASSES: [GlobalCompositeOperation, number][] = [
+  ["source-over", 0.42],
+  ["multiply", 0.15],
+];
+
+/**
+ * 블러셔. 동그란 도장 대신 광대를 따라 가로로 긴 타원에 가장자리가 길게 풀리는 그라데이션을 그린 뒤,
+ * 피부 위에 얇게 겹친다. multiply만 쓰면 피부가 탁하게 어두워져서 덧바르기(source-over)를 섞는다
+ */
+function drawBlush(ctx: CanvasRenderingContext2D, mask: CanvasRenderingContext2D, lm: Point[], w: number, h: number, color: string, unit: number, intensity: number) {
+  mask.clearRect(0, 0, w, h);
+  for (const spot of blushSpots(lm, w, h, BLUSH_SHIFT)) {
+    mask.save();
+    mask.translate(spot.x, spot.y);
+    mask.rotate(spot.angle);
+    mask.scale(unit * BLUSH_RX, unit * BLUSH_RY);
+    const g = mask.createRadialGradient(0, 0, 0, 0, 0, 1);
+    // 가우시안에 가까운 감쇠. 가운데는 은은하고 경계가 보이지 않게
+    for (const [t, a] of [[0, 1], [0.3, 0.8], [0.6, 0.4], [0.85, 0.12], [1, 0]]) g.addColorStop(t, hexToRgba(color, a));
+    mask.fillStyle = g;
+    mask.fillRect(-1, -1, 2, 2);
+    mask.restore();
+  }
   ctx.save();
-  ctx.globalCompositeOperation = "multiply";
-  for (const c of cheekCenters(lm, w, h)) {
-    const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, radius);
-    g.addColorStop(0, hexToRgba(color, BLUSH_ALPHA * intensity));
-    g.addColorStop(1, hexToRgba(color, 0));
-    ctx.fillStyle = g;
-    ctx.fillRect(c.x - radius, c.y - radius, radius * 2, radius * 2);
+  for (const [op, alpha] of BLUSH_PASSES) {
+    ctx.globalCompositeOperation = op;
+    ctx.globalAlpha = alpha * intensity;
+    ctx.drawImage(mask.canvas, 0, 0);
   }
   ctx.restore();
 }
@@ -109,7 +131,7 @@ export function drawOverlays(
   opts: OverlayOptions,
 ) {
   const unit = interocular(lm, w, h);
-  if (opts.blush) drawBlush(ctx, lm, w, h, opts.blush, unit * BLUSH_RADIUS_RATIO, opts.intensity);
+  if (opts.blush) drawBlush(ctx, mask, lm, w, h, opts.blush, unit, opts.intensity);
   if (opts.lip) {
     drawLipMask(mask, lm, w, h, opts.lip, Math.max(1, unit * FEATHER_RATIO));
     ctx.save();
