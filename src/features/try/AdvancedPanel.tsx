@@ -1,33 +1,18 @@
 "use client";
 
-import { BLEND_PRESETS, type BlendPreset } from "@/features/lipTryOn/render";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
-const PRESET_KEYS = Object.keys(BLEND_PRESETS) as BlendPreset[];
-
 export function AdvancedPanel() {
-  const blend = useAnalysisStore((s) => s.blend);
   const debug = useAnalysisStore((s) => s.debug);
   const fps = useAnalysisStore((s) => s.fps);
   const result = useAnalysisStore((s) => s.result);
   const source = useAnalysisStore((s) => s.source);
-  const setBlend = useAnalysisStore((s) => s.setBlend);
   const setDebug = useAnalysisStore((s) => s.setDebug);
 
   return (
     <details className="rounded-2xl border border-line bg-card p-4 text-sm">
       <summary className="cursor-pointer font-medium">고급</summary>
       <div className="mt-3 space-y-3">
-        <label className="flex items-center gap-2">
-          <span className="w-24">블렌딩</span>
-          <select value={blend} onChange={(e) => setBlend(e.target.value as BlendPreset)} className="rounded-lg border border-line bg-bg px-2 py-1">
-            {PRESET_KEYS.map((k) => (
-              <option key={k} value={k}>
-                {BLEND_PRESETS[k].label}
-              </option>
-            ))}
-          </select>
-        </label>
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={debug} onChange={(e) => setDebug(e.target.checked)} />
           랜드마크·샘플 영역 표시

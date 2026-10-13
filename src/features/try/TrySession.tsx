@@ -139,7 +139,7 @@ export function TrySession() {
       )}
 
       <div className={showStage ? "space-y-5" : "hidden"}>
-        {/* 아래 색을 고르는 동안 얼굴이 계속 보이게 상단에 고정하고, 높이는 화면 절반 아래로 묶는다 */}
+        {/* 아래 색을 고르는 동안 얼굴이 계속 보이게 상단에 고정한다. 화면을 덮지 않게 높이는 화면 비율과 절대 크기 중 작은 쪽으로 묶는다 */}
         <div className="sticky top-0 z-10 -mx-4 bg-bg px-4 py-2">
           {/* 캔버스가 레이아웃 크기를 정하고, 비디오는 그 뒤에 깔린다. 전면 카메라는 거울처럼 좌우 반전 */}
           <div className="relative mx-auto w-fit max-w-full overflow-hidden rounded-3xl bg-black">
@@ -153,7 +153,7 @@ export function TrySession() {
             <canvas
               ref={canvasRef}
               aria-label="카메라 미리보기와 립 컬러 체험"
-              className={`relative block h-auto max-h-[45svh] w-auto max-w-full md:max-h-[60svh] ${source === "camera" ? "-scale-x-100" : ""}`}
+              className={`relative block h-auto max-h-[min(34svh,300px)] w-auto max-w-full md:max-h-[min(50svh,440px)] ${source === "camera" ? "-scale-x-100" : ""}`}
             />
           </div>
         </div>

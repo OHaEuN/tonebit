@@ -84,8 +84,10 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
 
   const lipId = useAnalysisStore((s) => s.lipId);
   const blushId = useAnalysisStore((s) => s.blushId);
-  const blend = useAnalysisStore((s) => s.blend);
-  const intensity = useAnalysisStore((s) => s.intensity);
+  const lipStyle = useAnalysisStore((s) => s.lipStyle);
+  const blushStyle = useAnalysisStore((s) => s.blushStyle);
+  const lipIntensity = useAnalysisStore((s) => s.lipIntensity);
+  const blushIntensity = useAnalysisStore((s) => s.blushIntensity);
   const debug = useAnalysisStore((s) => s.debug);
 
   useEffect(() => {
@@ -100,11 +102,13 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
     drawOverlays(ctx, createOffscreen(w, h), landmarks, w, h, {
       lip: findSwatchById("lips", lipId)?.hex ?? null,
       blush: findSwatchById("blushes", blushId)?.hex ?? null,
-      blend,
-      intensity,
+      lipStyle,
+      blushStyle,
+      lipIntensity,
+      blushIntensity,
       debug,
     });
-  }, [canvasRef, landmarks, lipId, blushId, blend, intensity, debug]);
+  }, [canvasRef, landmarks, lipId, blushId, lipStyle, blushStyle, lipIntensity, blushIntensity, debug]);
 
   const clear = useCallback(() => {
     imageRef.current = null;
