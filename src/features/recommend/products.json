@@ -1,0 +1,14 @@
+[
+  { "id": "p-sp-1", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "04 코랄 피치", "hex": "#FF8A70", "finish": "velvet", "seasons": ["spring"], "url": "https://example.com/aff?pid=p-sp-1" },
+  { "id": "p-sp-2", "brand": "샘플브랜드", "name": "글로우 립 밤", "shade": "애프리콧", "hex": "#FFB38A", "finish": "glossy", "seasons": ["spring"], "url": "https://example.com/aff?pid=p-sp-2" },
+  { "id": "p-sp-3", "brand": "샘플브랜드", "name": "매트 립스틱", "shade": "오렌지 레드", "hex": "#F4553A", "finish": "matte", "seasons": ["spring", "autumn"], "url": "https://example.com/aff?pid=p-sp-3" },
+  { "id": "p-su-1", "brand": "샘플브랜드", "name": "워터 틴트", "shade": "로즈 핑크", "hex": "#E88FA8", "finish": "glossy", "seasons": ["summer"], "url": "https://example.com/aff?pid=p-su-1" },
+  { "id": "p-su-2", "brand": "샘플브랜드", "name": "블러 립스틱", "shade": "모브", "hex": "#C98BA5", "finish": "matte", "seasons": ["summer"], "url": "https://example.com/aff?pid=p-su-2" },
+  { "id": "p-su-3", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "라즈베리", "hex": "#C94C73", "finish": "velvet", "seasons": ["summer", "winter"], "url": "https://example.com/aff?pid=p-su-3" },
+  { "id": "p-au-1", "brand": "샘플브랜드", "name": "매트 립스틱", "shade": "브릭", "hex": "#B5453A", "finish": "matte", "seasons": ["autumn"], "url": "https://example.com/aff?pid=p-au-1" },
+  { "id": "p-au-2", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "테라코타", "hex": "#C9643B", "finish": "velvet", "seasons": ["autumn"], "url": "https://example.com/aff?pid=p-au-2" },
+  { "id": "p-au-3", "brand": "샘플브랜드", "name": "립 밤", "shade": "MLBB 브라운", "hex": "#B86B5B", "finish": "glossy", "seasons": ["autumn"], "url": "https://example.com/aff?pid=p-au-3" },
+  { "id": "p-wi-1", "brand": "샘플브랜드", "name": "매트 립스틱", "shade": "트루 레드", "hex": "#D11F2F", "finish": "matte", "seasons": ["winter"], "url": "https://example.com/aff?pid=p-wi-1" },
+  { "id": "p-wi-2", "brand": "샘플브랜드", "name": "워터 틴트", "shade": "푸시아", "hex": "#D32B82", "finish": "glossy", "seasons": ["winter"], "url": "https://example.com/aff?pid=p-wi-2" },
+  { "id": "p-wi-3", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "플럼", "hex": "#7D2F5E", "finish": "velvet", "seasons": ["winter"], "url": "https://example.com/aff?pid=p-wi-3" }
+]
