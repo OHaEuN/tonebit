@@ -46,8 +46,59 @@ h2 {
   }
 }
 
+/* 체험 페이지 모듈 로딩: 시즌 색 칩이 차례로 출렁이고, 엔진을 켜는 동안 진행 막대 위로 빛이 지나간다 */
+.swatch-wave {
+  animation: swatch-wave 1.4s ease-in-out infinite;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes swatch-wave {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+}
+
+.bar-shimmer {
+  background-image: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.45) 50%, transparent 100%);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: bar-shimmer 1.2s linear infinite;
+}
+
+@keyframes bar-shimmer {
+  from {
+    background-position: -50% 0;
+  }
+  to {
+    background-position: 150% 0;
+  }
+}
+
+.tip-in {
+  animation: tip-in 400ms ease-out both;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .drape {
+  .drape,
+  .swatch-wave,
+  .bar-shimmer,
+  .tip-in {
     animation: none;
   }
   * {
