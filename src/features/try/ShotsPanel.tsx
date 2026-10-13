@@ -74,6 +74,7 @@ export function ShotsPanel({ onAddPhotos, onMeasureMore, photos }: ShotsPanelPro
                 <span className="font-medium" style={{ color: SEASON_INFO[r.season].accent }}>
                   {SEASON_INFO[r.season].label} {SEASON_INFO[r.season].tone}
                 </span>
+                {shot.whiteFixed && <span className="text-[10px] text-muted">흰색 기준</span>}
               </button>
             );
           })}
