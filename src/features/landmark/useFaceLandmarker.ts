@@ -10,12 +10,76 @@ export type LandmarkerStatus = "loading" | "ready" | "error";
 const WASM_PATH = `/wasm/${process.env.NEXT_PUBLIC_MEDIAPIPE_VERSION}`;
 const MODEL_PATH = "/models/face_landmarker.task";
 
-async function loadLandmarker(): Promise<FaceLandmarker> {
+/** 로딩 진행 상황. download는 wasm·모델을 받는 중, init은 받은 걸로 엔진을 올리는 중 */
+export interface LoadProgress {
+  phase: "download" | "init";
+  /** 0~1. 크기를 모를 땐 추정치 기준 */
+  ratio: number;
+  loadedBytes: number;
+  totalBytes: number;
+}
+
+/** Content-Length를 못 믿을 때(압축 전송) 쓰는 대략적인 크기 */
+const ESTIMATED_BYTES = { wasm: 13_000_000, model: 3_800_000 };
+
+/** 받은 바이트 수를 알려주며 내려받는다. 압축 전송이면 Content-Length가 실제보다 작아 추정치를 쓴다 */
+async function fetchWithProgress(url: string, estimate: number, onBytes: (loaded: number, total: number) => void): Promise<Uint8Array> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${new URL(url, location.href).pathname} 내려받기 실패 (HTTP ${res.status})`);
+  const length = Number(res.headers.get("content-length"));
+  const total = length > 0 && !res.headers.get("content-encoding") ? length : estimate;
+  if (!res.body) {
+    const buf = new Uint8Array(await res.arrayBuffer());
+    onBytes(buf.byteLength, buf.byteLength);
+    return buf;
+  }
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let loaded = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    loaded += value.byteLength;
+    onBytes(loaded, Math.max(total, loaded));
+  }
+  onBytes(loaded, loaded);
+  const out = new Uint8Array(loaded);
+  let offset = 0;
+  for (const c of chunks) {
+    out.set(c, offset);
+    offset += c.byteLength;
+  }
+  return out;
+}
+
+async function loadLandmarker(onProgress: (p: LoadProgress) => void): Promise<FaceLandmarker> {
   const { FilesetResolver, FaceLandmarker } = await import("@mediapipe/tasks-vision");
   const vision = await FilesetResolver.forVisionTasks(WASM_PATH);
+
+  // wasm과 모델을 같이 받으며 진행률을 낸다. wasm은 여기서 HTTP 캐시에 올려두고 tasks-vision이 다시 요청할 때 캐시에서 꺼내 쓴다
+  const progress = { wasm: [0, ESTIMATED_BYTES.wasm], model: [0, ESTIMATED_BYTES.model] };
+  const report = () => {
+    const loadedBytes = progress.wasm[0] + progress.model[0];
+    const totalBytes = progress.wasm[1] + progress.model[1];
+    onProgress({ phase: "download", ratio: Math.min(1, loadedBytes / totalBytes), loadedBytes, totalBytes });
+  };
+  const [, model] = await Promise.all([
+    fetchWithProgress(vision.wasmBinaryPath, ESTIMATED_BYTES.wasm, (l, t) => {
+      progress.wasm = [l, t];
+      report();
+    }),
+    fetchWithProgress(MODEL_PATH, ESTIMATED_BYTES.model, (l, t) => {
+      progress.model = [l, t];
+      report();
+    }),
+  ]);
+  const totalBytes = progress.wasm[1] + progress.model[1];
+  onProgress({ phase: "init", ratio: 1, loadedBytes: totalBytes, totalBytes });
+
   const create = (delegate: "GPU" | "CPU") =>
     FaceLandmarker.createFromOptions(vision, {
-      baseOptions: { modelAssetPath: MODEL_PATH, delegate },
+      baseOptions: { modelAssetBuffer: model, delegate },
       runningMode: "VIDEO",
       numFaces: 1,
     });
@@ -49,15 +113,25 @@ export function useFaceLandmarker() {
   const [status, setStatus] = useState<LandmarkerStatus>("loading");
   /** 실패 원인. 기기에서 콘솔을 못 보는 사용자가 화면에서 읽을 수 있게 */
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<LoadProgress | null>(null);
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => {
     setStatus("loading");
+    setError(null);
+    setProgress(null);
     setAttempt((n) => n + 1);
   }, []);
 
   useEffect(() => {
     let disposed = false;
-    loadLandmarker()
+    // 바이트마다 렌더하지 않게 퍼센트가 바뀔 때만 상태를 올린다
+    let lastKey = "";
+    loadLandmarker((p) => {
+      const key = `${p.phase}:${Math.floor(p.ratio * 100)}`;
+      if (disposed || key === lastKey) return;
+      lastKey = key;
+      setProgress(p);
+    })
       .then((lm) => {
         if (disposed) {
           lm.close();
@@ -80,7 +154,7 @@ export function useFaceLandmarker() {
     };
   }, [attempt]);
 
-  return { status, error, landmarkerRef, retry };
+  return { status, error, progress, landmarkerRef, retry };
 }
 
 const modes = new WeakMap<FaceLandmarker, "IMAGE" | "VIDEO">();

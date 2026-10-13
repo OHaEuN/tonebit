@@ -10,6 +10,7 @@ import { ensureVideoMode, useFaceLandmarker } from "@/features/landmark/useFaceL
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { AdvancedPanel } from "./AdvancedPanel";
 import { LightingBadges } from "./LightingBadges";
+import { ModelLoading } from "./ModelLoading";
 import { ResultPanel } from "./ResultPanel";
 import { UploadButton } from "./UploadButton";
 import { useIsMobile } from "./useIsMobile";
@@ -27,7 +28,7 @@ const BUTTON = "rounded-full px-5 py-3 font-medium focus-visible:outline-2 focus
 export function TrySession() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { status: modelStatus, error: modelError, landmarkerRef, retry } = useFaceLandmarker();
+  const { status: modelStatus, error: modelError, progress: modelProgress, landmarkerRef, retry } = useFaceLandmarker();
   const isMobile = useIsMobile();
   const camera = useCameraStream(videoRef);
   const still = useStillAnalysis({ canvasRef, landmarkerRef });
@@ -80,11 +81,14 @@ export function TrySession() {
       {(stage === "setup" || cameraFailed) && (
         <section className="space-y-4">
           <PrivacyNote />
-          <p role="status" aria-live="polite" className="text-sm text-muted">
-            {modelStatus === "loading" && "얼굴 인식 모듈을 불러오는 중이에요 (최초 1회, 약 10MB)"}
-            {modelStatus === "error" && "얼굴 인식 모듈을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해 주세요."}
-            {modelReady && "준비됐어요. 자연광 아래, 정면을 비춰 주세요."}
-          </p>
+          {modelStatus === "loading" ? (
+            <ModelLoading progress={modelProgress} />
+          ) : (
+            <p role="status" aria-live="polite" className="text-sm text-muted">
+              {modelStatus === "error" && "얼굴 인식 모듈을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해 주세요."}
+              {modelReady && "준비됐어요. 자연광 아래, 정면을 비춰 주세요."}
+            </p>
+          )}
           {cameraFailed && (
             <p role="alert" className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
               {CAMERA_MESSAGES[camera.status as keyof typeof CAMERA_MESSAGES]}
