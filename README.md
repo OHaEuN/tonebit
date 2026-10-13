@@ -132,6 +132,21 @@ Vercel 기준으로 맞춰져 있습니다. `headers()`, `next/og`, 정적 생�
 
 Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수익이 실제로 붙는 시점에는 Pro 또는 Cloudflare(OpenNext)로 옮깁니다. 코드에 플랫폼 종속은 없습니다.
 
+## 수익화 연결
+
+**카카오 AdFit (결과 페이지 320×100 배너)**
+1. adfit.kakao.com에서 매체(웹사이트, 배포된 도메인) 등록 → 광고단위 생성(320×100) → `DAN-…` ID 발급.
+2. Vercel 환경변수 `NEXT_PUBLIC_ADFIT_UNIT_RESULT`에 그 ID를 넣고 재배포. 이 변수가 비어 있으면 placeholder가 보인다.
+3. AdFit은 스크립트가 실제로 광고 요청을 보내는 것을 확인한 뒤 심사한다(영업일 1~2일). 승인 전까지는 빈 영역으로 보인다.
+4. 광고 스크립트는 `AdSlot`이 마운트될 때 `<ins class="kakao_ad_area">`와 `ba.min.js`를 넣는 방식이라 결과 페이지에서만 로드되고, `/r/:path*` 전용 CSP(`next.config.ts`)가 카카오 도메인만 허용한다. 체험 페이지는 외부 연결이 전부 막힌 그대로다.
+
+**쿠팡 파트너스 (제품 카드 링크)**
+1. partners.coupang.com에서 가입하고 활동 채널에 배포된 도메인을 등록한다.
+2. 파트너스 콘솔에서 제품별 링크를 만들어 `features/recommend/products.json`의 `url`에 넣는다. 카드의 `rel="sponsored"`와 결과 페이지의 수수료 고지 문구는 이미 들어 있다.
+3. 최종 승인(누적 판매 금액 기준, 콘솔 공지에서 확인)이 나야 정산과 Open API(상품 검색·딥링크)를 쓸 수 있다. API를 쓰게 되면 `getProducts`만 fetch로 바꾼다.
+
+개인정보처리방침은 `/privacy`에 있고 푸터에서 링크된다. 배포 전에 `src/app/privacy/page.tsx`의 연락처를 채운다.
+
 ## 데이터 교체
 
 제품은 `features/recommend/products.json` 목업이고 `getProducts(season)` 하나로만 읽습니다. 쇼핑몰 API로 바꿀 때 이 함수만 fetch로 교체하면 됩니다. 쇼핑몰 크롤링은 하지 않습니다. 제휴 링크는 `url` 필드의 placeholder를 바꿉니다.
