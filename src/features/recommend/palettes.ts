@@ -30,17 +30,20 @@ export const SEASON_INFO: Record<Season, SeasonInfo> = {
     description: "노란기가 돌면서 밝고 선명한 피부. 코랄, 피치처럼 생기 있는 따뜻한 색이 얼굴을 환하게 띄워요.",
     accent: "#FF7F66",
     lips: [
-      { id: "sp-coral", name: "코랄", hex: "#FF7F66" },
-      { id: "sp-peach", name: "피치", hex: "#FFA07A" },
-      { id: "sp-warmpink", name: "웜 핑크", hex: "#FF8C94" },
-      { id: "sp-orangered", name: "오렌지 레드", hex: "#F4553A" },
-      { id: "sp-apricot", name: "애프리콧", hex: "#FFB38A" },
-      { id: "sp-salmon", name: "살몬", hex: "#F08080" },
+      { id: "sp-peachcoral", name: "피치 코랄", hex: "#E98775" },
+      { id: "sp-apricot", name: "살구", hex: "#E89A80" },
+      { id: "sp-milkycoral", name: "밀키 코랄", hex: "#E58C83" },
+      { id: "sp-orangepink", name: "오렌지 핑크", hex: "#E4786F" },
+      { id: "sp-coralred", name: "코랄 레드", hex: "#D95A4A" },
+      { id: "sp-peachbeige", name: "피치 베이지", hex: "#D9988A" },
+      { id: "sp-candypink", name: "캔디 핑크", hex: "#E67F93" },
+      { id: "sp-tangerine", name: "탠저린", hex: "#E0674D" },
     ],
     blushes: [
-      { id: "sp-b1", name: "피치 블러셔", hex: "#FFB3A0" },
-      { id: "sp-b2", name: "코랄 블러셔", hex: "#FF9E8C" },
-      { id: "sp-b3", name: "애프리콧 블러셔", hex: "#FFC4A3" },
+      { id: "sp-b1", name: "피치 블러셔", hex: "#F0A594" },
+      { id: "sp-b2", name: "코랄 블러셔", hex: "#EB9A8A" },
+      { id: "sp-b3", name: "애프리콧 블러셔", hex: "#F1AD95" },
+      { id: "sp-b4", name: "살몬 블러셔", hex: "#ED9C8C" },
     ],
   },
   summer: {
@@ -50,17 +53,20 @@ export const SEASON_INFO: Record<Season, SeasonInfo> = {
     description: "핑크기가 돌면서 밝고 차분한 피부. 로즈, 모브처럼 뽀얀 파스텔 톤이 자연스럽게 어울려요.",
     accent: "#E27396",
     lips: [
-      { id: "su-rose", name: "로즈 핑크", hex: "#E88FA8" },
-      { id: "su-mauve", name: "모브", hex: "#C98BA5" },
-      { id: "su-raspberry", name: "라즈베리", hex: "#C94C73" },
-      { id: "su-lavender", name: "라벤더 핑크", hex: "#D8A0C8" },
-      { id: "su-plum", name: "소프트 플럼", hex: "#B06A8E" },
-      { id: "su-coolrose", name: "쿨 로즈", hex: "#E27396" },
+      { id: "su-rosepink", name: "로즈 핑크", hex: "#D97C92" },
+      { id: "su-mauvepink", name: "모브 핑크", hex: "#C47F96" },
+      { id: "su-dustyrose", name: "더스티 로즈", hex: "#C27384" },
+      { id: "su-raspberry", name: "라즈베리", hex: "#BF5572" },
+      { id: "su-babypink", name: "베이비 핑크", hex: "#E39DAE" },
+      { id: "su-rosynude", name: "로지 누드", hex: "#CC8C8F" },
+      { id: "su-softplum", name: "소프트 플럼", hex: "#A86581" },
+      { id: "su-coolberry", name: "쿨 베리", hex: "#B75472" },
     ],
     blushes: [
-      { id: "su-b1", name: "로즈 블러셔", hex: "#F2B5C9" },
-      { id: "su-b2", name: "모브 블러셔", hex: "#E6A5BF" },
-      { id: "su-b3", name: "라일락 블러셔", hex: "#D9A6C2" },
+      { id: "su-b1", name: "로즈 블러셔", hex: "#E8A3B5" },
+      { id: "su-b2", name: "라벤더 핑크 블러셔", hex: "#DDA5C3" },
+      { id: "su-b3", name: "쿨 핑크 블러셔", hex: "#E497AC" },
+      { id: "su-b4", name: "모브 블러셔", hex: "#D4A0B4" },
     ],
   },
   autumn: {
@@ -70,17 +76,20 @@ export const SEASON_INFO: Record<Season, SeasonInfo> = {
     description: "노란기가 돌면서 깊고 차분한 피부. 브릭, 테라코타처럼 농도 있는 따뜻한 색이 고급스러워요.",
     accent: "#C9643B",
     lips: [
-      { id: "au-brick", name: "브릭", hex: "#B5453A" },
-      { id: "au-terracotta", name: "테라코타", hex: "#C9643B" },
-      { id: "au-brownred", name: "브라운 레드", hex: "#8E3B2F" },
-      { id: "au-pumpkin", name: "펌킨", hex: "#D2691E" },
-      { id: "au-mlbb", name: "MLBB 브라운", hex: "#B86B5B" },
-      { id: "au-burgundy", name: "버건디 브라운", hex: "#7B2D2D" },
+      { id: "au-terracotta", name: "테라코타", hex: "#C2634B" },
+      { id: "au-brickrose", name: "브릭 로즈", hex: "#B45A52" },
+      { id: "au-mlbb", name: "MLBB 브라운", hex: "#B37469" },
+      { id: "au-cinnamon", name: "시나몬", hex: "#B26A52" },
+      { id: "au-brickred", name: "브릭 레드", hex: "#A94A3E" },
+      { id: "au-taupenude", name: "토프 누드", hex: "#B38274" },
+      { id: "au-burgundybrown", name: "버건디 브라운", hex: "#8C3F3D" },
+      { id: "au-pumpkin", name: "펌킨", hex: "#CB6F4A" },
     ],
     blushes: [
-      { id: "au-b1", name: "테라코타 블러셔", hex: "#D28B6E" },
-      { id: "au-b2", name: "시나몬 블러셔", hex: "#C97B5A" },
-      { id: "au-b3", name: "브릭 블러셔", hex: "#B96A55" },
+      { id: "au-b1", name: "테라코타 블러셔", hex: "#D9937A" },
+      { id: "au-b2", name: "시나몬 블러셔", hex: "#D08F75" },
+      { id: "au-b3", name: "브릭 블러셔", hex: "#CD8778" },
+      { id: "au-b4", name: "누드 베이지 블러셔", hex: "#D9A38E" },
     ],
   },
   winter: {
@@ -90,27 +99,34 @@ export const SEASON_INFO: Record<Season, SeasonInfo> = {
     description: "핑크기가 돌면서 대비가 또렷한 피부. 트루 레드, 푸시아처럼 선명한 색이 얼굴을 또렷하게 잡아줘요.",
     accent: "#D11F2F",
     lips: [
-      { id: "wi-truered", name: "트루 레드", hex: "#D11F2F" },
-      { id: "wi-fuchsia", name: "푸시아", hex: "#D32B82" },
-      { id: "wi-burgundy", name: "버건디", hex: "#6E1E3A" },
-      { id: "wi-plum", name: "플럼", hex: "#7D2F5E" },
-      { id: "wi-hotpink", name: "핫 핑크", hex: "#E8366F" },
-      { id: "wi-wine", name: "와인", hex: "#8E1C3C" },
+      { id: "wi-truered", name: "트루 레드", hex: "#C8283E" },
+      { id: "wi-cherry", name: "체리", hex: "#BE2F4A" },
+      { id: "wi-fuchsia", name: "푸시아", hex: "#C73A7F" },
+      { id: "wi-plum", name: "플럼", hex: "#8A3A5E" },
+      { id: "wi-wine", name: "와인", hex: "#8E2C44" },
+      { id: "wi-coolpink", name: "쿨 핑크", hex: "#D25B86" },
+      { id: "wi-burgundy", name: "버건디", hex: "#7B2B3F" },
+      { id: "wi-rosered", name: "로즈 레드", hex: "#C1405A" },
     ],
     blushes: [
-      { id: "wi-b1", name: "푸시아 블러셔", hex: "#E57BA3" },
-      { id: "wi-b2", name: "쿨 핑크 블러셔", hex: "#D75D8E" },
-      { id: "wi-b3", name: "베리 블러셔", hex: "#C64A86" },
+      { id: "wi-b1", name: "베리 블러셔", hex: "#D97A9A" },
+      { id: "wi-b2", name: "푸시아 블러셔", hex: "#DD7AA0" },
+      { id: "wi-b3", name: "플럼 블러셔", hex: "#C9809C" },
+      { id: "wi-b4", name: "쿨 레드 블러셔", hex: "#DC7382" },
     ],
   },
 };
 
 export const CONFIDENCE_LABEL = { high: "높음", mid: "보통", low: "낮음" } as const;
 
-export function findSwatch(season: Season, kind: "lips" | "blushes", id: string | null): Swatch | null {
+/** 팔레트·제품 id는 시즌을 넘어 유일하므로 모든 시즌에서 찾는다. 다른 시즌 색을 발라보는 흐름을 위해 */
+export function findSwatchById(kind: "lips" | "blushes", id: string | null): Swatch | null {
   if (!id) return null;
-  const all = [...SEASON_INFO[season][kind], ...productSwatches(season, kind === "lips" ? "lip" : "blush")];
-  return all.find((s) => s.id === id) ?? null;
+  for (const season of SEASONS) {
+    const found = [...SEASON_INFO[season][kind], ...productSwatches(season, kind === "lips" ? "lip" : "blush")].find((s) => s.id === id);
+    if (found) return found;
+  }
+  return null;
 }
 
 export const TONE_SLUGS = SEASONS.flatMap((season) => SEASON_SUBTYPES[season].map((sub) => `${season}-${sub}` as ToneSlug));

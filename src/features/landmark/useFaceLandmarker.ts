@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 
 export type LandmarkerStatus = "loading" | "ready" | "error";
@@ -29,6 +29,13 @@ async function loadLandmarker(): Promise<FaceLandmarker> {
 export function useFaceLandmarker() {
   const landmarkerRef = useRef<FaceLandmarker | null>(null);
   const [status, setStatus] = useState<LandmarkerStatus>("loading");
+  /** 실패 원인. 기기에서 콘솔을 못 보는 사용자가 화면에서 읽을 수 있게 */
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => {
+    setStatus("loading");
+    setAttempt((n) => n + 1);
+  }, []);
 
   useEffect(() => {
     let disposed = false;
@@ -41,15 +48,19 @@ export function useFaceLandmarker() {
         landmarkerRef.current = lm;
         setStatus("ready");
       })
-      .catch(() => setStatus("error"));
+      .catch((e: unknown) => {
+        console.error("[landmarker] load failed", e);
+        setError(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
+        setStatus("error");
+      });
     return () => {
       disposed = true;
       landmarkerRef.current?.close();
       landmarkerRef.current = null;
     };
-  }, []);
+  }, [attempt]);
 
-  return { status, landmarkerRef };
+  return { status, error, landmarkerRef, retry };
 }
 
 const modes = new WeakMap<FaceLandmarker, "IMAGE" | "VIDEO">();

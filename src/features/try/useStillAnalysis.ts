@@ -7,7 +7,7 @@ import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, T
 import { classifyTone } from "@/features/analysis/tone";
 import { detectImage } from "@/features/landmark/useFaceLandmarker";
 import { drawOverlays } from "@/features/lipTryOn/render";
-import { findSwatch } from "@/features/recommend/palettes";
+import { findSwatchById } from "@/features/recommend/palettes";
 import { track } from "@/features/analytics/track";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
@@ -82,10 +82,10 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
     [canvasRef, landmarkerRef],
   );
 
-  const result = useAnalysisStore((s) => s.result);
   const lipId = useAnalysisStore((s) => s.lipId);
   const blushId = useAnalysisStore((s) => s.blushId);
   const blend = useAnalysisStore((s) => s.blend);
+  const intensity = useAnalysisStore((s) => s.intensity);
   const debug = useAnalysisStore((s) => s.debug);
 
   useEffect(() => {
@@ -97,14 +97,14 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
     ctx.drawImage(img, 0, 0, w, h);
-    const season = result?.season;
     drawOverlays(ctx, createOffscreen(w, h), landmarks, w, h, {
-      lip: season ? (findSwatch(season, "lips", lipId)?.hex ?? null) : null,
-      blush: season ? (findSwatch(season, "blushes", blushId)?.hex ?? null) : null,
+      lip: findSwatchById("lips", lipId)?.hex ?? null,
+      blush: findSwatchById("blushes", blushId)?.hex ?? null,
       blend,
+      intensity,
       debug,
     });
-  }, [canvasRef, landmarks, result, lipId, blushId, blend, debug]);
+  }, [canvasRef, landmarks, lipId, blushId, blend, intensity, debug]);
 
   const clear = useCallback(() => {
     imageRef.current = null;
