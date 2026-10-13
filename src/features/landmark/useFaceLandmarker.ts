@@ -6,7 +6,8 @@ import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 export type LandmarkerStatus = "loading" | "ready" | "error";
 
 /** 모델·wasm은 같은 오리진에서만 받는다. CSP connect-src 'self'로 강제됨 */
-const WASM_PATH = "/wasm";
+/** 버전별 경로라 배포가 바뀌어도 immutable 캐시에 남은 예전 파일을 쓰지 않는다 (scripts/copy-wasm.mjs) */
+const WASM_PATH = `/wasm/${process.env.NEXT_PUBLIC_MEDIAPIPE_VERSION}`;
 const MODEL_PATH = "/models/face_landmarker.task";
 
 async function loadLandmarker(): Promise<FaceLandmarker> {
@@ -22,6 +23,23 @@ async function loadLandmarker(): Promise<FaceLandmarker> {
     return await create("GPU");
   } catch {
     return create("CPU");
+  }
+}
+
+/**
+ * tasks-vision은 wasm 로더를 <script>로 붙이고, 실패하면 Error가 아닌 Event로 reject한다.
+ * 화면에 "[object Event]" 대신 어떤 파일이 어떤 상태로 실패했는지 보여준다
+ */
+async function describeLoadError(e: unknown): Promise<string> {
+  if (e instanceof Error) return `${e.name}: ${e.message}`;
+  const src = typeof Event !== "undefined" && e instanceof Event && e.target instanceof HTMLScriptElement ? e.target.src : null;
+  if (!src) return String(e);
+  const path = new URL(src).pathname;
+  try {
+    const res = await fetch(src, { method: "HEAD", cache: "no-store" });
+    return `스크립트 로드 실패: ${path} (HTTP ${res.status}, ${res.headers.get("content-type") ?? "type 없음"})`;
+  } catch {
+    return `스크립트 로드 실패: ${path} (네트워크 오류)`;
   }
 }
 
@@ -48,9 +66,11 @@ export function useFaceLandmarker() {
         landmarkerRef.current = lm;
         setStatus("ready");
       })
-      .catch((e: unknown) => {
+      .catch(async (e: unknown) => {
         console.error("[landmarker] load failed", e);
-        setError(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
+        const message = await describeLoadError(e);
+        if (disposed) return;
+        setError(message);
         setStatus("error");
       });
     return () => {
