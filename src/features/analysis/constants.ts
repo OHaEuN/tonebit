@@ -27,8 +27,11 @@ export const HUE_COOL_MAX = 53;
 export const ITA_LIGHT_MIN = 41;
 /** 선명/뮤트: chroma C*. 피부 C* 16~24의 중앙 */
 export const CHROMA_CLEAR_MIN = 20;
-/** 확신도: 임계값에서 이 거리 이상이면 high, 절반 이상이면 mid */
-export const CONFIDENCE_MARGIN = { hue: 4, ita: 6 } as const;
+/**
+ * 각 축에서 "충분히 떨어졌다"고 보는 거리. 확신도와 12시즌 세부 타입 판정에 같이 쓴다.
+ * hue ±4°는 카메라 WB 흔들림 폭, ITA 6°와 chroma 4는 각 분포 폭의 절반
+ */
+export const AXIS_MARGIN = { hue: 4, ita: 6, chroma: 4 } as const;
 
 // ---- 조명 체크 ----
 export const LIGHT_LUMA_MIN = 70;

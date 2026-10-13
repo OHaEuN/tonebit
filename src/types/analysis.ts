@@ -22,9 +22,27 @@ export type Undertone = "warm" | "cool" | "neutral";
 export type Depth = "light" | "deep";
 export type ChromaLevel = "clear" | "muted";
 export type Confidence = "high" | "mid" | "low";
+/** 12시즌 세부 타입. 시즌마다 셋만 허용된다 (봄: light·bright·true 등) */
+export type Subtype = "light" | "bright" | "true" | "soft" | "deep";
+/** 결과 URL 슬러그. 시즌마다 허용되는 세부 타입 셋만 존재한다 */
+export type ToneSlug =
+  | "spring-light"
+  | "spring-bright"
+  | "spring-true"
+  | "summer-light"
+  | "summer-soft"
+  | "summer-true"
+  | "autumn-soft"
+  | "autumn-deep"
+  | "autumn-true"
+  | "winter-deep"
+  | "winter-bright"
+  | "winter-true";
 
 export interface ToneResult {
   season: Season;
+  subtype: Subtype;
+  tone: ToneSlug;
   undertone: Undertone;
   depth: Depth;
   chroma: ChromaLevel;
