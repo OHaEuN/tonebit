@@ -44,6 +44,7 @@ test("셀카를 올리면 결과와 립 팔레트가 나오고 결과 카드로 
   const firstLip = page.locator("fieldset").first().locator("label[title]").first();
   await firstLip.click();
   await expect(firstLip.getByRole("radio")).toBeChecked();
-  await page.getByRole("link", { name: "결과 카드 보기" }).click();
-  await expect(page).toHaveURL(/\/r\/(spring|summer|autumn|winter)$/);
+  await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible();
+  await page.getByRole("link", { name: "결과 카드와 추천 보기" }).click();
+  await expect(page).toHaveURL(/\/r\/(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/);
 });

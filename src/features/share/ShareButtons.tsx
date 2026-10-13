@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { Season } from "@/types/analysis";
+import type { ToneSlug } from "@/types/analysis";
 import { cardImagePath } from "./resultUrl";
 
 interface ShareButtonsProps {
-  season: Season;
+  tone: ToneSlug;
   title: string;
 }
 
-export function ShareButtons({ season, title }: ShareButtonsProps) {
+export function ShareButtons({ tone, title }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const share = async () => {
@@ -31,13 +31,15 @@ export function ShareButtons({ season, title }: ShareButtonsProps) {
       <button
         type="button"
         onClick={share}
+        data-umami-event="share"
         className="rounded-full bg-accent px-5 py-3 font-medium text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         결과 공유하기
       </button>
       <a
-        href={cardImagePath(season)}
-        download={`color-test-${season}.png`}
+        href={cardImagePath(tone)}
+        download={`tonepick-${tone}.png`}
+        data-umami-event="card-download"
         className="rounded-full border border-line bg-card px-5 py-3 font-medium hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         카드 이미지 저장

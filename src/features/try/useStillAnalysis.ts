@@ -8,6 +8,7 @@ import { classifyTone } from "@/features/analysis/tone";
 import { detectImage } from "@/features/landmark/useFaceLandmarker";
 import { drawOverlays } from "@/features/lipTryOn/render";
 import { findSwatch } from "@/features/recommend/palettes";
+import { track } from "@/features/analytics/track";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
 export const STILL_ERRORS = {
@@ -64,6 +65,7 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
       }
       store.setFaceFound(Boolean(points));
       if (!points) {
+        track({ name: "face-not-found", source: "image" });
         setError(STILL_ERRORS.noFace);
         return;
       }
