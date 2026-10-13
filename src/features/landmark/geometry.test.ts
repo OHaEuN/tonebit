@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Point } from "@/types/analysis";
-import { blushSpots, faceWidthRatio, interocular, scleraPatches, skinPatches } from "./geometry";
+import { cheekAnchors, faceWidthRatio, interocular, mouthFrame, scleraPatches, skinPatches } from "./geometry";
 
 /** 468점 전부 중앙에 두고 필요한 점만 덮어쓴다 */
 function face(overrides: Record<number, Point>): Point[] {
@@ -44,11 +44,29 @@ describe("geometry", () => {
     expect(scleraPatches(face({}).slice(0, 468), 1000, 1000)).toEqual([]);
   });
 
-  it("블러셔 자리는 볼 사과에서 광대 쪽으로 옮겨지고 광대를 향해 기운다", () => {
-    const lm = face({ 50: { x: 0.4, y: 0.6 }, 116: { x: 0.2, y: 0.5 }, 280: { x: 0.6, y: 0.6 }, 345: { x: 0.8, y: 0.5 } });
-    const [left, right] = blushSpots(lm, 1000, 1000, 0.25);
-    expect(left).toMatchObject({ x: expect.closeTo(350, 6), y: expect.closeTo(575, 6) });
-    expect(right).toMatchObject({ x: expect.closeTo(650, 6), y: expect.closeTo(575, 6) });
-    expect(right.angle).toBeCloseTo(Math.atan2(-100, 200), 6);
+  it("볼 기준점은 각 볼에 더 가까운 눈을 짝으로 쓴다", () => {
+    const lm = face({
+      50: { x: 0.4, y: 0.6 },
+      116: { x: 0.2, y: 0.5 },
+      280: { x: 0.6, y: 0.6 },
+      345: { x: 0.8, y: 0.5 },
+      33: { x: 0.3, y: 0.4 },
+      133: { x: 0.45, y: 0.4 },
+      263: { x: 0.7, y: 0.4 },
+      362: { x: 0.55, y: 0.4 },
+    });
+    const [left, right] = cheekAnchors(lm, 1000, 1000);
+    expect(left.apple).toEqual({ x: 400, y: 600 });
+    expect(left.eye.x).toBeCloseTo(375, 6);
+    expect(right.eye.x).toBeCloseTo(625, 6);
+  });
+
+  it("입 틀은 입꼬리 폭, 위아래 높이, 안쪽 중앙을 쓴다", () => {
+    const lm = face({ 61: { x: 0.4, y: 0.7 }, 291: { x: 0.6, y: 0.7 }, 0: { x: 0.5, y: 0.66 }, 17: { x: 0.5, y: 0.76 }, 13: { x: 0.5, y: 0.7 }, 14: { x: 0.5, y: 0.72 } });
+    const m = mouthFrame(lm, 1000, 1000);
+    expect(m.width).toBeCloseTo(200, 6);
+    expect(m.height).toBeCloseTo(100, 6);
+    expect(m.center).toEqual({ x: 500, y: 710 });
+    expect(m.angle).toBeCloseTo(0, 6);
   });
 });

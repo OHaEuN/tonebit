@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { explainTone } from "@/features/analysis/explain";
+import { ApplyControls } from "@/features/lipTryOn/ApplyControls";
 import { ColorPicker } from "@/features/lipTryOn/ColorPicker";
+import { BLUSH_STYLES, LIP_STYLES } from "@/features/lipTryOn/render";
 import { productSwatches } from "@/features/recommend/getProducts";
 import { CONFIDENCE_LABEL, SEASON_INFO, SEASONS, sortSwatches, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
 import { resultPath } from "@/features/share/resultUrl";
@@ -14,11 +16,17 @@ export function ResultPanel() {
   const result = useAnalysisStore((s) => s.result);
   const lipId = useAnalysisStore((s) => s.lipId);
   const blushId = useAnalysisStore((s) => s.blushId);
-  const intensity = useAnalysisStore((s) => s.intensity);
+  const lipStyle = useAnalysisStore((s) => s.lipStyle);
+  const blushStyle = useAnalysisStore((s) => s.blushStyle);
+  const lipIntensity = useAnalysisStore((s) => s.lipIntensity);
+  const blushIntensity = useAnalysisStore((s) => s.blushIntensity);
   const paletteSeason = useAnalysisStore((s) => s.paletteSeason);
   const selectLip = useAnalysisStore((s) => s.selectLip);
   const selectBlush = useAnalysisStore((s) => s.selectBlush);
-  const setIntensity = useAnalysisStore((s) => s.setIntensity);
+  const setLipStyle = useAnalysisStore((s) => s.setLipStyle);
+  const setBlushStyle = useAnalysisStore((s) => s.setBlushStyle);
+  const setLipIntensity = useAnalysisStore((s) => s.setLipIntensity);
+  const setBlushIntensity = useAnalysisStore((s) => s.setBlushIntensity);
   const setPaletteSeason = useAnalysisStore((s) => s.setPaletteSeason);
   const remeasure = useAnalysisStore((s) => s.remeasure);
   const source = useAnalysisStore((s) => s.source);
@@ -98,6 +106,7 @@ export function ResultPanel() {
         value={lipId}
         onChange={selectLip}
       />
+      <ApplyControls name="립" styles={LIP_STYLES} style={lipStyle} onStyle={setLipStyle} intensity={lipIntensity} onIntensity={setLipIntensity} />
       <ColorPicker
         name="blush"
         label="블러셔"
@@ -108,20 +117,15 @@ export function ResultPanel() {
         value={blushId}
         onChange={selectBlush}
       />
+      <ApplyControls
+        name="블러셔"
+        styles={BLUSH_STYLES}
+        style={blushStyle}
+        onStyle={setBlushStyle}
+        intensity={blushIntensity}
+        onIntensity={setBlushIntensity}
+      />
 
-      <label className="block text-sm">
-        <span className="font-medium">진하기</span>
-        <span className="ml-2 text-muted">{Math.round(intensity * 100)}%</span>
-        <input
-          type="range"
-          min={0.2}
-          max={1}
-          step={0.05}
-          value={intensity}
-          onChange={(e) => setIntensity(Number(e.target.value))}
-          className="mt-2 block w-full accent-accent"
-        />
-      </label>
       <p className="text-xs text-muted">제품 색은 공식 색상명 기준 근사치예요. 실제 발색과 다를 수 있어요.</p>
 
       <div className="flex flex-wrap gap-2">

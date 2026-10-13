@@ -24,6 +24,13 @@ export const CHEEK_AXES = [
   [280, 345],
 ] as const;
 
+/** 입꼬리 [왼, 오른] */
+export const MOUTH_CORNERS = [61, 291] as const;
+/** 윗입술 위 중앙, 아랫입술 아래 중앙 */
+export const MOUTH_VERTICAL = [0, 17] as const;
+/** 윗입술 안쪽 중앙, 아랫입술 안쪽 중앙 */
+export const MOUTH_CENTER = [13, 14] as const;
+
 /** 입술 바깥 윤곽, 시계 방향으로 닫힌 링 */
 export const LIP_OUTER = [
   61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146,

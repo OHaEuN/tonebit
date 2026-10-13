@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { track } from "@/features/analytics/track";
 import type { LightingIssue, Season, ToneResult } from "@/types/analysis";
-import { DEFAULT_INTENSITY, type BlendPreset } from "@/features/lipTryOn/render";
+import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/lipTryOn/render";
 
 export type Stage = "setup" | "live" | "measuring" | "done";
 export type Source = "camera" | "image";
@@ -16,9 +16,11 @@ interface AnalysisState {
   result: ToneResult | null;
   lipId: string | null;
   blushId: string | null;
-  blend: BlendPreset;
-  /** 발색 진하기 0~1 */
-  intensity: number;
+  lipStyle: LipStyle;
+  blushStyle: BlushStyle;
+  /** 발색 진하기 0~1. 립과 블러셔 따로 */
+  lipIntensity: number;
+  blushIntensity: number;
   /** 발라볼 팔레트의 시즌. null이면 진단된 시즌 */
   paletteSeason: Season | null;
   debug: boolean;
@@ -34,8 +36,10 @@ interface AnalysisState {
   remeasure: () => void;
   selectLip: (id: string | null) => void;
   selectBlush: (id: string | null) => void;
-  setBlend: (b: BlendPreset) => void;
-  setIntensity: (v: number) => void;
+  setLipStyle: (s: LipStyle) => void;
+  setBlushStyle: (s: BlushStyle) => void;
+  setLipIntensity: (v: number) => void;
+  setBlushIntensity: (v: number) => void;
   setPaletteSeason: (s: Season | null) => void;
   setDebug: (on: boolean) => void;
   setFps: (fps: number) => void;
@@ -51,8 +55,10 @@ const initial = {
   result: null,
   lipId: null,
   blushId: null,
-  blend: "natural" as BlendPreset,
-  intensity: DEFAULT_INTENSITY,
+  lipStyle: "full" as LipStyle,
+  blushStyle: "cheekbone" as BlushStyle,
+  lipIntensity: DEFAULT_INTENSITY,
+  blushIntensity: DEFAULT_INTENSITY,
   paletteSeason: null,
   debug: false,
   fps: 0,
@@ -78,8 +84,10 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     if (blushId) track({ name: "swatch-select", kind: "blush", product: blushId.startsWith("blush-") });
     set({ blushId });
   },
-  setBlend: (blend) => set({ blend }),
-  setIntensity: (intensity) => set({ intensity }),
+  setLipStyle: (lipStyle) => set({ lipStyle }),
+  setBlushStyle: (blushStyle) => set({ blushStyle }),
+  setLipIntensity: (lipIntensity) => set({ lipIntensity }),
+  setBlushIntensity: (blushIntensity) => set({ blushIntensity }),
   setPaletteSeason: (paletteSeason) => set({ paletteSeason }),
   setDebug: (debug) => set({ debug }),
   setFps: (fps) => set({ fps }),
