@@ -33,7 +33,12 @@ const strictCsp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  env: { NEXT_PUBLIC_MEDIAPIPE_VERSION: mediapipeVersion, NEXT_PUBLIC_SITE_ORIGIN: siteOrigin },
+  env: {
+    NEXT_PUBLIC_MEDIAPIPE_VERSION: mediapipeVersion,
+    NEXT_PUBLIC_SITE_ORIGIN: siteOrigin,
+    // 진단 결과 저장소(Upstash)가 연결돼 있을 때만 결과 화면에 진단 입력 칸을 띄운다
+    NEXT_PUBLIC_FEEDBACK_ENABLED: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL ? "1" : "",
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

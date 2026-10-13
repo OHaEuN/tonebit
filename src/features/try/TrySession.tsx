@@ -56,13 +56,13 @@ export function TrySession() {
     await camera.start();
   };
 
-  const uploadFile = (file: File) => {
+  const uploadFiles = (files: File[]) => {
     camera.stop();
     track({ name: "try-start", source: "image" });
-    void still.analyze(file);
+    void still.analyze(files);
   };
 
-  const addPhoto = (file: File) => void still.analyze(file, true);
+  const addPhotos = (files: File[]) => void still.analyze(files, true);
 
   const restart = () => {
     camera.stop();
@@ -105,11 +105,12 @@ export function TrySession() {
               {modelError && <p className="break-all font-mono text-xs text-muted">{modelError}</p>}
             </>
           )}
+          <p className="text-xs text-muted">사진은 한 번에 최대 5장까지 고를 수 있어요. 여러 장을 합치면 조명 운에 덜 흔들려요.</p>
           {/* 모바일은 파일 선택창이 곧 카메라·앨범 선택이라 그걸 기본으로. 실시간 카메라는 보조 */}
           <div className="flex flex-wrap gap-2">
             {isMobile ? (
               <>
-                <UploadButton disabled={!modelReady} onFile={uploadFile} variant="primary" label="사진으로 시작하기" />
+                <UploadButton disabled={!modelReady} onFiles={uploadFiles} multiple variant="primary" label="사진으로 시작하기" />
                 {camera.status !== "unsupported" && (
                   <button
                     type="button"
@@ -133,7 +134,7 @@ export function TrySession() {
                     {camera.status === "requesting" ? "카메라 여는 중…" : "카메라로 시작"}
                   </button>
                 )}
-                <UploadButton disabled={!modelReady} onFile={uploadFile} variant={cameraFailed ? "primary" : "secondary"} />
+                <UploadButton disabled={!modelReady} onFiles={uploadFiles} multiple variant={cameraFailed ? "primary" : "secondary"} />
               </>
             )}
           </div>
@@ -185,7 +186,7 @@ export function TrySession() {
 
         {stage === "done" && (
           <>
-            <ResultPanel onAddPhoto={addPhoto} onMeasureMore={measureMore} />
+            <ResultPanel onAddPhotos={addPhotos} onMeasureMore={measureMore} photos={still.photos} />
             {lighting.length > 0 && (
               <p className="text-xs text-muted">
                 조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. 배경 색으로 조명을 일부 보정했지만 결과가 평소와 다를 수 있어요.
@@ -196,7 +197,7 @@ export function TrySession() {
 
         <AdvancedPanel />
         <div className="flex flex-wrap gap-2">
-          <UploadButton disabled={!modelReady} onFile={uploadFile} />
+          <UploadButton disabled={!modelReady} onFiles={uploadFiles} multiple />
           <button type="button" onClick={restart} className={`${BUTTON} border border-line bg-card hover:bg-accent-soft`}>
             처음으로
           </button>
