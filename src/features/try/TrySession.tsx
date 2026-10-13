@@ -134,20 +134,23 @@ export function TrySession() {
       )}
 
       <div className={showStage ? "space-y-5" : "hidden"}>
-        {/* 캔버스가 레이아웃 크기를 정하고, 비디오는 그 뒤에 깔린다. 전면 카메라는 거울처럼 좌우 반전 */}
-        <div className="relative overflow-hidden rounded-3xl bg-black">
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            autoPlay
-            className={`absolute inset-0 h-full w-full object-cover ${source === "camera" ? "-scale-x-100" : ""}`}
-          />
-          <canvas
-            ref={canvasRef}
-            aria-label="카메라 미리보기와 립 컬러 체험"
-            className={`relative block w-full ${source === "camera" ? "-scale-x-100" : ""}`}
-          />
+        {/* 아래 색을 고르는 동안 얼굴이 계속 보이게 상단에 고정하고, 높이는 화면 절반 아래로 묶는다 */}
+        <div className="sticky top-0 z-10 -mx-4 bg-bg px-4 py-2">
+          {/* 캔버스가 레이아웃 크기를 정하고, 비디오는 그 뒤에 깔린다. 전면 카메라는 거울처럼 좌우 반전 */}
+          <div className="relative mx-auto w-fit max-w-full overflow-hidden rounded-3xl bg-black">
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              autoPlay
+              className={`absolute inset-0 h-full w-full object-cover ${source === "camera" ? "-scale-x-100" : ""}`}
+            />
+            <canvas
+              ref={canvasRef}
+              aria-label="카메라 미리보기와 립 컬러 체험"
+              className={`relative block h-auto max-h-[45svh] w-auto max-w-full md:max-h-[60svh] ${source === "camera" ? "-scale-x-100" : ""}`}
+            />
+          </div>
         </div>
 
         {still.error && (
