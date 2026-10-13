@@ -1,0 +1,28 @@
+import { describe, expect, it } from "vitest";
+import type { Point } from "@/types/analysis";
+import { faceWidthRatio, interocular, skinPatches } from "./geometry";
+
+/** 468점 전부 중앙에 두고 필요한 점만 덮어쓴다 */
+function face(overrides: Record<number, Point>): Point[] {
+  const lm: Point[] = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5 }));
+  for (const [i, p] of Object.entries(overrides)) lm[Number(i)] = p;
+  return lm;
+}
+
+describe("geometry", () => {
+  it("interocular는 33↔263 픽셀 거리", () => {
+    const lm = face({ 33: { x: 0.3, y: 0.5 }, 263: { x: 0.7, y: 0.5 } });
+    expect(interocular(lm, 1000, 500)).toBeCloseTo(400, 6);
+  });
+
+  it("패치는 눈 거리의 25% 정사각형이고 프레임 안으로 클램프된다", () => {
+    const lm = face({ 33: { x: 0.3, y: 0.5 }, 263: { x: 0.7, y: 0.5 }, 151: { x: 0.99, y: 0.01 } });
+    const [cheek, , forehead] = skinPatches(lm, 1000, 500);
+    expect(cheek).toEqual({ x: 450, y: 200, w: 100, h: 100 });
+    expect(forehead).toEqual({ x: 900, y: 0, w: 100, h: 100 });
+  });
+
+  it("faceWidthRatio는 x의 범위", () => {
+    expect(faceWidthRatio(face({ 0: { x: 0.2, y: 0 }, 1: { x: 0.6, y: 0 } }))).toBeCloseTo(0.4, 5);
+  });
+});
