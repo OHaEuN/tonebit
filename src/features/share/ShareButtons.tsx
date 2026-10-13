@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ToneSlug } from "@/types/analysis";
-import { cardImagePath } from "./resultUrl";
+import { cardImagePath, resultPath } from "./resultUrl";
 
 interface ShareButtonsProps {
   tone: ToneSlug;
@@ -13,7 +13,8 @@ export function ShareButtons({ tone, title }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const share = async () => {
-    const url = window.location.href;
+    // 지금 보고 있는 주소(미리보기 배포, 쿼리·해시 포함) 대신 프로덕션 도메인의 결과 주소를 공유한다
+    const url = `${process.env.NEXT_PUBLIC_SITE_ORIGIN || window.location.origin}${resultPath(tone)}`;
     if (navigator.share) {
       try {
         await navigator.share({ title, text: `${title} · 톤픽 컬러 테스트`, url });

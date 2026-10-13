@@ -6,6 +6,7 @@ import { PrivacyNote } from "@/components/PrivacyNote";
 import { getProducts } from "@/features/recommend/getProducts";
 import { parseTone, SEASON_INFO, SEASONS, sortSwatches, TONE_INFO, TONE_SLUGS, toneLabel } from "@/features/recommend/palettes";
 import { ProductCard } from "@/features/recommend/ProductCard";
+import { resultPath } from "@/features/share/resultUrl";
 import { ShareButtons } from "@/features/share/ShareButtons";
 
 /** URL 파라미터를 읽는 라우트. 전부 빌드 시 정적 생성되므로 실제 내비게이션은 즉시 뜬다 */
@@ -18,7 +19,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/r/[tone]">): Promise<Metadata> {
   const parsed = parseTone((await params).tone);
   if (!parsed) return {};
-  return { title: toneLabel(parsed.season, parsed.subtype), description: TONE_INFO[parsed.tone].summary };
+  return {
+    title: toneLabel(parsed.season, parsed.subtype),
+    description: TONE_INFO[parsed.tone].summary,
+    // 시즌만 있는 옛 링크(/r/spring)도 트루 타입 주소 하나로 모은다
+    alternates: { canonical: resultPath(parsed.tone) },
+  };
 }
 
 const LINK = "inline-block rounded-full bg-accent px-5 py-3 font-medium text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
