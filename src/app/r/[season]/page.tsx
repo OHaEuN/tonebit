@@ -65,7 +65,7 @@ export default async function ResultPage({ params }: PageProps<"/r/[season]">) {
 
       <ShareButtons season={season} title={title} />
 
-      <AdSlot slot="result-top" />
+      <AdSlot unit={process.env.NEXT_PUBLIC_ADFIT_UNIT_RESULT} />
 
       <section aria-labelledby="products" className="space-y-3">
         <h2 id="products" className="text-xl font-bold">
@@ -76,7 +76,7 @@ export default async function ResultPage({ params }: PageProps<"/r/[season]">) {
             <ProductCard key={p.id} product={p} />
           ))}
         </ul>
-        <p className="text-xs text-muted">제품 링크는 제휴 링크일 수 있어요.</p>
+        <p className="text-xs text-muted">이 페이지의 제품 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
       </section>
 
       <section className="space-y-3 rounded-3xl bg-accent-soft p-5">
