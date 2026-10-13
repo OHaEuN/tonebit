@@ -6,14 +6,19 @@ export interface Swatch {
   hex: string;
 }
 
-export interface Product {
+/** products.json 한 줄. url이 있으면 그 링크, 없으면 keyword로 쿠팡 검색 제휴 링크를 만든다 */
+export interface ProductSource {
   id: string;
-  brand: string;
+  brand?: string;
   name: string;
   shade: string;
   hex: string;
   finish: "matte" | "glossy" | "velvet";
   seasons: Season[];
-  /** 제휴 링크 placeholder. 실제 링크로 교체 시 여기만 바뀐다. */
+  keyword?: string;
+  url?: string;
+}
+
+export interface Product extends ProductSource {
   url: string;
 }

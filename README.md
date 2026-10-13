@@ -143,9 +143,9 @@ Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수�
 4. 광고 스크립트는 `AdSlot`이 마운트될 때 `<ins class="kakao_ad_area">`와 `ba.min.js`를 넣는 방식이라 결과 페이지에서만 로드되고, `/r/:path*` 전용 CSP(`next.config.ts`)가 카카오 도메인만 허용한다. 체험 페이지는 외부 연결이 전부 막힌 그대로다.
 
 **쿠팡 파트너스 (제품 카드 링크)**
-1. partners.coupang.com에서 가입하고 활동 채널에 배포된 도메인을 등록한다.
-2. 파트너스 콘솔에서 제품별 링크를 만들어 `features/recommend/products.json`의 `url`에 넣는다. 카드의 `rel="sponsored"`와 결과 페이지의 수수료 고지 문구는 이미 들어 있다.
-3. 최종 승인(누적 판매 금액 기준, 콘솔 공지에서 확인)이 나야 정산과 Open API(상품 검색·딥링크)를 쓸 수 있다. API를 쓰게 되면 `getProducts`만 fetch로 바꾼다.
+- 파트너스 ID는 `features/recommend/affiliate.ts`에 있다. 링크에 노출되는 공개값이다.
+- `products.json`의 각 항목은 `keyword`로 쿠팡 검색 결과 제휴 링크(`link.coupang.com/re/AFFSRP?lptag=…&subid=tonepick&pageKey=검색어`)를 만든다. 검색어는 `q`가 아니라 `pageKey`다. `q`는 쿠팡 홈으로 떨어진다. 특정 상품을 밀고 싶으면 콘솔에서 만든 상품 링크를 `url`에 넣으면 그게 우선한다. 카드의 `rel="sponsored"`와 결과 페이지의 수수료 고지 문구는 들어 있다.
+- 최종 승인(누적 판매 금액 기준, 콘솔 공지에서 확인)이 나야 정산과 Open API(상품 검색·딥링크)를 쓸 수 있다. API를 쓰게 되면 `getProducts`만 fetch로 바꾼다.
 
 개인정보처리방침은 `/privacy`에 있고 푸터에서 링크된다. 배포 전에 `src/app/privacy/page.tsx`의 연락처를 채운다.
 

@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test";
 test("결과 페이지는 팔레트·제품·공유 버튼을 보여준다", async ({ page }) => {
   await page.goto("/r/spring");
   await expect(page.getByRole("heading", { level: 1, name: "봄 웜" })).toBeVisible();
-  await expect(page.getByText("샘플브랜드").first()).toBeVisible();
+  const shop = page.getByRole("link", { name: "쿠팡에서 보기" }).first();
+  await expect(shop).toBeVisible();
+  await expect(shop).toHaveAttribute("href", /link\.coupang\.com\/re\/AFFSRP\?lptag=AF/);
   await expect(page.getByRole("button", { name: "결과 공유하기" })).toBeVisible();
   await expect(page.getByLabel("광고")).toBeVisible();
 });

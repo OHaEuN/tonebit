@@ -1,14 +1,14 @@
 [
-  { "id": "p-sp-1", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "04 코랄 피치", "hex": "#FF8A70", "finish": "velvet", "seasons": ["spring"], "url": "https://example.com/aff?pid=p-sp-1" },
-  { "id": "p-sp-2", "brand": "샘플브랜드", "name": "글로우 립 밤", "shade": "애프리콧", "hex": "#FFB38A", "finish": "glossy", "seasons": ["spring"], "url": "https://example.com/aff?pid=p-sp-2" },
-  { "id": "p-sp-3", "brand": "샘플브랜드", "name": "매트 립스틱", "shade": "오렌지 레드", "hex": "#F4553A", "finish": "matte", "seasons": ["spring", "autumn"], "url": "https://example.com/aff?pid=p-sp-3" },
-  { "id": "p-su-1", "brand": "샘플브랜드", "name": "워터 틴트", "shade": "로즈 핑크", "hex": "#E88FA8", "finish": "glossy", "seasons": ["summer"], "url": "https://example.com/aff?pid=p-su-1" },
-  { "id": "p-su-2", "brand": "샘플브랜드", "name": "블러 립스틱", "shade": "모브", "hex": "#C98BA5", "finish": "matte", "seasons": ["summer"], "url": "https://example.com/aff?pid=p-su-2" },
-  { "id": "p-su-3", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "라즈베리", "hex": "#C94C73", "finish": "velvet", "seasons": ["summer", "winter"], "url": "https://example.com/aff?pid=p-su-3" },
-  { "id": "p-au-1", "brand": "샘플브랜드", "name": "매트 립스틱", "shade": "브릭", "hex": "#B5453A", "finish": "matte", "seasons": ["autumn"], "url": "https://example.com/aff?pid=p-au-1" },
-  { "id": "p-au-2", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "테라코타", "hex": "#C9643B", "finish": "velvet", "seasons": ["autumn"], "url": "https://example.com/aff?pid=p-au-2" },
-  { "id": "p-au-3", "brand": "샘플브랜드", "name": "립 밤", "shade": "MLBB 브라운", "hex": "#B86B5B", "finish": "glossy", "seasons": ["autumn"], "url": "https://example.com/aff?pid=p-au-3" },
-  { "id": "p-wi-1", "brand": "샘플브랜드", "name": "매트 립스틱", "shade": "트루 레드", "hex": "#D11F2F", "finish": "matte", "seasons": ["winter"], "url": "https://example.com/aff?pid=p-wi-1" },
-  { "id": "p-wi-2", "brand": "샘플브랜드", "name": "워터 틴트", "shade": "푸시아", "hex": "#D32B82", "finish": "glossy", "seasons": ["winter"], "url": "https://example.com/aff?pid=p-wi-2" },
-  { "id": "p-wi-3", "brand": "샘플브랜드", "name": "벨벳 립 틴트", "shade": "플럼", "hex": "#7D2F5E", "finish": "velvet", "seasons": ["winter"], "url": "https://example.com/aff?pid=p-wi-3" }
+  { "id": "p-sp-1", "name": "벨벳 립 틴트", "shade": "코랄 피치", "hex": "#FF8A70", "finish": "velvet", "seasons": ["spring"], "keyword": "코랄 벨벳 립틴트" },
+  { "id": "p-sp-2", "name": "글로우 립 밤", "shade": "애프리콧", "hex": "#FFB38A", "finish": "glossy", "seasons": ["spring"], "keyword": "피치 코랄 틴티드 립밤" },
+  { "id": "p-sp-3", "name": "매트 립스틱", "shade": "오렌지 레드", "hex": "#F4553A", "finish": "matte", "seasons": ["spring", "autumn"], "keyword": "오렌지 레드 매트 립스틱" },
+  { "id": "p-su-1", "name": "워터 틴트", "shade": "로즈 핑크", "hex": "#E88FA8", "finish": "glossy", "seasons": ["summer"], "keyword": "로즈 핑크 워터 틴트" },
+  { "id": "p-su-2", "name": "블러 립스틱", "shade": "모브", "hex": "#C98BA5", "finish": "matte", "seasons": ["summer"], "keyword": "모브 핑크 블러 립스틱" },
+  { "id": "p-su-3", "name": "벨벳 립 틴트", "shade": "라즈베리", "hex": "#C94C73", "finish": "velvet", "seasons": ["summer", "winter"], "keyword": "라즈베리 벨벳 립틴트" },
+  { "id": "p-au-1", "name": "매트 립스틱", "shade": "브릭", "hex": "#B5453A", "finish": "matte", "seasons": ["autumn"], "keyword": "브릭 레드 매트 립스틱" },
+  { "id": "p-au-2", "name": "벨벳 립 틴트", "shade": "테라코타", "hex": "#C9643B", "finish": "velvet", "seasons": ["autumn"], "keyword": "테라코타 벨벳 립틴트" },
+  { "id": "p-au-3", "name": "립 밤", "shade": "MLBB 브라운", "hex": "#B86B5B", "finish": "glossy", "seasons": ["autumn"], "keyword": "MLBB 브라운 립밤" },
+  { "id": "p-wi-1", "name": "매트 립스틱", "shade": "트루 레드", "hex": "#D11F2F", "finish": "matte", "seasons": ["winter"], "keyword": "트루 레드 매트 립스틱" },
+  { "id": "p-wi-2", "name": "워터 틴트", "shade": "푸시아", "hex": "#D32B82", "finish": "glossy", "seasons": ["winter"], "keyword": "푸시아 핑크 워터 틴트" },
+  { "id": "p-wi-3", "name": "벨벳 립 틴트", "shade": "플럼", "hex": "#7D2F5E", "finish": "velvet", "seasons": ["winter"], "keyword": "플럼 벨벳 립틴트" }
 ]
