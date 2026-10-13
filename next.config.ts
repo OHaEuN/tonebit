@@ -53,7 +53,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        // /r/* 를 제외한 전부. 같은 키의 덮어쓰기에 기대지 않고 매칭을 분리한다
+        source: "/((?!r/).*)",
         headers: [
           { key: "Content-Security-Policy", value: strictCsp },
           { key: "Permissions-Policy", value: "camera=(self)" },
@@ -61,9 +62,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // 뒤에 오는 항목이 같은 키를 덮어쓴다
         source: "/r/:path*",
-        headers: [{ key: "Content-Security-Policy", value: adsCsp }],
+        headers: [
+          { key: "Content-Security-Policy", value: adsCsp },
+          { key: "Permissions-Policy", value: "camera=(self)" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+        ],
       },
       {
         source: "/(wasm|models)/(.*)",
