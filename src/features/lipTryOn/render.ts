@@ -1,6 +1,6 @@
 import type { Point } from "@/types/analysis";
 import { hexToRgb } from "@/features/analysis/color";
-import { cheekAnchors, interocular, mouthFrame, scleraPatches, skinPatches } from "@/features/landmark/geometry";
+import { cheekAnchors, interocular, mouthFrame, skinPatches } from "@/features/landmark/geometry";
 import { LIP_INNER, LIP_OUTER } from "@/features/landmark/indices";
 
 type Passes = [GlobalCompositeOperation, number][];
@@ -180,9 +180,6 @@ function drawDebug(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: num
   ctx.strokeStyle = "#00e5ff";
   ctx.lineWidth = 1;
   for (const r of skinPatches(lm, w, h)) ctx.strokeRect(r.x, r.y, r.w, r.h);
-  ctx.strokeStyle = "#ff3df2";
-  for (const r of scleraPatches(lm, w, h)) ctx.strokeRect(r.x, r.y, r.w, r.h);
-  ctx.strokeStyle = "#00e5ff";
   ctx.beginPath();
   tracePath(ctx, lm, LIP_OUTER, w, h);
   tracePath(ctx, lm, LIP_INNER, w, h);

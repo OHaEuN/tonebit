@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import type { Point } from "@/types/analysis";
 import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, THUMB_SIZE } from "@/features/analysis/frame";
-import { classifyTone } from "@/features/analysis/tone";
 import { detectImage } from "@/features/landmark/useFaceLandmarker";
 import { drawOverlays } from "@/features/lipTryOn/render";
 import { findSwatchById } from "@/features/recommend/palettes";
@@ -34,21 +33,23 @@ interface Params {
   landmarkerRef: RefObject<FaceLandmarker | null>;
 }
 
-/** 업로드 사진 1장 분석 + 선택이 바뀔 때마다 정지 화면 다시 그리기 */
+/** 업로드 사진 분석 + 선택이 바뀔 때마다 정지 화면 다시 그리기. append면 앞서 올린 사진들과 합쳐 판정한다 */
 export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [landmarks, setLandmarks] = useState<Point[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const analyze = useCallback(
-    async (file: File) => {
+    async (file: File, append = false) => {
       const lm = landmarkerRef.current;
       const canvas = canvasRef.current;
       if (!lm || !canvas) return;
       const store = useAnalysisStore.getState();
       setError(null);
-      setLandmarks(null);
-      store.begin("image");
+      if (!append) {
+        setLandmarks(null);
+        store.begin("image");
+      }
 
       const img = await loadImage(file);
       const { w, h } = fitSize(img.naturalWidth, img.naturalHeight);
@@ -64,20 +65,24 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
         points = null;
       }
       store.setFaceFound(Boolean(points));
+      // 추가한 사진이 실패하면 앞서 합친 결과와 사진을 그대로 둔다
+      const keepPrevious = () => setLandmarks((prev) => (prev ? [...prev] : prev));
       if (!points) {
         track({ name: "face-not-found", source: "image" });
         setError(STILL_ERRORS.noFace);
+        if (append) keepPrevious();
         return;
       }
       store.setLighting(measureLighting(ctx, createOffscreen(THUMB_SIZE.w, THUMB_SIZE.h, true), points, w, h));
       const skin = sampleSkin(ctx, points, w, h);
       if (!skin) {
         setError(STILL_ERRORS.noSkin);
+        if (append) keepPrevious();
         return;
       }
       imageRef.current = img;
       setLandmarks(points);
-      store.finish({ ...classifyTone(skin.lab), corrected: skin.corrected });
+      store.addShot(skin);
     },
     [canvasRef, landmarkerRef],
   );
@@ -95,6 +100,10 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
     const canvas = canvasRef.current;
     if (!img || !landmarks || !canvas) return;
     const { w, h } = fitSize(img.naturalWidth, img.naturalHeight);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
     const ctx = createContext(canvas);
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
