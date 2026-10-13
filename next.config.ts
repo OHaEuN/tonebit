@@ -1,4 +1,8 @@
+import { readFileSync } from "node:fs";
 import type { NextConfig } from "next";
+
+/** wasm 경로에 넣을 tasks-vision 버전. scripts/copy-wasm.mjs와 같은 값 */
+const mediapipeVersion: string = JSON.parse(readFileSync("node_modules/@mediapipe/tasks-vision/package.json", "utf8")).version;
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -22,6 +26,7 @@ const strictCsp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_MEDIAPIPE_VERSION: mediapipeVersion },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
