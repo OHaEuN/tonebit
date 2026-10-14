@@ -6,6 +6,7 @@ import {
   LIGHT_CLIP_RATIO_MAX,
   LIGHT_LUMA_MAX,
   LIGHT_LUMA_MIN,
+  SIDE_LIGHT_DELTA_L,
 } from "./constants";
 
 /**
@@ -24,6 +25,7 @@ export function checkLighting(input: LightingInput): LightingIssue[] {
     if (rg > CAST_RATIO_MAX || bg < CAST_RATIO_MIN) issues.push("warmCast");
     if (bg > CAST_RATIO_MAX || rg < CAST_RATIO_MIN) issues.push("coolCast");
   }
+  if (input.cheekDeltaL > SIDE_LIGHT_DELTA_L) issues.push("sideLight");
   if (input.faceWidthRatio < FACE_WIDTH_RATIO_MIN) issues.push("faceSmall");
   return issues;
 }
@@ -33,6 +35,7 @@ export const LIGHTING_MESSAGES: Record<LightingIssue, string> = {
   bright: "너무 밝거나 역광이에요",
   warmCast: "주황빛 조명이에요. 자연광이 가장 정확해요",
   coolCast: "푸른빛 조명이에요. 자연광이 가장 정확해요",
+  sideLight: "한쪽만 밝아요. 빛을 정면에서 받아 주세요",
   faceSmall: "얼굴을 조금 더 가까이 비춰 주세요",
 };
 
@@ -42,5 +45,6 @@ export const LIGHTING_LABELS: Record<LightingIssue, string> = {
   bright: "밝은 조명·역광",
   warmCast: "주황빛 조명",
   coolCast: "푸른빛 조명",
+  sideLight: "측면 조명",
   faceSmall: "얼굴이 작게 잡힘",
 };

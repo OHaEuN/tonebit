@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { explainTone } from "@/features/analysis/explain";
+import { REFERENCE_LABEL } from "@/features/analysis/reference";
 import { FeedbackForm } from "@/features/feedback/FeedbackForm";
 import { ApplyControls } from "@/features/lipTryOn/ApplyControls";
 import { ColorPicker } from "@/features/lipTryOn/ColorPicker";
@@ -48,9 +49,12 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix }: Re
             {toneLabel(season, subtype)}
           </h2>
         </div>
-        <p className="shrink-0 pb-1 text-sm">
-          확신도 <strong>{CONFIDENCE_LABEL[result.confidence]}</strong>
-        </p>
+        <div className="shrink-0 pb-1 text-right text-sm">
+          <p>
+            확신도 <strong>{CONFIDENCE_LABEL[result.confidence]}</strong>
+          </p>
+          <p className="text-xs text-muted">{REFERENCE_LABEL[result.reference ?? "none"]}</p>
+        </div>
       </div>
 
       <div role="tablist" aria-label="결과 보기" className="flex gap-1 rounded-full bg-card p-1">

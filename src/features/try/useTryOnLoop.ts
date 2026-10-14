@@ -2,9 +2,10 @@
 
 import { useEffect, type RefObject } from "react";
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
-import type { Lab } from "@/types/analysis";
+import type { Lab, ReferenceSource } from "@/types/analysis";
 import { MEASURE_FRAMES } from "@/features/analysis/constants";
 import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, THUMB_SIZE } from "@/features/analysis/frame";
+import { weakerReference } from "@/features/analysis/reference";
 import { medianLab } from "@/features/analysis/sample";
 import { drawOverlays } from "@/features/lipTryOn/render";
 import { findSwatchById } from "@/features/recommend/palettes";
@@ -36,7 +37,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
     let raf = 0;
     let lastTime = -1;
     let frame = 0;
-    let samples: { lab: Lab; corrected: boolean }[] = [];
+    let samples: { lab: Lab; corrected: boolean; reference: ReferenceSource }[] = [];
     let fpsCount = 0;
     let fpsAt = performance.now();
 
@@ -72,8 +73,8 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
           if (samples.length >= MEASURE_FRAMES) {
             // 깜빡임 등으로 보정된 프레임과 안 된 프레임이 섞이면, 더 많은 쪽만 모아 median을 낸다
             const corrected = samples.filter((s) => s.corrected).length * 2 >= samples.length;
-            const labs = samples.filter((s) => s.corrected === corrected).map((s) => s.lab);
-            store.addShot({ lab: medianLab(labs), corrected });
+            const kept = samples.filter((s) => s.corrected === corrected);
+            store.addShot({ lab: medianLab(kept.map((s) => s.lab)), corrected, reference: kept.map((s) => s.reference).reduce(weakerReference) });
             samples = [];
           }
         }

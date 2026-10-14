@@ -32,6 +32,12 @@ export function linearRgbToLab(R: number, G: number, B: number): Lab {
   return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
 }
 
+/** CIELAB L* → 상대 휘도 Y (0~1). 역변환 */
+export function labToY(L: number): number {
+  const fy = (L + 16) / 116;
+  return fy > 6 / 29 ? fy ** 3 : (3 * (6 / 29) ** 2) * (fy - 4 / 29);
+}
+
 /** 선형 RGB의 상대 휘도 Y (Rec.709) */
 export function relativeLuminance(R: number, G: number, B: number): number {
   return 0.2126729 * R + 0.7151522 * G + 0.072175 * B;

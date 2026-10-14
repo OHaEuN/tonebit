@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Point } from "@/types/analysis";
-import { cheekAnchors, faceBounds, faceWidthRatio, interocular, mouthFrame, skinPatches } from "./geometry";
+import { cheekAnchors, cheekPatches, faceBounds, faceWidthRatio, inPolygon, interocular, mouthFrame, mouthInnerPolygon, scleraRegions, skinPatches } from "./geometry";
 
 /** 468점 전부 중앙에 두고 필요한 점만 덮어쓴다 */
 function face(overrides: Record<number, Point>): Point[] {
@@ -17,9 +17,31 @@ describe("geometry", () => {
 
   it("패치는 눈 거리의 25% 정사각형이고 프레임 안으로 클램프된다", () => {
     const lm = face({ 33: { x: 0.3, y: 0.5 }, 263: { x: 0.7, y: 0.5 }, 151: { x: 0.99, y: 0.01 } });
-    const [cheek, , forehead] = skinPatches(lm, 1000, 500);
-    expect(cheek).toEqual({ x: 450, y: 200, w: 100, h: 100 });
-    expect(forehead).toEqual({ x: 900, y: 0, w: 100, h: 100 });
+    const patches = skinPatches(lm, 1000, 500);
+    expect(patches).toHaveLength(10);
+    expect(patches[0]).toEqual({ x: 450, y: 200, w: 100, h: 100 });
+    expect(patches[6]).toEqual({ x: 900, y: 0, w: 100, h: 100 });
+    expect(cheekPatches(lm, 1000, 500)).toEqual(patches.slice(0, 2));
+  });
+
+  it("inPolygon은 ray casting", () => {
+    const square = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }];
+    expect(inPolygon(5, 5, square)).toBe(true);
+    expect(inPolygon(15, 5, square)).toBe(false);
+  });
+
+  it("흰자 영역은 눈 윤곽 폴리곤에서 홍채 원(테두리 거리 × 여유)을 뺀다", () => {
+    const lm = face({ 468: { x: 0.4, y: 0.5 }, 469: { x: 0.42, y: 0.5 }, 470: { x: 0.4, y: 0.52 }, 471: { x: 0.38, y: 0.5 }, 472: { x: 0.4, y: 0.48 } });
+    const [right] = scleraRegions(lm, 1000, 1000);
+    expect(right.poly).toHaveLength(16);
+    expect(right.hole.x).toBe(400);
+    expect(right.hole.r).toBeCloseTo(20 * 1.15, 6);
+  });
+
+  it("입 안쪽 폴리곤은 20점 픽셀 좌표", () => {
+    const poly = mouthInnerPolygon(face({ 13: { x: 0.5, y: 0.7 } }), 1000, 1000);
+    expect(poly).toHaveLength(20);
+    expect(poly.some((p) => p.x === 500 && p.y === 700)).toBe(true);
   });
 
   it("faceWidthRatio는 x의 범위", () => {

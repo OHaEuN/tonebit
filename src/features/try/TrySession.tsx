@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { PrivacyNote } from "@/components/PrivacyNote";
 import { Disclaimer } from "@/components/Disclaimer";
 import { LIGHTING_LABELS } from "@/features/analysis/lighting";
+import { REFERENCE_LABEL } from "@/features/analysis/reference";
+import { isFullyCorrected } from "@/features/analysis/tone";
 import { track } from "@/features/analytics/track";
 import { useCameraStream } from "@/features/camera/useCameraStream";
 import { ensureVideoMode, useFaceLandmarker } from "@/features/landmark/useFaceLandmarker";
@@ -38,6 +40,7 @@ export function TrySession() {
   const lighting = useAnalysisStore((s) => s.lighting);
   const faceFound = useAnalysisStore((s) => s.faceFound);
   const progress = useAnalysisStore((s) => s.progress);
+  const result = useAnalysisStore((s) => s.result);
   const begin = useAnalysisStore((s) => s.begin);
   const startMeasuring = useAnalysisStore((s) => s.startMeasuring);
   const reset = useAnalysisStore((s) => s.reset);
@@ -131,6 +134,7 @@ export function TrySession() {
           <ul className="list-disc space-y-1 pl-5 text-xs text-muted">
             <li>사진은 한 번에 최대 5장까지 고를 수 있어요. 여러 장을 합치면 조명 운에 덜 흔들려요.</li>
             <li>흰 종이(A4)를 얼굴 옆에 들고 찍으면, 결과 화면에서 종이를 눌러 색을 가장 정확하게 맞출 수 있어요.</li>
+            <li>이가 보이게 웃거나 눈을 크게 뜬 사진이면 치아·눈 흰자를 기준으로 조명을 자동으로 되돌려요.</li>
           </ul>
           {/* 모바일은 파일 선택창이 곧 카메라·앨범 선택이라 그걸 기본으로. 실시간 카메라는 보조 */}
           <div className="flex flex-wrap gap-2">
@@ -206,9 +210,12 @@ export function TrySession() {
         {stage !== "done" && !still.error && <LightingBadges issues={lighting} faceFound={faceFound} />}
 
         {stage === "live" && source === "camera" && (
-          <button type="button" onClick={startMeasuring} disabled={!faceFound} className={`${BUTTON} bg-accent text-white hover:opacity-90`}>
-            측정 시작
-          </button>
+          <>
+            <p className="text-xs text-muted">이가 보이게 살짝 웃거나 눈을 크게 뜨면 치아·눈 흰자를 기준으로 조명을 더 정확히 되돌려요.</p>
+            <button type="button" onClick={startMeasuring} disabled={!faceFound} className={`${BUTTON} bg-accent text-white hover:opacity-90`}>
+              측정 시작
+            </button>
+          </>
         )}
 
         {stage === "measuring" && (
@@ -241,9 +248,9 @@ export function TrySession() {
                 ) : undefined
               }
             />
-            {lighting.length > 0 && !still.shown?.white && (
+            {lighting.length > 0 && result && !isFullyCorrected(result.reference ?? "none") && (
               <p className="text-xs text-muted">
-                조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. 배경 색으로 조명을 일부 보정했지만 결과가 평소와 다를 수 있어요.
+                조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. {REFERENCE_LABEL[result.reference ?? "none"]}이라 결과가 평소와 다를 수 있어요.
               </p>
             )}
           </>
