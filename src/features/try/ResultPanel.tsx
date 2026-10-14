@@ -138,12 +138,12 @@ function TryOnControls({ onShowResult }: { onShowResult: () => void }) {
 
   return (
     <div className="space-y-4">
-      <fieldset>
+      <fieldset className="min-w-0">
         <legend className="mb-2 text-sm font-medium">
           팔레트
           <span className="ml-2 font-normal text-muted">다른 시즌 색과 비교해 보세요</span>
         </legend>
-        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        <div className="relative -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
           {SEASONS.map((s) => {
             const info = SEASON_INFO[s];
             return (
