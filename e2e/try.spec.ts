@@ -51,3 +51,22 @@ test("셀카를 올리면 결과와 립 팔레트가 나오고 결과 카드로 
   await page.getByRole("link", { name: "결과 카드와 추천 보기" }).click();
   await expect(page).toHaveURL(/\/r\/(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/);
 });
+
+test.describe("폰 화면 폭", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("발라 보기에서 색이 많은 팔레트로 바꿔도 화면이 가로로 넓어지지 않는다", async ({ page }) => {
+    await waitForModel(page);
+    await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
+    await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
+    await page.getByRole("tab", { name: "발라 보기", exact: true }).click();
+    for (const season of ["봄 웜", "여름 쿨", "가을 웜", "겨울 쿨"]) {
+      await page.locator("label", { hasText: season }).first().click();
+      for (const part of ["립", "블러셔"]) {
+        await page.getByRole("tab", { name: part, exact: true }).click();
+        const [scroll, client] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+        expect(scroll, `${season} ${part}`).toBeLessThanOrEqual(client);
+      }
+    }
+  });
+});
