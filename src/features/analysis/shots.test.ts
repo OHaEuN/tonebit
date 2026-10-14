@@ -40,5 +40,15 @@ describe("combineShots", () => {
       { lab: labOf(60, 35, 26), corrected: false },
     ]);
     expect(result.corrected).toBe(false);
+    expect(result.reference).toBe("none");
+  });
+
+  it("합친 결과의 기준은 가장 약한 장을 따른다", () => {
+    const { result } = combineShots([
+      { lab: labOf(60, 35, 26), corrected: true, reference: "teeth" },
+      { lab: labOf(60, 35, 26), corrected: true, reference: "scene" },
+    ]);
+    expect(result.reference).toBe("scene");
+    expect(combineShots([{ lab: labOf(60, 35, 26), corrected: true, whiteFixed: true }]).result.reference).toBe("white");
   });
 });

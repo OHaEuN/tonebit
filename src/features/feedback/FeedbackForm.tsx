@@ -44,6 +44,7 @@ export function FeedbackForm() {
       shots: shots.length,
       source,
       corrected: combined.corrected ?? false,
+      reference: combined.reference ?? "none",
     };
     try {
       const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState, type RefObject } from "react";
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import type { Point } from "@/types/analysis";
 import { createContext, createOffscreen, fitSize, measureLighting, patchAt, sampleSkin, skinLuma, THUMB_SIZE } from "@/features/analysis/frame";
-import { WHITE_PATCH_RATIO } from "@/features/analysis/constants";
-import { checkWhitePatch, whiteGains } from "@/features/analysis/whitePoint";
+import { STILL_ANALYSIS_WIDTH, WHITE_PATCH_RATIO } from "@/features/analysis/constants";
+import { checkWhitePatch } from "@/features/analysis/whitePoint";
 import { MAX_SHOTS } from "@/features/analysis/shots";
 import { detectImage } from "@/features/landmark/useFaceLandmarker";
 import { drawOverlays } from "@/features/lipTryOn/render";
@@ -95,7 +95,8 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
       if (!lm) return "noFace";
       const store = useAnalysisStore.getState();
       const img = await loadImage(file);
-      const { w, h } = fitSize(img.naturalWidth, img.naturalHeight);
+      // 화면 표시보다 큰 해상도로 잰다. 치아·흰자 기준은 픽셀 수가 생명이라
+      const { w, h } = fitSize(img.naturalWidth, img.naturalHeight, STILL_ANALYSIS_WIDTH);
       const ctx = createOffscreen(w, h, true);
       ctx.drawImage(img, 0, 0, w, h);
 
@@ -153,15 +154,14 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
   const setWhitePoint = useCallback((id: number, u: number, v: number): string | null => {
     const photo = photos.find((p) => p.id === id);
     if (!photo) return "사진을 찾지 못했어요";
-    const { w, h } = fitSize(photo.img.naturalWidth, photo.img.naturalHeight);
+    const { w, h } = fitSize(photo.img.naturalWidth, photo.img.naturalHeight, STILL_ANALYSIS_WIDTH);
     const ctx = createOffscreen(w, h, true);
     ctx.drawImage(photo.img, 0, 0, w, h);
     const check = checkWhitePatch(patchAt(ctx, u, v, w * WHITE_PATCH_RATIO), skinLuma(ctx, photo.landmarks, w, h));
     if ("error" in check) return WHITE_ERRORS[check.error];
-    const gains = whiteGains(check.white);
-    const skin = gains && sampleSkin(ctx, photo.landmarks, w, h, gains);
-    if (!skin) return "피부색을 다시 읽지 못했어요";
-    useAnalysisStore.getState().updateShot(id, { lab: skin.lab, corrected: true, whiteFixed: true });
+    const skin = sampleSkin(ctx, photo.landmarks, w, h, check.white);
+    if (!skin || skin.reference !== "white") return "피부색을 다시 읽지 못했어요";
+    useAnalysisStore.getState().updateShot(id, { lab: skin.lab, corrected: true, whiteFixed: true, reference: "white" });
     setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, white: { u, v } } : p)));
     return null;
   }, [photos]);

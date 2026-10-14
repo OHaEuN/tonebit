@@ -1,6 +1,7 @@
 "use client";
 
-import { MAX_SHOTS, RECOMMENDED_SHOTS, shotResult } from "@/features/analysis/shots";
+import { REFERENCE_SHORT } from "@/features/analysis/reference";
+import { MAX_SHOTS, RECOMMENDED_SHOTS, shotReference, shotResult } from "@/features/analysis/shots";
 import { SEASON_INFO } from "@/features/recommend/palettes";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { UploadButton } from "./UploadButton";
@@ -74,7 +75,7 @@ export function ShotsPanel({ onAddPhotos, onMeasureMore, photos }: ShotsPanelPro
                 <span className="font-medium" style={{ color: SEASON_INFO[r.season].accent }}>
                   {SEASON_INFO[r.season].label} {SEASON_INFO[r.season].tone}
                 </span>
-                {shot.whiteFixed && <span className="text-[10px] text-muted">흰색 기준</span>}
+                {REFERENCE_SHORT[shotReference(shot)] && <span className="text-[10px] text-muted">{REFERENCE_SHORT[shotReference(shot)]}</span>}
               </button>
             );
           })}

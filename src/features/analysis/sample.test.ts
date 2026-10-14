@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { regionStat } from "./sample";
 import { lumaStats, meanLinearRgbMasked, meanRgb, median, medianLab, representativeLab } from "./sample";
 
 function pixels(rgbs: [number, number, number][]): number[] {
@@ -83,5 +84,27 @@ describe("representativeLab 게인", () => {
     const plain = representativeLab(pixels(Array(50).fill(SKIN)))!;
     const darker = representativeLab(pixels(Array(50).fill(SKIN)), { r: 0.5, g: 0.5, b: 0.5 })!;
     expect(darker.L).toBeLessThan(plain.L - 10);
+  });
+});
+
+describe("regionStat", () => {
+  /** 2×2: 밝은 흰색 둘, 어두운 회색 하나, 클리핑 하나 */
+  const pixels = [230, 230, 230, 255, 200, 200, 200, 255, 60, 60, 60, 255, 255, 255, 255, 255];
+
+  it("마스크 안에서 클리핑을 빼고 채널별 중앙값을 낸다", () => {
+    const s = regionStat(pixels, 2, () => true)!;
+    expect(s.n).toBe(3);
+    expect(s.r).toBeCloseTo(0.578, 2);
+  });
+
+  it("keepBrightest로 밝은 쪽만 남긴다", () => {
+    const s = regionStat(pixels, 2, () => true, 0.34)!;
+    expect(s.n).toBe(1);
+    expect(s.r).toBeCloseTo(0.791, 2);
+  });
+
+  it("마스크 밖이나 accept에서 걸린 픽셀은 빠지고, 아무것도 없으면 null", () => {
+    expect(regionStat(pixels, 2, (x, y) => x === 1 && y === 1)).toBeNull();
+    expect(regionStat(pixels, 2, () => true, 1, (r) => r < 100)!.n).toBe(1);
   });
 });
