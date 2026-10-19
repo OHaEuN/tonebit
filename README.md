@@ -217,6 +217,15 @@ Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수�
 
 한 건에는 이용자가 고른 진단(시즌·세부 타입), 톤픽 판정, 측정 숫자(Lab·색상각·ITA), 합친 장수, 소스, 보정 여부, 날짜만 있습니다. 사진이나 사람을 알아볼 값은 없습니다. 충분히 모이면 FairFace로 분포를 맞춘 지금 기준선을 전문가 진단과 맞도록 다시 맞춥니다.
 
+## 검색엔진 등록
+
+`/sitemap.xml`(홈·체험·12개 톤 페이지·개인정보처리방침)과 `/robots.txt`는 코드로 만들어지고, 주소는 `NEXT_PUBLIC_SITE_ORIGIN`을 따릅니다. 시즌만 있는 옛 링크(`/r/spring`)는 canonical로 트루 타입에 합쳐지므로 사이트맵에 넣지 않습니다.
+
+1. **네이버 서치어드바이저**(searchadvisor.naver.com) → 사이트 등록 → "HTML 태그" 방식의 content 값을 Vercel 환경변수 `NEXT_PUBLIC_NAVER_SITE_VERIFICATION`에 넣고 다시 배포 → 소유 확인 → 요청 > 사이트맵 제출에 `https://<도메인>/sitemap.xml`.
+2. **구글 서치콘솔**(search.google.com/search-console) → URL 접두어 → "HTML 태그" 방식의 content 값을 `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`에 넣고 다시 배포 → 소유 확인 → Sitemaps에 `sitemap.xml` 제출.
+
+환경변수가 없으면 확인 태그는 HTML에 들어가지 않습니다.
+
 ## 수익화 연결
 
 **쿠팡 파트너스 (제품 카드 링크)**
