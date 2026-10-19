@@ -13,10 +13,18 @@ const serif = Gowun_Batang({ weight: ["400", "700"], subsets: ["latin"], variabl
 /** next.config.ts에서 정한 사이트 주소. 로컬 개발에선 비어 있다 */
 const siteUrl = process.env.NEXT_PUBLIC_SITE_ORIGIN || "http://localhost:3000";
 
+/** 검색엔진 소유 확인 코드. 서치어드바이저(네이버)·서치콘솔(구글)에서 받아 환경변수로 넣는다. 없으면 태그도 안 나간다 */
+const naverVerification = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION;
+const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: "톤픽 · 퍼스널 컬러 & 립 가상 체험", template: "%s | 톤픽" },
   description: "톤픽은 웹캠이나 셀카로 재미로 보는 퍼스널 컬러 테스트예요. 어울리는 립과 블러셔를 얼굴에 바로 발라볼 수 있어요. 사진은 기기 밖으로 나가지 않아요.",
+  verification: {
+    google: googleVerification,
+    other: naverVerification ? { "naver-site-verification": naverVerification } : undefined,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
