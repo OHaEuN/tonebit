@@ -11,8 +11,8 @@ export function AdvancedPanel() {
   const setDebug = useAnalysisStore((s) => s.setDebug);
 
   return (
-    <details className="rounded-2xl border border-line bg-card p-4 text-sm">
-      <summary className="cursor-pointer font-medium">고급</summary>
+    <details className="text-[13px] text-muted">
+      <summary className="cursor-pointer">측정값 자세히</summary>
       <div className="mt-3 space-y-3">
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={debug} onChange={(e) => setDebug(e.target.checked)} />

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { PrivacyNote } from "@/components/PrivacyNote";
 import { Disclaimer } from "@/components/Disclaimer";
+import { BUTTON } from "@/components/styles";
 import { LIGHTING_LABELS } from "@/features/analysis/lighting";
 import { REFERENCE_LABEL } from "@/features/analysis/reference";
 import { isFullyCorrected } from "@/features/analysis/tone";
@@ -14,21 +14,13 @@ import { ensureVideoMode, useFaceLandmarker } from "@/features/landmark/useFaceL
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { AdvancedPanel } from "./AdvancedPanel";
 import { LightingBadges } from "./LightingBadges";
-import { ModelLoading } from "./ModelLoading";
 import { ResultPanel } from "./ResultPanel";
-import { UploadButton } from "./UploadButton";
+import { SetupPanel } from "./SetupPanel";
+import { StageOverlay } from "./StageOverlay";
 import { useIsMobile } from "./useIsMobile";
 import { useStillAnalysis } from "./useStillAnalysis";
 import { useTryOnLoop } from "./useTryOnLoop";
 import { WhiteBalanceLockCard } from "./WhiteBalanceLockCard";
-
-const CAMERA_MESSAGES = {
-  denied: "카메라 권한이 거부됐어요. 브라우저 설정에서 허용하거나, 사진을 올려서 해볼 수 있어요.",
-  unavailable: "카메라를 열 수 없어요. 다른 앱이 쓰고 있지 않은지 확인하거나, 사진을 올려서 해볼 수 있어요.",
-  unsupported: "이 브라우저는 카메라를 지원하지 않아요. 사진을 올려서 해볼 수 있어요.",
-} as const;
-
-const BUTTON = "rounded-full px-5 py-3 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50";
 
 export function TrySession() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -50,6 +42,9 @@ export function TrySession() {
   const measureMore = useAnalysisStore((s) => s.measureMore);
   const setComparing = useAnalysisStore((s) => s.setComparing);
   const comparing = useAnalysisStore((s) => s.comparing);
+  const resultTab = useAnalysisStore((s) => s.resultTab);
+  /** 사진을 보며 색을 고르는 발라 보기에서만 사진 무대를 화면 위에 고정한다 */
+  const pinStage = stage === "done" && resultTab === "tryon";
   /** 흰색 기준을 찍는 중 */
   const [pickingWhite, setPickingWhite] = useState(false);
   const [whiteMessage, setWhiteMessage] = useState<string | null>(null);
@@ -59,8 +54,6 @@ export function TrySession() {
   const whiteBalance = useWhiteBalanceLock(videoRef, camera.videoTrack, cameraLive);
   const hydrateShades = useMyShadeStore((s) => s.hydrate);
   useEffect(() => hydrateShades(), [hydrateShades]);
-
-  const modelReady = modelStatus === "ready";
 
   const startCamera = async () => {
     still.clear();
@@ -113,76 +106,24 @@ export function TrySession() {
   const showStage = stage !== "setup" && !cameraFailed;
 
   return (
-    <div className="space-y-5">
+    <div>
       {(stage === "setup" || cameraFailed) && (
-        <section className="space-y-4">
-          <PrivacyNote />
-          {modelStatus === "loading" ? (
-            <ModelLoading progress={modelProgress} />
-          ) : (
-            <p role="status" aria-live="polite" className="text-sm text-muted">
-              {modelStatus === "error" && "얼굴 인식 모듈을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해 주세요."}
-              {modelReady && "준비됐어요. 자연광 아래, 정면을 비춰 주세요."}
-            </p>
-          )}
-          {cameraFailed && (
-            <p role="alert" className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
-              {CAMERA_MESSAGES[camera.status as keyof typeof CAMERA_MESSAGES]}
-            </p>
-          )}
-          {modelStatus === "error" && (
-            <>
-              <button type="button" onClick={retry} className={`${BUTTON} border border-line bg-card hover:bg-accent-soft`}>
-                다시 시도
-              </button>
-              {modelError && <p className="break-all font-mono text-xs text-muted">{modelError}</p>}
-            </>
-          )}
-          <ul className="list-disc space-y-1 pl-5 text-xs text-muted">
-            <li>사진은 한 번에 최대 5장까지 고를 수 있어요. 여러 장을 합치면 조명 운에 덜 흔들려요.</li>
-            <li>흰 종이(A4)를 얼굴 옆에 들고 찍으면, 결과 화면에서 종이를 눌러 색을 가장 정확하게 맞출 수 있어요. 복사지는 창가 햇빛에서 푸르게 찍히니 실내 조명 아래가 좋아요.</li>
-            <li>이가 보이게 웃거나 눈을 크게 뜬 사진이면 치아·눈 흰자를 기준으로 조명을 자동으로 되돌려요.</li>
-          </ul>
-          {/* 모바일은 파일 선택창이 곧 카메라·앨범 선택이라 그걸 기본으로. 실시간 카메라는 보조 */}
-          <div className="flex flex-wrap gap-2">
-            {isMobile ? (
-              <>
-                <UploadButton disabled={!modelReady} onFiles={uploadFiles} multiple variant="primary" label="사진으로 시작하기" />
-                {camera.status !== "unsupported" && (
-                  <button
-                    type="button"
-                    onClick={startCamera}
-                    disabled={!modelReady || camera.status === "requesting"}
-                    className={`${BUTTON} border border-line bg-card hover:bg-accent-soft`}
-                  >
-                    {camera.status === "requesting" ? "카메라 여는 중…" : "실시간 카메라로"}
-                  </button>
-                )}
-              </>
-            ) : (
-              <>
-                {camera.status !== "unsupported" && (
-                  <button
-                    type="button"
-                    onClick={startCamera}
-                    disabled={!modelReady || camera.status === "requesting"}
-                    className={`${BUTTON} bg-accent text-white hover:opacity-90`}
-                  >
-                    {camera.status === "requesting" ? "카메라 여는 중…" : "카메라로 시작"}
-                  </button>
-                )}
-                <UploadButton disabled={!modelReady} onFiles={uploadFiles} multiple variant={cameraFailed ? "primary" : "secondary"} />
-              </>
-            )}
-          </div>
-        </section>
+        <SetupPanel
+          modelStatus={modelStatus}
+          modelError={modelError}
+          modelProgress={modelProgress}
+          cameraStatus={camera.status}
+          isMobile={isMobile}
+          onRetry={retry}
+          onCamera={startCamera}
+          onUpload={uploadFiles}
+        />
       )}
 
-      <div className={showStage ? "space-y-5" : "hidden"}>
-        {/* 아래 색을 고르는 동안 얼굴이 계속 보이게 상단에 고정한다. 화면을 덮지 않게 높이는 화면 비율과 절대 크기 중 작은 쪽으로 묶는다 */}
-        <div className="sticky top-0 z-10 -mx-4 bg-bg px-4 py-2">
-          {/* 캔버스가 레이아웃 크기를 정하고, 비디오는 그 뒤에 깔린다. 전면 카메라는 거울처럼 좌우 반전 */}
-          <div className="relative mx-auto w-fit max-w-full overflow-hidden rounded-3xl bg-black">
+      {/* 모바일: 사진 무대를 가장자리까지 넓혀 위에 고정하고 아래 패널을 스크롤. 데스크톱: 왼쪽 무대 고정, 오른쪽 패널 */}
+      <div className={showStage ? "md:grid md:grid-cols-[minmax(0,1fr)_minmax(360px,440px)] md:items-start md:gap-12" : "hidden"}>
+        <div className={`${pinStage ? "sticky top-0" : "relative"} z-10 -mx-4 bg-card md:sticky md:top-6 md:mx-0 md:rounded-[12px]`}>
+          <div className="relative mx-auto w-fit max-w-full">
             <video
               ref={videoRef}
               playsInline
@@ -198,88 +139,89 @@ export function TrySession() {
               onPointerLeave={stopCompare}
               onPointerCancel={stopCompare}
               onContextMenu={(e) => e.preventDefault()}
-              className={`relative block touch-manipulation select-none ${pickingWhite ? "cursor-crosshair" : ""} h-auto max-h-[min(34svh,300px)] w-auto max-w-full md:max-h-[min(50svh,440px)] ${source === "camera" ? "-scale-x-100" : ""}`}
+              className={`relative block touch-manipulation select-none ${pickingWhite ? "cursor-crosshair" : ""} h-auto ${pinStage ? "max-h-[min(50svh,480px)]" : "max-h-[min(44svh,420px)]"} w-auto max-w-full md:max-h-[calc(100svh-7rem)] md:rounded-[12px] ${source === "camera" ? "-scale-x-100" : ""}`}
             />
-            {(comparing || pickingWhite) && (
-              <span className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium whitespace-nowrap text-white">
-                {pickingWhite ? "흰 종이·흰 벽을 눌러 주세요" : "바르기 전"}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {still.error && (
-          <p role="alert" className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
-            {still.error}
-          </p>
-        )}
-
-        {stage !== "done" && !still.error && <LightingBadges issues={lighting} faceFound={faceFound} />}
-
-        {stage === "live" && source === "camera" && (
-          <>
-            {whiteBalance.supported && (
-              <WhiteBalanceLockCard
-                locked={whiteBalance.locked}
-                busy={whiteBalance.busy}
-                error={whiteBalance.error}
-                onLock={() => void whiteBalance.lock()}
-                onUnlock={() => void whiteBalance.unlock()}
-              />
-            )}
-            <p className="text-xs text-muted">이가 보이게 살짝 웃거나 눈을 크게 뜨면 치아·눈 흰자를 기준으로 조명을 더 정확히 되돌려요.</p>
-            <button type="button" onClick={startMeasuring} disabled={!faceFound} className={`${BUTTON} bg-accent text-white hover:opacity-90`}>
-              측정 시작
+            <StageOverlay pickingWhite={pickingWhite} />
+            <button
+              type="button"
+              onClick={restart}
+              className="absolute right-3 top-3 h-8 rounded-[6px] bg-white/95 px-3 text-[13px] font-medium text-fg backdrop-blur focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+            >
+              처음부터
             </button>
-          </>
-        )}
-
-        {stage === "measuring" && (
-          <div role="status" aria-live="polite" className="space-y-2">
-            <p className="text-sm">가만히 있어 주세요… {Math.round(progress * 100)}%</p>
-            <div className="h-2 overflow-hidden rounded-full bg-black/10">
-              <div className="h-full bg-accent transition-[width]" style={{ width: `${progress * 100}%` }} />
-            </div>
           </div>
-        )}
-
-        {stage === "done" && (
-          <>
-            <ResultPanel
-              onAddPhotos={addPhotos}
-              onMeasureMore={measureMore}
-              photos={still.photos}
-              whiteFix={
-                source === "image" && still.shown ? (
-                  <WhiteFixCard
-                    fixed={Boolean(still.shown.white)}
-                    picking={pickingWhite}
-                    message={whiteMessage}
-                    multiple={still.photos.length > 1}
-                    onToggle={() => {
-                      setWhiteMessage(null);
-                      setPickingWhite((v) => !v);
-                    }}
-                  />
-                ) : undefined
-              }
-            />
-            {lighting.length > 0 && result && !isFullyCorrected(result.reference ?? "none") && (
-              <p className="text-xs text-muted">
-                조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. {REFERENCE_LABEL[result.reference ?? "none"]}이라 결과가 평소와 다를 수 있어요.
-              </p>
-            )}
-          </>
-        )}
-
-        <AdvancedPanel />
-        <div className="flex flex-wrap gap-2">
-          <UploadButton disabled={!modelReady} onFiles={uploadFiles} multiple />
-          <button type="button" onClick={restart} className={`${BUTTON} border border-line bg-card hover:bg-accent-soft`}>
-            처음으로
-          </button>
         </div>
-        <Disclaimer />
+
+        <div className="space-y-6 pt-6 md:pt-2">
+          {still.error && (
+            <p role="alert" className="border-l-2 border-amber-500 pl-3 text-sm text-amber-900">
+              {still.error}
+            </p>
+          )}
+
+          {stage !== "done" && !still.error && <LightingBadges issues={lighting} faceFound={faceFound} />}
+
+          {stage === "live" && source === "camera" && (
+            <>
+              <button type="button" onClick={startMeasuring} disabled={!faceFound} className={`${BUTTON.primary} w-full`}>
+                측정 시작
+              </button>
+              <p className="text-[13px] text-muted">이가 보이게 살짝 웃거나 눈을 크게 뜨면 치아·눈 흰자를 기준으로 조명을 더 정확히 되돌려요.</p>
+              {whiteBalance.supported && (
+                <WhiteBalanceLockCard
+                  locked={whiteBalance.locked}
+                  busy={whiteBalance.busy}
+                  error={whiteBalance.error}
+                  onLock={() => void whiteBalance.lock()}
+                  onUnlock={() => void whiteBalance.unlock()}
+                />
+              )}
+            </>
+          )}
+
+          {stage === "measuring" && (
+            <div role="status" aria-live="polite" className="space-y-2">
+              <p className="text-sm">가만히 있어 주세요… {Math.round(progress * 100)}%</p>
+              <div className="h-1 overflow-hidden rounded-full bg-line">
+                <div className="h-full bg-accent transition-[width]" style={{ width: `${progress * 100}%` }} />
+              </div>
+            </div>
+          )}
+
+          {stage === "done" && (
+            <>
+              <ResultPanel
+                onAddPhotos={addPhotos}
+                onMeasureMore={measureMore}
+                photos={still.photos}
+                whiteFix={
+                  source === "image" && still.shown ? (
+                    <WhiteFixCard
+                      fixed={Boolean(still.shown.white)}
+                      picking={pickingWhite}
+                      message={whiteMessage}
+                      multiple={still.photos.length > 1}
+                      onToggle={() => {
+                        setWhiteMessage(null);
+                        setPickingWhite((v) => !v);
+                      }}
+                    />
+                  ) : undefined
+                }
+              />
+              {lighting.length > 0 && result && !isFullyCorrected(result.reference ?? "none") && (
+                <p className="text-xs text-muted">
+                  조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. {REFERENCE_LABEL[result.reference ?? "none"]}이라 결과가 평소와 다를 수 있어요.
+                </p>
+              )}
+            </>
+          )}
+
+          <div className="space-y-4 border-t border-line pt-5">
+            <Disclaimer />
+            <AdvancedPanel />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -296,8 +238,7 @@ interface WhiteFixCardProps {
 /** 사진 속 흰색을 눌러 조명을 완전히 되돌리는 보정. 같은 사람이 사진마다 다르게 나오는 걸 가장 크게 줄인다 */
 function WhiteFixCard({ fixed, picking, message, multiple, onToggle }: WhiteFixCardProps) {
   return (
-    <div className="space-y-2 rounded-2xl border border-line p-4 text-sm">
-      <p className="font-medium">{fixed ? "흰색 기준으로 색을 맞췄어요" : "더 정확하게: 흰색 기준 맞추기"}</p>
+    <div className="space-y-2 text-sm">
       <p className="text-muted">
         {fixed
           ? "사진 속 흰색을 기준으로 조명의 색과 밝기를 되돌렸어요. 다른 곳을 눌러 다시 맞출 수도 있어요."
@@ -309,14 +250,7 @@ function WhiteFixCard({ fixed, picking, message, multiple, onToggle }: WhiteFixC
           {message}
         </p>
       )}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-pressed={picking}
-        className={`rounded-full px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-          picking ? "bg-fg text-white" : "border border-line bg-card hover:bg-accent-soft"
-        }`}
-      >
+      <button type="button" onClick={onToggle} aria-pressed={picking} className={picking ? `${BUTTON.small} border-fg bg-fg text-white` : BUTTON.small}>
         {picking ? "취소" : fixed ? "다시 맞추기" : "사진에서 흰색 누르기"}
       </button>
     </div>

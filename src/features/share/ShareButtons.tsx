@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ToneSlug } from "@/types/analysis";
+import { BUTTON } from "@/components/styles";
 import { cardImagePath, resultPath } from "./resultUrl";
 
 interface ShareButtonsProps {
@@ -33,7 +34,7 @@ export function ShareButtons({ tone, title }: ShareButtonsProps) {
         type="button"
         onClick={share}
         data-umami-event="share"
-        className="rounded-full bg-accent px-5 py-3 font-medium text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className={BUTTON.primary}
       >
         결과 공유하기
       </button>
@@ -41,7 +42,7 @@ export function ShareButtons({ tone, title }: ShareButtonsProps) {
         href={cardImagePath(tone)}
         download={`tonepick-${tone}.png`}
         data-umami-event="card-download"
-        className="rounded-full border border-line bg-card px-5 py-3 font-medium hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className={BUTTON.secondary}
       >
         카드 이미지 저장
       </a>

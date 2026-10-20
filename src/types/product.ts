@@ -4,6 +4,8 @@ export interface Swatch {
   id: string;
   name: string;
   hex: string;
+  /** 제형을 알면 발색 칩의 광택을 맞춘다 */
+  finish?: Finish;
 }
 
 export type ProductCategory = "lip" | "blush";

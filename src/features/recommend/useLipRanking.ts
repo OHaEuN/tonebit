@@ -12,13 +12,27 @@ import products from "./products.json";
 
 export interface LipCandidate extends HarmonyItem {
   kind: "product" | "palette" | "mine";
+  /** 제품이면 브랜드와 라인·색 이름을 따로 보여 준다 */
+  brand?: string;
+  shade?: string;
 }
 
 /** 순위에 올릴 립: 제품, 시즌 팔레트 색, 이용자가 잰 자기 제품 */
 function lipCandidates(mine: MyShade[]): LipCandidate[] {
   const fromProducts = (products as ProductSource[])
     .filter((p) => p.category === "lip")
-    .map((p): LipCandidate => ({ id: p.id, name: `${p.brand} ${p.name} ${p.shade}`, hex: p.hex, finish: p.finish, seasons: p.seasons, kind: "product" }));
+    .map(
+      (p): LipCandidate => ({
+        id: p.id,
+        name: `${p.brand} ${p.name} ${p.shade}`,
+        brand: p.brand,
+        shade: `${p.name} ${p.shade}`,
+        hex: p.hex,
+        finish: p.finish,
+        seasons: p.seasons,
+        kind: "product",
+      }),
+    );
   const fromPalettes = SEASONS.flatMap((s) => SEASON_INFO[s].lips.map((l): LipCandidate => ({ ...l, seasons: [s], kind: "palette" })));
   const fromMine = mine
     .filter((m) => m.category === "lip")

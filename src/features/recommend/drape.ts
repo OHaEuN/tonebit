@@ -8,6 +8,8 @@ import { SEASON_INFO } from "./palettes";
  * 천 드레이프 진단과 립 발라 보기의 체감 차이는 대부분 없었다(김도은·김영삼 2020). 잼페이스도 같은 방식으로 톤을 정한다
  */
 export type DrapeSide = "warm" | "cool" | "light" | "deep";
+/** 둘이 비슷해 보이면 어느 쪽도 고르지 않는다 */
+export type DrapePick = DrapeSide | "same";
 
 export interface DrapeOption {
   swatch: Swatch;
@@ -47,17 +49,43 @@ export function depthRounds(warm: boolean): DrapeRound[] {
   return warm ? rounds(lips("spring"), "light", lips("autumn"), "deep") : rounds(lips("summer"), "light", lips("winter"), "deep");
 }
 
-/** 웜을 더 많이 골랐는지. 웜/쿨 라운드의 고른 쪽들로 */
-export function pickedWarm(picks: DrapeSide[]): boolean {
-  return picks.filter((p) => p === "warm").length > picks.filter((p) => p === "cool").length;
+/** 더 많이 고른 쪽. 같으면 null */
+function majority(picks: DrapePick[], a: DrapeSide, b: DrapeSide): DrapeSide | null {
+  const na = picks.filter((p) => p === a).length;
+  const nb = picks.filter((p) => p === b).length;
+  if (na === nb) return null;
+  return na > nb ? a : b;
 }
 
-/** 다 고르면 시즌, 아직이면 null */
-export function drapeSeason(picks: DrapeSide[]): Season | null {
+const isWarm = (season: Season) => season === "spring" || season === "autumn";
+const isLight = (season: Season) => season === "spring" || season === "summer";
+
+/** 웜/쿨 라운드에서 웜을 더 많이 골랐는지. 비겼으면 측정 결과(fallback)를 따른다 */
+export function pickedWarm(picks: DrapePick[], fallback: Season): boolean {
+  const side = majority(picks.slice(0, ROUNDS_PER_AXIS), "warm", "cool");
+  return side ? side === "warm" : isWarm(fallback);
+}
+
+const SEASON_OF: Record<"warm" | "cool", Record<"light" | "deep", Season>> = {
+  warm: { light: "spring", deep: "autumn" },
+  cool: { light: "summer", deep: "winter" },
+};
+
+export interface DrapeResult {
+  season: Season;
+  /** 비겨서 측정 결과를 따른 축 */
+  undecided: ("undertone" | "depth")[];
+}
+
+/** 다 고르면 시즌, 아직이면 null. 비긴 축은 측정 시즌(fallback)을 따른다 */
+export function drapeResult(picks: DrapePick[], fallback: Season): DrapeResult | null {
   if (picks.length < ROUNDS_PER_AXIS * 2) return null;
-  const warm = pickedWarm(picks.slice(0, ROUNDS_PER_AXIS));
-  const depth = picks.slice(ROUNDS_PER_AXIS);
-  const light = depth.filter((p) => p === "light").length > depth.filter((p) => p === "deep").length;
-  if (warm) return light ? "spring" : "autumn";
-  return light ? "summer" : "winter";
+  const tone = majority(picks.slice(0, ROUNDS_PER_AXIS), "warm", "cool");
+  const depth = majority(picks.slice(ROUNDS_PER_AXIS), "light", "deep");
+  const warm = tone ? tone === "warm" : isWarm(fallback);
+  const light = depth ? depth === "light" : isLight(fallback);
+  const undecided: DrapeResult["undecided"] = [];
+  if (!tone) undecided.push("undertone");
+  if (!depth) undecided.push("depth");
+  return { season: SEASON_OF[warm ? "warm" : "cool"][light ? "light" : "deep"], undecided };
 }

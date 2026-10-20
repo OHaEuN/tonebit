@@ -2,17 +2,21 @@
 
 @theme {
   --color-bg: #ffffff;
-  --color-fg: #171311;
-  --color-muted: #6e6762;
-  --color-accent: #7a1e3f;
-  --color-accent-soft: #f6edf0;
-  --color-line: #e8e2dd;
-  --color-card: #f8f6f4;
+  --color-fg: #000000;
+  --color-muted: #6b6b6b;
+  /* 행동 버튼·선택 상태는 검정 하나로. 색은 제품과 피부가 낸다 */
+  --color-accent: #000000;
+  --color-accent-soft: #f3f3ee;
+  --color-line: #e5e5e5;
+  /* 사진 무대·제품 타일 바탕 */
+  --color-card: #fbfaf7;
+  /* 맨 위 안내 띠 */
+  --color-announce: #eeeec8;
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
 }
 
 @theme inline {
-  --font-serif: var(--font-serif-kr), "Gowun Batang", "Apple Myungjo", "Nanum Myeongjo", "Noto Serif KR", serif;
+  --font-mono: var(--font-mono-latin), "Pretendard Variable", Pretendard, ui-monospace, monospace;
 }
 
 body {
@@ -23,11 +27,12 @@ body {
   line-height: 1.65;
 }
 
+/* 제목은 본문과 같은 산세리프를 굵지 않게, 자간은 좁게 */
 h1,
-h2 {
-  font-family: var(--font-serif);
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+h2,
+h3 {
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
 /* 랜딩 히어로: 네 시즌 팔레트를 드레이프처럼 펼친다. 한 번만 움직이고 끝 */
