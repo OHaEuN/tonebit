@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chroma, hueAngle, ita, luma, srgbToLab } from "./color";
+import { chroma, hueAngle, ita, luma, srgbToLab, labToLinear, linearRgbToLab } from "./color";
 
 describe("srgbToLab", () => {
   it("흰색은 L=100, a=b=0", () => {
@@ -47,5 +47,16 @@ describe("지표", () => {
   it("luma는 Rec.601 가중합", () => {
     expect(luma(255, 255, 255)).toBeCloseTo(255, 5);
     expect(luma(0, 255, 0)).toBeCloseTo(149.685, 2);
+  });
+});
+
+describe("labToLinear", () => {
+  it("linearRgbToLab의 역변환", () => {
+    for (const c of [{ r: 0.3, g: 0.2, b: 0.15 }, { r: 0.9, g: 0.05, b: 0.4 }, { r: 0.01, g: 0.01, b: 0.01 }]) {
+      const back = labToLinear(linearRgbToLab(c.r, c.g, c.b));
+      expect(back.r).toBeCloseTo(c.r, 6);
+      expect(back.g).toBeCloseTo(c.g, 6);
+      expect(back.b).toBeCloseTo(c.b, 6);
+    }
   });
 });

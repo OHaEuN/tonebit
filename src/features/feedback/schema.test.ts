@@ -24,6 +24,7 @@ describe("parseFeedback", () => {
     delete legacy.reference;
     expect(parseFeedback(legacy)?.reference).toBe(VALID.corrected ? "scene" : "none");
     expect(parseFeedback({ ...VALID, reference: "moon" })).toBeNull();
+    expect(parseFeedback({ ...VALID, reference: "locked" })?.reference).toBe("locked");
   });
 
   it("세부 타입을 모르면 null로 받는다", () => {

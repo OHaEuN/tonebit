@@ -8,6 +8,8 @@ import { REFERENCE_LABEL } from "@/features/analysis/reference";
 import { isFullyCorrected } from "@/features/analysis/tone";
 import { track } from "@/features/analytics/track";
 import { useCameraStream } from "@/features/camera/useCameraStream";
+import { useWhiteBalanceLock } from "@/features/camera/useWhiteBalanceLock";
+import { useMyShadeStore } from "@/features/myShade/store";
 import { ensureVideoMode, useFaceLandmarker } from "@/features/landmark/useFaceLandmarker";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { AdvancedPanel } from "./AdvancedPanel";
@@ -18,6 +20,7 @@ import { UploadButton } from "./UploadButton";
 import { useIsMobile } from "./useIsMobile";
 import { useStillAnalysis } from "./useStillAnalysis";
 import { useTryOnLoop } from "./useTryOnLoop";
+import { WhiteBalanceLockCard } from "./WhiteBalanceLockCard";
 
 const CAMERA_MESSAGES = {
   denied: "카메라 권한이 거부됐어요. 브라우저 설정에서 허용하거나, 사진을 올려서 해볼 수 있어요.",
@@ -51,7 +54,11 @@ export function TrySession() {
   const [pickingWhite, setPickingWhite] = useState(false);
   const [whiteMessage, setWhiteMessage] = useState<string | null>(null);
 
-  useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active: camera.status === "active" && source === "camera" });
+  const cameraLive = camera.status === "active" && source === "camera";
+  useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active: cameraLive });
+  const whiteBalance = useWhiteBalanceLock(videoRef, camera.videoTrack, cameraLive);
+  const hydrateShades = useMyShadeStore((s) => s.hydrate);
+  useEffect(() => hydrateShades(), [hydrateShades]);
 
   const modelReady = modelStatus === "ready";
 
@@ -133,7 +140,7 @@ export function TrySession() {
           )}
           <ul className="list-disc space-y-1 pl-5 text-xs text-muted">
             <li>사진은 한 번에 최대 5장까지 고를 수 있어요. 여러 장을 합치면 조명 운에 덜 흔들려요.</li>
-            <li>흰 종이(A4)를 얼굴 옆에 들고 찍으면, 결과 화면에서 종이를 눌러 색을 가장 정확하게 맞출 수 있어요.</li>
+            <li>흰 종이(A4)를 얼굴 옆에 들고 찍으면, 결과 화면에서 종이를 눌러 색을 가장 정확하게 맞출 수 있어요. 복사지는 창가 햇빛에서 푸르게 찍히니 실내 조명 아래가 좋아요.</li>
             <li>이가 보이게 웃거나 눈을 크게 뜬 사진이면 치아·눈 흰자를 기준으로 조명을 자동으로 되돌려요.</li>
           </ul>
           {/* 모바일은 파일 선택창이 곧 카메라·앨범 선택이라 그걸 기본으로. 실시간 카메라는 보조 */}
@@ -211,6 +218,15 @@ export function TrySession() {
 
         {stage === "live" && source === "camera" && (
           <>
+            {whiteBalance.supported && (
+              <WhiteBalanceLockCard
+                locked={whiteBalance.locked}
+                busy={whiteBalance.busy}
+                error={whiteBalance.error}
+                onLock={() => void whiteBalance.lock()}
+                onUnlock={() => void whiteBalance.unlock()}
+              />
+            )}
             <p className="text-xs text-muted">이가 보이게 살짝 웃거나 눈을 크게 뜨면 치아·눈 흰자를 기준으로 조명을 더 정확히 되돌려요.</p>
             <button type="button" onClick={startMeasuring} disabled={!faceFound} className={`${BUTTON} bg-accent text-white hover:opacity-90`}>
               측정 시작
@@ -285,7 +301,7 @@ function WhiteFixCard({ fixed, picking, message, multiple, onToggle }: WhiteFixC
       <p className="text-muted">
         {fixed
           ? "사진 속 흰색을 기준으로 조명의 색과 밝기를 되돌렸어요. 다른 곳을 눌러 다시 맞출 수도 있어요."
-          : "사진에 흰 종이·흰 벽·흰 옷이 있으면 눌러 주세요. 조명 때문에 생긴 노란 기·푸른 기·밝기 차이를 없애서 사진마다 결과가 덜 달라져요."}
+          : "사진에 흰 종이·흰 벽·흰 옷이 있으면 눌러 주세요. 조명 때문에 생긴 노란 기·푸른 기·밝기 차이를 없애서 사진마다 결과가 덜 달라져요. 햇빛 아래 복사지는 푸르게 찍혀서 흰 벽이 더 나을 수 있어요."}
         {multiple && " 사진마다 따로 맞춰요. 위에서 사진을 고른 뒤 눌러 주세요."}
       </p>
       {message && (

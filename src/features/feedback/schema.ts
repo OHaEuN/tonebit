@@ -23,7 +23,7 @@ export interface Feedback {
   reference: ReferenceSource;
 }
 
-const REFERENCES: ReferenceSource[] = ["white", "teeth", "sclera", "scene", "none"];
+const REFERENCES: ReferenceSource[] = ["white", "locked", "teeth", "sclera", "scene", "none"];
 
 const SEASONS = Object.keys(SEASON_SUBTYPES) as Season[];
 const SLUG = /^(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/;

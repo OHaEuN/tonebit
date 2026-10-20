@@ -52,3 +52,18 @@ describe("combineShots", () => {
     expect(combineShots([{ lab: labOf(60, 35, 26), corrected: true, whiteFixed: true }]).result.reference).toBe("white");
   });
 });
+
+describe("입술색", () => {
+  it("입술을 읽은 장들의 중앙값을 결과에 붙이고, 못 읽은 장은 뺀다", () => {
+    const { result } = combineShots([
+      { lab: labOf(60, 35, 26), corrected: true, lip: { L: 45, a: 20, b: 12 } },
+      { lab: labOf(60, 35, 26), corrected: true, lip: null },
+      { lab: labOf(60, 35, 26), corrected: true, lip: { L: 47, a: 22, b: 14 } },
+    ]);
+    expect(result.lip).toEqual({ L: 46, a: 21, b: 13 });
+  });
+
+  it("아무 장도 못 읽었으면 붙이지 않는다", () => {
+    expect(combineShots([{ lab: labOf(60, 35, 26), corrected: true }]).result.lip).toBeUndefined();
+  });
+});

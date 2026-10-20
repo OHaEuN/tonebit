@@ -8,7 +8,10 @@ export type AnalyticsEvent =
   | { name: "model-error" }
   | { name: "face-not-found"; source: "camera" | "image" }
   | { name: "measure-done"; tone: string; confidence: string; source: "camera" | "image" }
-  | { name: "swatch-select"; kind: "lip" | "blush"; product: boolean };
+  | { name: "swatch-select"; kind: "lip" | "blush"; product: boolean }
+  | { name: "wb-lock" }
+  | { name: "drape-done"; season: string; same: boolean }
+  | { name: "shade-saved"; kind: "lip" | "blush" };
 
 interface Umami {
   track: (name: string, data?: Record<string, string | number | boolean>) => void;
