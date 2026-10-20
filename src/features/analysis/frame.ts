@@ -3,11 +3,11 @@
  * 여기엔 판정 로직을 두지 않는다.
  */
 import type { Lab, LightingIssue, LinearRgb, Point, ReferenceSource } from "@/types/analysis";
-import { cheekPatches, faceBounds, faceWidthRatio, inPolygon, mouthInnerPolygon, scleraRegions, skinPatches } from "@/features/landmark/geometry";
-import { labToY, luma } from "./color";
+import { cheekPatches, faceBounds, faceWidthRatio, inPolygon, lipOuterPolygon, mouthInnerPolygon, scleraRegions, skinPatches } from "@/features/landmark/geometry";
+import { labToY, linearRgbToLab, luma } from "./color";
 import { SCENE_THUMB, SCLERA_KEEP_BRIGHTEST, TEETH_MAX_SATURATION, TEETH_MIN_LUMA } from "./constants";
 import { checkLighting } from "./lighting";
-import { pickGains } from "./reference";
+import { cameraWhite, pickGains } from "./reference";
 import { lumaStats, meanRgb, medianLab, meanLinearRgbMasked, regionStat, representativeLab, type RegionStat } from "./sample";
 
 /** 렌더·샘플링 해상도 상한. 이보다 크면 비례 축소 */
@@ -33,12 +33,12 @@ export function measureScene(ctx: CanvasRenderingContext2D, lm: Point[]): Linear
   });
 }
 
-/** 폴리곤(픽셀 좌표) 안 픽셀의 통계. hole 원 안은 뺀다 */
+/** 폴리곤(픽셀 좌표) 안 픽셀의 통계. skip이 참인 픽셀은 뺀다 */
 function polygonStat(
   ctx: CanvasRenderingContext2D,
   poly: Point[],
   keepBrightest: number,
-  hole?: { x: number; y: number; r: number },
+  skip?: (x: number, y: number) => boolean,
   accept?: (r: number, g: number, b: number) => boolean,
 ): RegionStat | null {
   const xs = poly.map((p) => p.x);
@@ -57,7 +57,7 @@ function polygonStat(
     (x, y) => {
       const px = x0 + x + 0.5;
       const py = y0 + y + 0.5;
-      if (hole && Math.hypot(px - hole.x, py - hole.y) < hole.r) return false;
+      if (skip?.(px, py)) return false;
       return inPolygon(px, py, poly);
     },
     keepBrightest,
@@ -71,31 +71,55 @@ function isTooth(r: number, g: number, b: number): boolean {
   return luma(r, g, b) >= TEETH_MIN_LUMA && max > 0 && (max - Math.min(r, g, b)) / max < TEETH_MAX_SATURATION;
 }
 
+/** 한 사진(또는 카메라 프레임)에서 잰 피부색과 같은 보정을 거친 입술색 */
+export interface SkinSample {
+  lab: Lab;
+  corrected: boolean;
+  reference: ReferenceSource;
+  /** 입술(바깥 윤곽 − 입 안쪽) 색. 못 읽으면 null */
+  lip: Lab | null;
+  /** 이 사진에서 완전한 흰색이 찍혔을 선형 RGB. 립·블러셔를 이 조명 아래 색으로 칠할 때 쓴다 */
+  cameraWhite: LinearRgb;
+}
+
 /**
  * 피부 대표 Lab. 조명(색온도·노출)은 쓸 수 있는 가장 믿을 만한 기준으로 되돌린다:
- * 이용자가 찍은 흰색 > 치아 > 눈 흰자 > 배경 평균색(절반). 어떤 기준을 썼는지 reference로 돌려준다
+ * 이용자가 찍은 흰색 > 흰 종이로 고정한 화이트밸런스 > 치아(+눈 흰자) > 눈 흰자 > 배경 평균색(절반). 어떤 기준을 썼는지 reference로 돌려준다
  */
 export function sampleSkin(
   ctx: CanvasRenderingContext2D,
   lm: Point[],
   w: number,
   h: number,
-  white?: LinearRgb,
-): { lab: Lab; corrected: boolean; reference: ReferenceSource } | null {
+  refs: { white?: LinearRgb; locked?: LinearRgb | null } = {},
+): SkinSample | null {
   const buffers = skinPatches(lm, w, h).map((r) => ctx.getImageData(r.x, r.y, r.w, r.h).data);
   const raw = buffers.map((b) => representativeLab(b)).filter((l): l is Lab => l !== null);
   if (!raw.length) return null;
   const skinY = labToY(medianLab(raw).L);
+  const { white } = refs;
 
   const { gains, reference } = pickGains({
     white,
+    locked: refs.locked,
     teeth: white ? null : polygonStat(ctx, mouthInnerPolygon(lm, w, h), 1, undefined, isTooth),
-    sclera: white ? [] : scleraRegions(lm, w, h).map(({ poly, hole }) => polygonStat(ctx, poly, SCLERA_KEEP_BRIGHTEST, hole)),
+    sclera: white ? [] : scleraRegions(lm, w, h).map(({ poly, hole }) =>
+      polygonStat(ctx, poly, SCLERA_KEEP_BRIGHTEST, (x, y) => Math.hypot(x - hole.x, y - hole.y) < hole.r),
+    ),
     scene: white ? null : measureScene(ctx, lm),
     skinY,
   });
   const labs = gains ? buffers.map((b) => representativeLab(b, gains)).filter((l): l is Lab => l !== null) : raw;
-  return { lab: medianLab(labs.length ? labs : raw), corrected: reference !== "none", reference };
+  const inner = mouthInnerPolygon(lm, w, h);
+  const lipStat = polygonStat(ctx, lipOuterPolygon(lm, w, h), 1, (x, y) => inPolygon(x, y, inner));
+  const g = gains ?? { r: 1, g: 1, b: 1 };
+  return {
+    lab: medianLab(labs.length ? labs : raw),
+    corrected: reference !== "none",
+    reference,
+    lip: lipStat ? linearRgbToLab(lipStat.r * g.r, lipStat.g * g.g, lipStat.b * g.b) : null,
+    cameraWhite: cameraWhite(gains),
+  };
 }
 
 /** 정규화 좌표(u, v) 둘레 정사각형의 픽셀. 흰색 기준을 찍을 때 쓴다 */

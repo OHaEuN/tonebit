@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Lab } from "@/types/analysis";
 import { AXIS_MARGIN, HUE_COOL_MAX, HUE_WARM_MIN, ITA_LIGHT_MIN, YELLOW_WARM_MIN } from "./constants";
-import { classifyTone } from "./tone";
+import { classifyTone, runnerUp, seasonOdds } from "./tone";
 
 /** hue, ITA, chroma로 역산한 Lab. 테스트가 임계값 의미로 읽히게 한다. */
 function labOf(hueDeg: number, itaDeg: number, c: number): Lab {
@@ -79,5 +79,43 @@ describe("classifyTone", () => {
     expect(classifyTone(labOf(HUE_COOL_MAX - 1, ITA_LIGHT_MIN + 1, 24 - 4 * AXIS_MARGIN.chroma)).tone).toBe("summer-soft");
     expect(classifyTone(labOf(HUE_WARM_MIN + 1, ITA_LIGHT_MIN - 4 * AXIS_MARGIN.ita, 24)).tone).toBe("autumn-deep");
     expect(classifyTone(labOf(HUE_COOL_MAX - 1, ITA_LIGHT_MIN - 1, 24 + 4 * AXIS_MARGIN.chroma)).tone).toBe("winter-bright");
+  });
+});
+
+describe("seasonOdds", () => {
+  const cases = [
+    labOf(WARM, LIGHT, 26),
+    labOf(COOL, DEEP, 22),
+    labOf(HUE_WARM_MIN + 0.5, ITA_LIGHT_MIN - 1, 24),
+    labOf(NEUTRAL + 1, LIGHT, 20),
+    labOf(NEUTRAL - 1, DEEP, 30),
+  ];
+
+  it("합이 1이고 1등은 판정 시즌과 같다", () => {
+    for (const lab of cases) {
+      for (const ref of ["teeth", "scene", "none"] as const) {
+        const odds = seasonOdds(lab, ref);
+        const sum = Object.values(odds).reduce((a, b) => a + b, 0);
+        expect(sum).toBeCloseTo(1, 9);
+        const season = classifyTone(lab, ref).season;
+        expect(runnerUp(season, odds)).not.toBe(season);
+        expect(odds[season]).toBeGreaterThanOrEqual(Math.max(...Object.values(odds)) - 1e-9);
+      }
+    }
+  });
+
+  it("보정이 약할수록 1등 확률이 낮아진다", () => {
+    const lab = labOf(WARM, LIGHT, 26);
+    expect(seasonOdds(lab, "teeth").spring).toBeGreaterThan(seasonOdds(lab, "scene").spring);
+    expect(seasonOdds(lab, "scene").spring).toBeGreaterThan(seasonOdds(lab, "none").spring);
+  });
+
+  it("뉴트럴은 황색도 쪽으로 기울지만 크게 확신하지 않는다", () => {
+    const lab = labOf(NEUTRAL - 1, LIGHT, 26);
+    expect(lab.b).toBeGreaterThan(YELLOW_WARM_MIN);
+    const odds = seasonOdds(lab, "teeth");
+    const warm = odds.spring + odds.autumn;
+    expect(warm).toBeGreaterThan(0.5);
+    expect(warm).toBeLessThan(0.7);
   });
 });

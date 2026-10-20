@@ -1,6 +1,6 @@
 import type { Point, Rect } from "@/types/analysis";
 import { IRIS_EXCLUDE_RATIO, PATCH_RATIO } from "@/features/analysis/constants";
-import { CHEEK_AXES, CHEEK_PAIR, EYE_CONTOURS, EYE_CORNERS, EYE_OUTER_PAIR, IRISES, LIP_INNER, MOUTH_CENTER, MOUTH_CORNERS, MOUTH_VERTICAL, SKIN_CENTERS } from "./indices";
+import { CHEEK_AXES, CHEEK_PAIR, EYE_CONTOURS, EYE_CORNERS, EYE_OUTER_PAIR, IRISES, LIP_INNER, LIP_OUTER, MOUTH_CENTER, MOUTH_CORNERS, MOUTH_VERTICAL, SKIN_CENTERS } from "./indices";
 
 /** 눈 바깥꼬리 사이 픽셀 거리. 얼굴 크기 기준 단위. */
 export function interocular(lm: Point[], w: number, h: number): number {
@@ -50,6 +50,11 @@ export function scleraRegions(lm: Point[], w: number, h: number): { poly: Point[
     const r = Math.max(...iris.ring.map((i) => Math.hypot(px(lm[i], w, h).x - c.x, px(lm[i], w, h).y - c.y))) * IRIS_EXCLUDE_RATIO;
     return { poly: contour.map((i) => px(lm[i], w, h)), hole: { x: c.x, y: c.y, r } };
   });
+}
+
+/** 입술 바깥 링(픽셀) */
+export function lipOuterPolygon(lm: Point[], w: number, h: number): Point[] {
+  return LIP_OUTER.map((i) => px(lm[i], w, h));
 }
 
 /** 입 안쪽 링(픽셀). 입을 벌리면 치아가 보이는 영역 */

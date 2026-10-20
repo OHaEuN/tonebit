@@ -11,7 +11,7 @@ import type {
   Undertone,
 } from "@/types/analysis";
 import { chroma, hueAngle, ita } from "./color";
-import { AXIS_MARGIN, CHROMA_CLEAR_MIN, HUE_COOL_MAX, HUE_WARM_MIN, ITA_LIGHT_MIN, YELLOW_WARM_MIN } from "./constants";
+import { AXIS_MARGIN, CHROMA_CLEAR_MIN, HUE_COOL_MAX, HUE_WARM_MIN, ITA_LIGHT_MIN, REFERENCE_NOISE, YELLOW_WARM_MIN } from "./constants";
 import { REFERENCE_RANK } from "./reference";
 
 export function undertoneOf(hue: number): Undertone {
@@ -80,6 +80,44 @@ export function axisScores(hueDist: number, itaDeg: number, c: number): Record<S
 /** 12시즌: 시즌 안에서 가장 두드러진 축을 세부 타입으로 삼는다 (Sci\ART 방식의 "dominant characteristic") */
 function subtypeOf(season: Season, scores: Record<Subtype, number>): Subtype {
   return SEASON_SUBTYPES[season].reduce((best, s) => (scores[s] > scores[best] ? s : best));
+}
+
+/**
+ * 기준별 측정 흔들림 배수. 조명 추정 잡음 분산의 제곱근 비(치아 = 1).
+ * 흰색·흰 종이 고정은 치아보다 나쁘지 않다고 보고 1, 보정 없음은 배경보다 나쁘다는 것만 알아 한 단계 더 크게 둔다
+ */
+const NOISE_SCALE: Record<ReferenceSource, number> = {
+  white: 1,
+  locked: 1,
+  teeth: 1,
+  sclera: Math.sqrt(REFERENCE_NOISE.sclera / REFERENCE_NOISE.teeth),
+  scene: Math.sqrt(REFERENCE_NOISE.scene / REFERENCE_NOISE.teeth),
+  // ponytail: 근거 없는 배수. 보정 없는 사진의 잡음을 재면 바꾼다
+  none: 3,
+};
+
+const HUE_MID = (HUE_WARM_MIN + HUE_COOL_MAX) / 2;
+/** 표준정규 누적분포의 로지스틱 근사 */
+const normalCdf = (z: number) => 1 / (1 + Math.exp(-1.7 * z));
+
+/**
+ * 시즌별 확률(합 1). 웜/쿨과 명/암을 각각 "기준선에서 떨어진 거리 ÷ (축 여유 × 기준별 흔들림)"의 정규 누적확률로 보고 곱한다.
+ * 뉴트럴 구간은 황색도 쪽으로 기울이되 색상각 거리만큼만 확신한다. 정확히 동점이 아니면 1등은 classifyTone의 시즌과 같다.
+ * 셀카 4시즌 판정은 공개 연구 최고치도 약 55%(상위 2개 84%)라서 한 시즌을 단정하지 않고 상위 후보를 같이 보여 준다
+ */
+export function seasonOdds(lab: Lab, reference: ReferenceSource = "none"): Record<Season, number> {
+  const k = NOISE_SCALE[reference];
+  const hue = hueAngle(lab);
+  const z = (hue - HUE_MID) / (AXIS_MARGIN.hue * k);
+  const warm = normalCdf(undertoneOf(hue) === "neutral" ? Math.abs(z) * (lab.b >= YELLOW_WARM_MIN ? 1 : -1) : z);
+  const light = normalCdf((ita(lab) - ITA_LIGHT_MIN) / (AXIS_MARGIN.ita * k));
+  return { spring: warm * light, autumn: warm * (1 - light), summer: (1 - warm) * light, winter: (1 - warm) * (1 - light) };
+}
+
+/** 판정 시즌 다음으로 가능성 높은 시즌 */
+export function runnerUp(season: Season, odds: Record<Season, number>): Season {
+  const others = (Object.keys(odds) as Season[]).filter((s) => s !== season);
+  return others.reduce((best, s) => (odds[s] > odds[best] ? s : best));
 }
 
 export function classifyTone(lab: Lab, reference: ReferenceSource = "none"): ToneResult {

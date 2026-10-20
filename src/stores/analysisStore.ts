@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { track } from "@/features/analytics/track";
-import type { LightingIssue, Season, ToneResult } from "@/types/analysis";
+import type { LightingIssue, LinearRgb, Season, ToneResult } from "@/types/analysis";
 import { combineShots, MAX_SHOTS, shotResult, type SeasonVotes, type Shot } from "@/features/analysis/shots";
 import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/lipTryOn/render";
 
@@ -35,6 +35,8 @@ interface AnalysisState {
   paletteSeason: Season | null;
   debug: boolean;
   fps: number;
+  /** 실시간 카메라에서 화이트밸런스를 고정할 때 잰 흰 종이. 카메라를 끄면 사라진다 */
+  lockedWhite: LinearRgb | null;
 
   begin: (source: Source) => void;
   startMeasuring: () => void;
@@ -63,6 +65,7 @@ interface AnalysisState {
   setPaletteSeason: (s: Season | null) => void;
   setDebug: (on: boolean) => void;
   setFps: (fps: number) => void;
+  setLockedWhite: (white: LinearRgb | null) => void;
   reset: () => void;
 }
 
@@ -87,6 +90,7 @@ const initial = {
   paletteSeason: null,
   debug: false,
   fps: 0,
+  lockedWhite: null,
 };
 
 let shotSeq = 0;
@@ -136,5 +140,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   setPaletteSeason: (paletteSeason) => set({ paletteSeason }),
   setDebug: (debug) => set({ debug }),
   setFps: (fps) => set({ fps }),
+  setLockedWhite: (lockedWhite) => set({ lockedWhite }),
   reset: () => set(initial),
 }));
