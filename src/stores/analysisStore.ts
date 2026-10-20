@@ -6,6 +6,8 @@ import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/li
 
 export type Stage = "setup" | "live" | "measuring" | "done";
 export type Source = "camera" | "image";
+/** 결과 화면 탭. 발라 보기에서만 사진을 화면 위에 고정한다 */
+export type ResultTab = "result" | "tryon";
 
 interface AnalysisState {
   stage: Stage;
@@ -37,6 +39,7 @@ interface AnalysisState {
   fps: number;
   /** 실시간 카메라에서 화이트밸런스를 고정할 때 잰 흰 종이. 카메라를 끄면 사라진다 */
   lockedWhite: LinearRgb | null;
+  resultTab: ResultTab;
 
   begin: (source: Source) => void;
   startMeasuring: () => void;
@@ -66,6 +69,7 @@ interface AnalysisState {
   setDebug: (on: boolean) => void;
   setFps: (fps: number) => void;
   setLockedWhite: (white: LinearRgb | null) => void;
+  setResultTab: (tab: ResultTab) => void;
   reset: () => void;
 }
 
@@ -91,6 +95,7 @@ const initial = {
   debug: false,
   fps: 0,
   lockedWhite: null,
+  resultTab: "result" as ResultTab,
 };
 
 let shotSeq = 0;
@@ -141,5 +146,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   setDebug: (debug) => set({ debug }),
   setFps: (fps) => set({ fps }),
   setLockedWhite: (lockedWhite) => set({ lockedWhite }),
+  setResultTab: (resultTab) => set({ resultTab }),
   reset: () => set(initial),
 }));

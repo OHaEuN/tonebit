@@ -36,12 +36,12 @@ export function ModelLoading({ progress }: ModelLoadingProps) {
   const label = init ? "얼굴 인식 엔진을 켜는 중이에요" : progress ? "얼굴 인식 모듈을 받는 중이에요" : "얼굴 인식 모듈을 준비하는 중이에요";
 
   return (
-    <div className="space-y-4 rounded-2xl border border-line bg-card p-5">
-      <div aria-hidden="true" className="flex justify-center gap-2.5 pt-2">
+    <div className="space-y-4">
+      <div aria-hidden="true" className="flex gap-2.5">
         {SEASONS.map((s, i) => (
           <span
             key={s}
-            className="swatch-wave size-7 rounded-full shadow-[0_6px_14px_-8px_rgba(23,19,17,0.6)]"
+            className="swatch-wave size-5 rounded-full"
             style={{ background: SEASON_INFO[s].accent, ["--delay" as string]: `${i * 140}ms` }}
           />
         ))}
@@ -60,7 +60,7 @@ export function ModelLoading({ progress }: ModelLoadingProps) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={init ? 100 : percent}
-          className="h-2 overflow-hidden rounded-full bg-black/10"
+          className="h-1 overflow-hidden rounded-full bg-line"
         >
           <div className={`h-full bg-accent transition-[width] duration-300 ${init ? "bar-shimmer" : ""}`} style={{ width: `${init ? 100 : Math.max(percent, 3)}%` }} />
         </div>
@@ -70,7 +70,6 @@ export function ModelLoading({ progress }: ModelLoadingProps) {
       </div>
 
       <p key={tip} className="tip-in min-h-10 text-sm text-muted">
-        <span className="mr-1.5 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">TIP</span>
         {TIPS[tip]}
       </p>
     </div>

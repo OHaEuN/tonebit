@@ -1,3 +1,6 @@
+import { BUTTON } from "@/components/styles";
+import { SwatchSmear } from "@/features/swatch/SwatchSmear";
+import { seedOf, smearFinish } from "@/features/swatch/smear";
 import type { Product } from "@/types/product";
 
 const FINISH_LABEL: Record<Product["finish"], string> = {
@@ -15,12 +18,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-line bg-card p-3">
-      <span aria-hidden="true" className="size-12 shrink-0 rounded-full border border-black/10" style={{ background: product.hex }} />
+    <li className="flex items-center gap-3.5 py-3.5">
+      <SwatchSmear color={product.hex} width={48} height={48} finish={smearFinish(product.finish)} seed={seedOf(product.id)} className="shrink-0" />
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-muted">{product.brand}</p>
-        <p className="truncate font-medium">{product.name}</p>
-        <p className="text-sm text-muted">
+        <p className="text-[12px] text-muted">{product.brand}</p>
+        <p className="truncate text-[15px] font-medium">{product.name}</p>
+        <p className="text-[13px] text-muted">
           {product.shade} · {FINISH_LABEL[product.finish]}
         </p>
       </div>
@@ -30,7 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
         rel="sponsored noopener"
         data-umami-event="product-click"
         data-umami-event-id={product.id}
-        className="shrink-0 rounded-full bg-accent-soft px-3 py-2 text-sm font-medium text-accent hover:bg-accent hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className={BUTTON.small}
       >
         쿠팡에서 보기
       </a>

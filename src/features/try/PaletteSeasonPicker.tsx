@@ -1,6 +1,7 @@
 "use client";
 
 import type { Season } from "@/types/analysis";
+import { CHOICE_CHIP } from "@/components/styles";
 import { SEASON_INFO, SEASONS } from "@/features/recommend/palettes";
 
 interface PaletteSeasonPickerProps {
@@ -16,10 +17,7 @@ interface PaletteSeasonPickerProps {
 export function PaletteSeasonPicker({ mine, shown, onChange }: PaletteSeasonPickerProps) {
   return (
     <fieldset className="min-w-0">
-      <legend className="mb-2 text-sm font-medium">
-        팔레트
-        <span className="ml-2 font-normal text-muted">다른 시즌 색과 비교해 보세요</span>
-      </legend>
+      <legend className="mb-2 text-[13px] text-muted">팔레트 시즌. 다른 시즌 색과도 비교해 보세요</legend>
       <div className="relative -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
         {SEASONS.map((s) => {
           const info = SEASON_INFO[s];
@@ -32,7 +30,7 @@ export function PaletteSeasonPicker({ mine, shown, onChange }: PaletteSeasonPick
                 checked={s === shown}
                 onChange={() => onChange(s === mine ? null : s)}
               />
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm peer-checked:border-fg peer-checked:bg-fg peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2">
+              <span className={CHOICE_CHIP}>
                 <span aria-hidden="true" className="size-2.5 rounded-full" style={{ background: info.accent }} />
                 {info.label} {info.tone}
                 {s === mine && <span className="text-xs opacity-70">내 톤</span>}

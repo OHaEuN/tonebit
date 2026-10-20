@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import type { ProductCategory } from "@/types/product";
+import { Disclosure } from "@/components/Disclosure";
+import { BUTTON } from "@/components/styles";
 import { fitSize } from "@/features/analysis/frame";
 import { track } from "@/features/analytics/track";
 import { nearestSeason, SEASON_INFO } from "@/features/recommend/palettes";
@@ -60,9 +62,8 @@ export function ShadeScanner({ category, onSaved }: ShadeScannerProps) {
   const near = swatch ? SEASON_INFO[nearestSeason(swatch.hex, category === "lip" ? "lips" : "blushes")] : null;
 
   return (
-    <details className="rounded-2xl border border-line p-4 text-sm">
-      <summary className="cursor-pointer font-medium">내가 가진 {label} 색 재기</summary>
-      <div className="mt-3 space-y-3">
+    <Disclosure title={`내가 가진 ${label} 색 재기`} hint="흰 종이에 발라 찍으면 실제 색을 재서 순위에 넣어요">
+      <div className="space-y-3">
         <p className="text-muted">{STEP_TEXT[step]}</p>
         {image && (
           <canvas
@@ -93,7 +94,7 @@ export function ShadeScanner({ category, onSaved }: ShadeScannerProps) {
               placeholder={`예: 쓰는 ${label} 이름`}
               aria-label={`${label} 이름`}
               maxLength={30}
-              className="min-w-0 flex-1 rounded-full border border-line bg-bg px-4 py-2"
+              className="min-w-0 flex-1 rounded-full border border-fg/15 bg-bg px-4 py-2.5 text-[15px] focus-visible:border-fg focus-visible:outline-none"
             />
             <button
               type="button"
@@ -104,7 +105,7 @@ export function ShadeScanner({ category, onSaved }: ShadeScannerProps) {
                 track({ name: "shade-saved", kind: category });
                 onSaved(id);
               }}
-              className="rounded-full bg-accent px-4 py-2 font-medium text-white hover:opacity-90"
+              className={BUTTON.primary}
             >
               저장
             </button>
@@ -113,12 +114,12 @@ export function ShadeScanner({ category, onSaved }: ShadeScannerProps) {
         <div className="flex flex-wrap gap-2">
           <UploadButton onFiles={([f]) => void load(f)} label={image ? "다른 사진" : "사진 올리기"} />
           {(step === "swatch" || step === "done") && (
-            <button type="button" onClick={repick} className="rounded-full border border-line bg-card px-5 py-3 font-medium hover:bg-accent-soft">
+            <button type="button" onClick={repick} className={BUTTON.secondary}>
               종이부터 다시 누르기
             </button>
           )}
         </div>
       </div>
-    </details>
+    </Disclosure>
   );
 }

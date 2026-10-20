@@ -19,13 +19,13 @@ interface LipStyleSpec {
  * 같은 제품의 바르기 전·후 사진으로 다시 맞춰야 한다
  */
 export const LIP_STYLES: Record<LipStyle, LipStyleSpec> = {
-  full: { label: "풀립", coverage: 0.8, texture: 0.7 },
+  full: { label: "풀립", coverage: 0.8, texture: 0.85 },
   /** 안쪽은 진하고 바깥으로 갈수록 풀리는 그라데이션 립 */
-  gradient: { label: "그라데이션", coverage: 0.85, texture: 0.7 },
+  gradient: { label: "그라데이션", coverage: 0.85, texture: 0.85 },
   /** 얇게 비치고 입술 결과 광이 그대로 남는다. 아랫입술에 광을 더 올린다 */
   gloss: { label: "글로시", coverage: 0.5, texture: 1 },
   /** 거의 다 덮고 결을 눌러 보송하게 */
-  matte: { label: "매트", coverage: 0.95, texture: 0.35 },
+  matte: { label: "매트", coverage: 0.95, texture: 0.6 },
 };
 
 /**

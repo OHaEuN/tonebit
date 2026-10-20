@@ -16,7 +16,7 @@ export function BrandMark({ size }: BrandMarkProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#7a1e3f",
+        background: "#000000",
         borderRadius: size * 0.22,
       }}
     >

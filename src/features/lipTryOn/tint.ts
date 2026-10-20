@@ -1,5 +1,5 @@
 import type { LinearRgb } from "@/types/analysis";
-import { hexToRgb, linearize, relativeLuminance } from "@/features/analysis/color";
+import { hexToRgb, labToLinear, linearize, linearRgbToLab } from "@/features/analysis/color";
 
 /** 0~255 인코딩 값 → 선형 값 */
 const TO_LINEAR = Float32Array.from({ length: 256 }, (_, i) => linearize(i));
@@ -41,34 +41,44 @@ export interface TintSpec {
   color: LinearRgb;
   /** 이 사진에서 완전한 흰색이 찍혔을 값. 제품 색을 사진의 조명·노출에 맞춘다 */
   camera: LinearRgb;
-  /** 0~1. 1이면 바탕(입술·피부) 색을 다 덮고, 0이면 투명한 색 필터(틴트) */
+  /** 0~1. 제품 색이 얼마나 덮이는지. 1에 가까울수록 입술 원래 색이 덜 비친다 */
   coverage: number;
-  /** 0~1. 바탕의 명암(주름·볼륨)을 얼마나 남길지. 매트는 작게, 글로시는 1 */
+  /** 0~1. 입술 원래 명암(주름·볼륨)을 얼마나 남길지. 매트는 작게, 글로시는 1 */
   texture: number;
   /** 0~1. 진하기 */
   strength: number;
 }
 
 /**
- * 마스크 알파만큼 픽셀에 제품을 바른다(제자리 수정). 선형 RGB에서 계산한다.
- * - 덮는 몫: 제품 반사율 × 사진의 흰색 × 바탕 명암(밝기/평균 밝기)^texture. 어두운 사진에서 립이 혼자 빛나지 않는다
- * - 비치는 몫: 바탕 색 × 제품의 투과색(가장 센 채널을 1로 맞춘 제품 색). 틴트처럼 입술색이 비친다
- * 바탕 밝기를 그대로 쓰는 canvas `color` 합성과 달리, 입술보다 밝은 누드 립도 밝게 칠해진다 (Shiseido US10939742·Panasonic US9603437의 "평균 밝기를 제품 밝기로 옮기고 결만 남기기"를 선형 공간에서)
+ * 밝기는 제품 쪽으로 이만큼만(덮임 비율 곱) 옮긴다. 제품 칩 색은 밝은 데서 본 덩어리 색이라
+ * 입술 곡면 위에서는 그보다 어둡게 보이고, 다 옮기면 립만 떠서 형광처럼 빛난다 (Shiseido US10939742의 평균 L 이동을 일부만)
+ */
+const LIGHTNESS_SHIFT = 0.5;
+/** 색(a*, b*)은 제품 쪽으로 덮임 비율만큼 옮기되 채도를 조금 눌러 사진에 녹인다 */
+const CHROMA_SHIFT = 0.85;
+
+/**
+ * 마스크 알파만큼 픽셀에 제품을 바른다(제자리 수정). CIELAB에서 계산한다.
+ * - 밝기: 입술 평균 밝기를 제품 밝기 쪽으로 일부 옮기고, 픽셀마다 입술 원래 명암(L − 평균)을 texture만큼 남긴다
+ * - 색: a*·b*를 제품 쪽으로 옮긴다. 제품 색은 사진의 흰색(조명·노출)을 곱한 값이라 어두운 사진에선 함께 어두워진다
  */
 export function tintPixels(pixels: Uint8ClampedArray, mask: Uint8ClampedArray, spec: TintSpec): void {
+  const { color, camera, coverage, texture, strength } = spec;
   let weight = 0;
-  let sumY = 0;
+  let sumL = 0;
   for (let i = 0; i < pixels.length; i += 4) {
     const m = mask[i + 3];
     if (!m) continue;
-    sumY += m * relativeLuminance(TO_LINEAR[pixels[i]], TO_LINEAR[pixels[i + 1]], TO_LINEAR[pixels[i + 2]]);
+    sumL += m * linearRgbToLab(TO_LINEAR[pixels[i]], TO_LINEAR[pixels[i + 1]], TO_LINEAR[pixels[i + 2]]).L;
     weight += m;
   }
   if (!weight) return;
-  const meanY = sumY / weight;
-  const { color, camera, coverage, texture, strength } = spec;
-  const pass = passColor(color);
-  const solid = { r: color.r * camera.r, g: color.g * camera.g, b: color.b * camera.b };
+  const meanL = sumL / weight;
+  // 사진의 흰색이 1을 넘으면(밝은 사진) 제품이 하얗게 날아가니 가장 센 채널을 1로 묶는다
+  const peak = Math.max(1, camera.r, camera.g, camera.b);
+  const product = linearRgbToLab((color.r * camera.r) / peak, (color.g * camera.g) / peak, (color.b * camera.b) / peak);
+  const targetL = meanL + coverage * LIGHTNESS_SHIFT * (product.L - meanL);
+  const chroma = coverage * CHROMA_SHIFT;
 
   for (let i = 0; i < pixels.length; i += 4) {
     const m = (mask[i + 3] / 255) * strength;
@@ -76,11 +86,14 @@ export function tintPixels(pixels: Uint8ClampedArray, mask: Uint8ClampedArray, s
     const r = TO_LINEAR[pixels[i]];
     const g = TO_LINEAR[pixels[i + 1]];
     const b = TO_LINEAR[pixels[i + 2]];
-    const y = relativeLuminance(r, g, b);
-    const shade = meanY > 0 ? (y / meanY) ** texture : 1;
-    const mix = (base: number, s: number, p: number) => base + m * (coverage * s * shade + (1 - coverage) * base * p - base);
-    pixels[i] = encode(mix(r, solid.r, pass.r));
-    pixels[i + 1] = encode(mix(g, solid.g, pass.g));
-    pixels[i + 2] = encode(mix(b, solid.b, pass.b));
+    const lab = linearRgbToLab(r, g, b);
+    const out = labToLinear({
+      L: targetL + texture * (lab.L - meanL),
+      a: lab.a + chroma * (product.a - lab.a),
+      b: lab.b + chroma * (product.b - lab.b),
+    });
+    pixels[i] = encode(r + m * (out.r - r));
+    pixels[i + 1] = encode(g + m * (out.g - g));
+    pixels[i + 2] = encode(b + m * (out.b - b));
   }
 }

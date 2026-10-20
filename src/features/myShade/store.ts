@@ -74,8 +74,11 @@ export const useMyShadeStore = create<MyShadeState>((set, get) => ({
 }));
 
 /** 칩 id의 색. 내 제품을 먼저 찾고 없으면 팔레트·제품에서 찾는다 */
-export function resolveSwatchHex(kind: "lips" | "blushes", id: string | null): string | null {
+export function resolveSwatch(kind: "lips" | "blushes", id: string | null): Swatch | null {
   if (!id) return null;
-  const mine = useMyShadeStore.getState().shades.find((s) => s.id === id);
-  return mine?.hex ?? findSwatchById(kind, id)?.hex ?? null;
+  return useMyShadeStore.getState().shades.find((s) => s.id === id) ?? findSwatchById(kind, id);
+}
+
+export function resolveSwatchHex(kind: "lips" | "blushes", id: string | null): string | null {
+  return resolveSwatch(kind, id)?.hex ?? null;
 }
