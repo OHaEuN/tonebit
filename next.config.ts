@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SITE_ORIGIN: siteOrigin,
     // DB가 연결돼 있을 때만 결과 화면에 진단 입력 칸·AI 상담을 띄운다
     NEXT_PUBLIC_FEEDBACK_ENABLED: process.env.DATABASE_URL ? "1" : "",
+    // AI 상담은 DB(제품·가이드)와 Gemini 키가 둘 다 있을 때만
+    NEXT_PUBLIC_ADVISOR_ENABLED: process.env.DATABASE_URL && process.env.GEMINI_API_KEY ? "1" : "",
   },
   cacheComponents: true,
   partialPrefetching: true,

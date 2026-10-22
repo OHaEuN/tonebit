@@ -6,6 +6,7 @@ import { Disclaimer } from "@/components/Disclaimer";
 import { LIGHTING_LABELS } from "@/features/analysis/lighting";
 import { track } from "@/features/analytics/track";
 import { useCameraStream } from "@/features/camera/useCameraStream";
+import { faceBounds } from "@/features/landmark/geometry";
 import { ensureVideoMode, useFaceLandmarker } from "@/features/landmark/useFaceLandmarker";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import type { LightingIssue } from "@/types/analysis";
@@ -240,7 +241,13 @@ export function TrySession() {
         </div>
 
         {viewerOpen && (
-          <PhotoViewer sourceRef={canvasRef} render={source === "image" ? still.paint : null} mirrored={source === "camera"} onClose={closeViewer}>
+          <PhotoViewer
+            sourceRef={canvasRef}
+            render={source === "image" ? still.paint : null}
+            focus={source === "image" && still.shown ? faceBounds(still.shown.landmarks) : null}
+            mirrored={source === "camera"}
+            onClose={closeViewer}
+          >
             <QuickTryOn />
           </PhotoViewer>
         )}
@@ -274,6 +281,7 @@ export function TrySession() {
               onAddPhotos={addPhotos}
               onMeasureMore={measureMore}
               photos={still.photos}
+              onPreview={() => setViewerOpen(true)}
               whiteFix={
                 source === "image" && still.shown ? (
                   <WhiteFixCard

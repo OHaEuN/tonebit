@@ -73,7 +73,7 @@ test.describe("폰 화면 폭", () => {
 
 test.describe("폰에서 사진 크게 보기", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
-  test("사진을 탭하면 크게 열리고, 두 번 탭해 확대하고, 아래에서 고른 색이 결과 화면에도 남는다", async ({ page }) => {
+  test("사진을 탭하면 얼굴을 크게 잡아 열리고, 두 번 탭해 전체·확대를 오가고, 아래에서 고른 색이 결과 화면에도 남는다", async ({ page }) => {
     await waitForModel(page);
     await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
     await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
@@ -82,6 +82,9 @@ test.describe("폰에서 사진 크게 보기", () => {
     await expect(viewer).toBeVisible();
     const stage = page.getByTestId("photo-viewer-stage");
     const box = (await stage.boundingBox())!;
+    await expect(viewer.getByText(/배 · 두 번 탭하면 원래 크기/)).toBeVisible();
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 3);
+    await expect(viewer.getByText("두 손가락으로 확대 · 두 번 탭")).toBeVisible();
     await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 3);
     await expect(viewer.getByText(/2\.5배/)).toBeVisible();
     await viewer.locator('label:has(input[name="viewer-lip"])').nth(2).click();

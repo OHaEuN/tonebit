@@ -14,9 +14,10 @@ create table if not exists products (
   lab_b real not null,
   finish text not null,
   seasons text[] not null,
-  price integer,
-  url text,
+  price_tier text not null check (price_tier in ('under20k', '20k-40k', 'over40k')),
   description text not null,
+  -- 설명이 바뀌었을 때만 임베딩을 다시 만든다
+  content_hash text not null,
   embedding vector(768)
 );
 
@@ -26,7 +27,14 @@ create table if not exists guides (
   title text not null,
   seasons text[] not null,
   content text not null,
+  content_hash text not null,
   embedding vector(768)
 );
 
 -- 수백 건 규모라 정확 검색(순차 스캔)으로 충분하다. 수만 건이 넘으면 hnsw 인덱스를 단다
+
+-- AI 상담 하루 호출 수. 무료 등급 한도 안에서 쓰고, 넘으면 검색만으로 답한다(질문 내용은 남기지 않는다)
+create table if not exists advisor_usage (
+  day date primary key,
+  calls integer not null default 0
+);

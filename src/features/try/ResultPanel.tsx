@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { AdvisorPanel } from "@/features/advisor/AdvisorPanel";
 import { explainTone } from "@/features/analysis/explain";
 import { FeedbackForm } from "@/features/feedback/FeedbackForm";
 import { ApplyControls } from "@/features/lipTryOn/ApplyControls";
@@ -25,10 +26,12 @@ interface ResultPanelProps {
   photos: { id: number; thumb: string }[];
   /** 흰색 기준 맞추기 카드. 사진으로 했을 때만 있다 */
   whiteFix?: ReactNode;
+  /** 사진을 크게 보여 준다(AI 상담에서 발라 본 제품 확인) */
+  onPreview: () => void;
 }
 
 /** 결과는 "결과"와 "발라 보기" 두 탭으로 나눠 한 화면에 한 가지 일만 보이게 한다 */
-export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix }: ResultPanelProps) {
+export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix, onPreview }: ResultPanelProps) {
   const [tab, setTab] = useState<Tab>("result");
   const result = useAnalysisStore((s) => s.result);
   const remeasure = useAnalysisStore((s) => s.remeasure);
@@ -81,6 +84,7 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix }: Re
           <button type="button" onClick={() => setTab("tryon")} className={`${BUTTON} w-full bg-accent text-white hover:opacity-90`}>
             어울리는 색 얼굴에 발라 보기
           </button>
+          <AdvisorPanel key={tone} onPreview={onPreview} />
           <ShotsPanel onAddPhotos={onAddPhotos} onMeasureMore={onMeasureMore} photos={photos} />
           {whiteFix}
           <details className="rounded-2xl bg-card p-4 text-sm">

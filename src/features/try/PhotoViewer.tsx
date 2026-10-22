@@ -3,7 +3,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode, type RefObject, type WheelEvent } from "react";
 import { useAnalysisStore } from "@/stores/analysisStore";
-import { containSize, fitView, toggleZoom, zoomAt, clampView, type Box, type View } from "./zoom";
+import { clampView, containSize, fitView, frameBox, toggleZoom, zoomAt, type Box, type View } from "./zoom";
 
 interface PhotoViewerProps {
   /** 그림이 그려지는 원래 캔버스. render가 없으면 열려 있는 동안 매 프레임 옮겨 그린다(카메라 실시간) */
@@ -13,6 +13,8 @@ interface PhotoViewerProps {
   /** 전면 카메라처럼 좌우 반전해서 보여 줄지 */
   mirrored: boolean;
   onClose: () => void;
+  /** 처음 열 때 이 상자(정규화 좌표, 보통 얼굴)를 크게 잡는다. 없으면 사진 전체 */
+  focus?: { minX: number; maxX: number; minY: number; maxY: number } | null;
   /** 아래쪽 패널(색 바꾸기) */
   children?: ReactNode;
 }
@@ -26,7 +28,7 @@ const DOUBLE_TAP_MS = 300;
  * 사진을 화면 가득 띄우고 두 손가락으로 확대·이동, 두 번 탭해 확대한다.
  * 아래 패널에서 색을 바꾸면 원래 캔버스가 다시 그려지고 그대로 따라온다
  */
-export function PhotoViewer({ sourceRef, render, mirrored, onClose, children }: PhotoViewerProps) {
+export function PhotoViewer({ sourceRef, render, mirrored, focus, onClose, children }: PhotoViewerProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -37,7 +39,7 @@ export function PhotoViewer({ sourceRef, render, mirrored, onClose, children }: 
   // 확대 상태는 지금 크기(뷰포트·사진)에 묶어 둔다. 크기가 바뀌면(처음 열 때·회전) 저절로 맞춤으로 돌아간다
   const sizeKey = `${viewport.w}x${viewport.h}:${img.w}x${img.h}`;
   const [zoomState, setZoomState] = useState<{ key: string; view: View } | null>(null);
-  const view = zoomState?.key === sizeKey ? zoomState.view : fitView(base, viewport);
+  const view = zoomState?.key === sizeKey ? zoomState.view : focus && base.w ? frameBox(focus, base, viewport) : fitView(base, viewport);
   const setView = (v: View) => setZoomState({ key: sizeKey, view: v });
 
   // 정지 사진은 원본 해상도로 직접 그리고, 카메라는 원래 캔버스를 매 프레임 옮겨 그린다

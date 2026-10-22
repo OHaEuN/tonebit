@@ -22,7 +22,13 @@ export interface ProductSource {
   seasons: Season[];
   keyword?: string;
   url?: string;
+  /** 정가 기준 대략적인 가격대. 판매처·시기마다 다르다 */
+  priceTier: PriceTier;
+  /** 제형·마무리감 한 줄. AI 상담이 설명과 검색에 쓴다 */
+  note: string;
 }
+
+export type PriceTier = "under20k" | "20k-40k" | "over40k";
 
 export interface Product extends ProductSource {
   url: string;

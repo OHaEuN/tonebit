@@ -12,7 +12,8 @@
     "e2e": "playwright test",
     "postinstall": "node scripts/copy-wasm.mjs",
     "db:migrate": "tsx scripts/migrate.ts",
-    "calibrate": "tsx scripts/calibrate.ts"
+    "calibrate": "tsx scripts/calibrate.ts",
+    "db:seed": "tsx scripts/seed-knowledge.ts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",

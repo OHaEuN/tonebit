@@ -1,4 +1,4 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import type { Sql } from "postgres";
 import { db, dbEnabled } from "@/lib/db";
 import type { Season } from "@/types/analysis";
@@ -19,6 +19,9 @@ export interface AccuracyStats {
   runs: { date: string; n: number; cvAccuracy: number; previousAccuracy: number }[];
 }
 
+/** 새 진단이 들어오면 이 태그로 집계 캐시를 비운다 */
+export const ACCURACY_TAG = "accuracy";
+
 const EMPTY: Tally = { n: 0, matched: 0 };
 
 /**
@@ -28,6 +31,7 @@ const EMPTY: Tally = { n: 0, matched: 0 };
 export async function getAccuracyStats(): Promise<AccuracyStats | null> {
   "use cache";
   cacheLife("hours");
+  cacheTag(ACCURACY_TAG);
   if (!dbEnabled()) return null;
   try {
     return await queryAccuracyStats(db());

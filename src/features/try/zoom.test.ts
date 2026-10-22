@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampView, containSize, fitView, MAX_SCALE, toggleZoom, zoomAt } from "./zoom";
+import { clampView, containSize, fitView, frameBox, MAX_SCALE, toggleZoom, zoomAt } from "./zoom";
 
 const VP = { w: 400, h: 800 };
 const BASE = containSize({ w: 720, h: 900 }, VP); // 400 × 500
@@ -28,5 +28,15 @@ describe("zoom", () => {
     const zoomed = toggleZoom(fitView(BASE, VP), { x: 200, y: 400 }, BASE, VP);
     expect(zoomed.scale).toBeGreaterThan(1);
     expect(toggleZoom(zoomed, { x: 0, y: 0 }, BASE, VP)).toEqual(fitView(BASE, VP));
+  });
+});
+
+describe("frameBox", () => {
+  it("얼굴 상자를 화면 가운데에 크게 잡는다", () => {
+    const face = { minX: 0.35, maxX: 0.65, minY: 0.1, maxY: 0.4 };
+    const v = frameBox(face, BASE, VP);
+    expect(v.scale).toBeCloseTo((400 * 0.8) / (0.3 * 400));
+    // 얼굴 가운데(사진 위 200, 125)가 화면 가로 가운데에 온다
+    expect(v.x + 200 * v.scale).toBeCloseTo(200);
   });
 });

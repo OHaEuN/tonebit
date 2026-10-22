@@ -51,3 +51,19 @@ export function containSize(img: Box, viewport: Box): Box {
   const s = Math.min(viewport.w / img.w, viewport.h / img.h);
   return { w: img.w * s, h: img.h * s };
 }
+
+/** 정규화 좌표 상자(얼굴 등)가 뷰포트 폭의 fill만큼 차도록 확대하고 가운데에 둔다 */
+export function frameBox(
+  box: { minX: number; maxX: number; minY: number; maxY: number },
+  base: Box,
+  viewport: Box,
+  fill = 0.8,
+): View {
+  const bw = (box.maxX - box.minX) * base.w;
+  const bh = (box.maxY - box.minY) * base.h;
+  if (!(bw > 0) || !(bh > 0)) return fitView(base, viewport);
+  const scale = clamp(Math.min((viewport.w * fill) / bw, (viewport.h * fill) / bh), MIN_SCALE, MAX_SCALE);
+  const cx = ((box.minX + box.maxX) / 2) * base.w;
+  const cy = ((box.minY + box.maxY) / 2) * base.h;
+  return clampView({ scale, x: viewport.w / 2 - cx * scale, y: viewport.h / 2 - cy * scale }, base, viewport);
+}
