@@ -6,7 +6,7 @@ export function PrivacyNote({ compact = false }: PrivacyNoteProps) {
   return (
     <aside
       aria-label="개인정보 안내"
-      className="flex gap-3 rounded-2xl border border-line bg-card p-4 text-sm leading-relaxed"
+      className="flex gap-3 text-sm leading-relaxed"
     >
       <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-0.5 size-5 shrink-0 text-accent" fill="none" stroke="currentColor" strokeWidth="2">
         <rect x="4" y="10" width="16" height="11" rx="2" />

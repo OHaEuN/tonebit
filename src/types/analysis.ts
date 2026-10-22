@@ -46,6 +46,13 @@ export type ToneSlug =
   | "winter-bright"
   | "winter-true";
 
+/**
+ * 조명(색온도·노출) 보정에 쓴 기준. 앞쪽일수록 믿을 만하다.
+ * white: 이용자가 사진 속 흰색을 누름, locked: 측정 전에 흰 종이를 비춰 카메라 화이트밸런스를 고정함(색만, 밝기는 아래 기준),
+ * teeth·sclera: 사진 안에서 자동으로 찾은 치아·눈 흰자(완전 보정), scene: 배경 평균색(절반만 보정), none: 배경도 없어서 보정 못 함
+ */
+export type ReferenceSource = "white" | "locked" | "teeth" | "sclera" | "scene" | "none";
+
 export interface ToneResult {
   season: Season;
   subtype: Subtype;
@@ -57,8 +64,11 @@ export interface ToneResult {
   lab: Lab;
   ita: number;
   hue: number;
-  /** 배경 색으로 조명(색온도·노출)을 보정했는지 */
+  /** 조명(색온도·노출)을 어떤 식으로든 보정했는지. reference !== "none"과 같다 */
   corrected?: boolean;
+  reference?: ReferenceSource;
+  /** 같은 보정을 거친 입술 색. 립 어울림 점수에 쓴다. 입을 못 읽었으면 없다 */
+  lip?: Lab;
 }
 
 export type LightingIssue =
@@ -67,6 +77,7 @@ export type LightingIssue =
   | "warmCast"
   | "coolCast"
   | "greenCast"
+  | "sideLight"
   | "faceSmall";
 
 export interface LightingInput {
@@ -76,6 +87,8 @@ export interface LightingInput {
   clippedRatio: number;
   /** 프레임 전체 평균 RGB */
   frameMean: { r: number; g: number; b: number };
+  /** 양 볼 L* 차이. 한쪽에서만 빛을 받으면 커진다 */
+  cheekDeltaL: number;
   /** 얼굴 bbox 폭 / 프레임 폭 */
   faceWidthRatio: number;
 }

@@ -9,7 +9,7 @@ export const contentType = "image/png";
 
 const fontData = await readFile(join(process.cwd(), "src/app/NotoSansKR-700-subset.ttf"));
 
-/** 사이트 공통 링크 썸네일. 네 시즌 팔레트를 한눈에 */
+/** 사이트 공통 링크 썸네일. 랜딩 히어로처럼 네 시즌 팔레트를 드레이프 네 폭으로 */
 export default async function Image() {
   return new ImageResponse(
     <div
@@ -19,31 +19,47 @@ export default async function Image() {
         display: "flex",
         background: "#ffffff",
         fontFamily: "NotoSansKR",
-        color: "#241f1d",
+        color: "#1c1618",
         padding: 72,
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1, paddingRight: 40 }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 30, color: "#7a1e3f", fontWeight: 700 }}>톤픽 tonepick</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", width: 34, gap: 4 }}>
+              {SEASONS.map((s) => (
+                <div key={s} style={{ width: 15, height: 15, borderRadius: 999, background: SEASON_INFO[s].accent }} />
+              ))}
+            </div>
+            <div style={{ fontSize: 30, fontWeight: 700 }}>톤픽 tonepick</div>
+          </div>
           <div style={{ fontSize: 58, fontWeight: 700, lineHeight: 1.2, marginTop: 20 }}>내 피부톤에 맞는</div>
           <div style={{ fontSize: 58, fontWeight: 700, lineHeight: 1.2 }}>립과 블러셔를</div>
           <div style={{ fontSize: 58, fontWeight: 700, lineHeight: 1.2 }}>얼굴에 직접 얹어 보세요</div>
-          <div style={{ fontSize: 26, marginTop: 24, color: "#6b605b" }}>웹캠이나 셀카로 10초면 돼요. 재미로 보는 퍼스널 컬러 테스트</div>
+          <div style={{ fontSize: 26, marginTop: 24, color: "#6f676a" }}>웹캠이나 셀카로 10초면 돼요.</div>
+          <div style={{ fontSize: 26, color: "#6f676a" }}>재미로 보는 퍼스널 컬러 테스트</div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 24, color: "#6b605b" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 24, color: "#6f676a" }}>
           <div style={{ width: 14, height: 14, borderRadius: 999, background: "#7a1e3f" }} />
           사진은 기기 밖으로 나가지 않아요
         </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
-        {SEASONS.map((season) => (
-          <div key={season} style={{ display: "flex", gap: 18 }}>
-            {SEASON_INFO[season].lips.slice(0, 4).map((s) => (
-              <div key={s.id} style={{ width: 72, height: 72, borderRadius: 999, background: s.hex }} />
-            ))}
-          </div>
-        ))}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 14 }}>
+        {SEASONS.map((season) => {
+          const lips = SEASON_INFO[season].lips;
+          return (
+            <div
+              key={season}
+              style={{
+                width: 84,
+                height: 400,
+                borderTopLeftRadius: 42,
+                borderTopRightRadius: 42,
+                background: `linear-gradient(180deg, ${lips[1].hex} 0%, ${lips[0].hex} 48%, ${lips[3].hex} 100%)`,
+              }}
+            />
+          );
+        })}
       </div>
     </div>,
     {

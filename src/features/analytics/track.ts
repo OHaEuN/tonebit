@@ -9,6 +9,9 @@ export type AnalyticsEvent =
   | { name: "face-not-found"; source: "camera" | "image" }
   | { name: "measure-done"; tone: string; confidence: string; source: "camera" | "image" }
   | { name: "swatch-select"; kind: "lip" | "blush"; product: boolean }
+  | { name: "wb-lock" }
+  | { name: "drape-done"; season: string; same: boolean }
+  | { name: "shade-saved"; kind: "lip" | "blush" }
   | { name: "advisor-ask" }
   | { name: "advisor-try-on" };
 

@@ -5,8 +5,6 @@ import { ColorPicker } from "@/features/lipTryOn/ColorPicker";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { useTrySwatches, type Part } from "./useTrySwatches";
 
-const SEGMENT =
-  "flex-1 rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 /** 크게 보기 아래에 붙는 색 바꾸기. 확대한 채로 립·블러셔 색만 빠르게 넘겨 본다 */
 export function QuickTryOn() {
@@ -20,7 +18,7 @@ export function QuickTryOn() {
   const isLip = part === "lip";
   return (
     <div className="space-y-2">
-      <div role="tablist" aria-label="바를 곳" className="flex gap-1 rounded-full bg-card p-1">
+      <div role="tablist" aria-label="바를 곳" className="grid grid-cols-2 gap-1 rounded-[8px] bg-card p-1">
         {(
           [
             ["lip", "립"],
@@ -33,7 +31,9 @@ export function QuickTryOn() {
             role="tab"
             aria-selected={part === key}
             onClick={() => setPart(key)}
-            className={`${SEGMENT} ${part === key ? "bg-bg shadow-sm" : "text-muted hover:text-fg"}`}
+            className={`h-9 rounded-[6px] text-[14px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg ${
+              part === key ? "bg-fg text-white" : "text-muted hover:text-fg"
+            }`}
           >
             {label}
           </button>

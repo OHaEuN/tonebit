@@ -170,7 +170,7 @@ export function PhotoViewer({ sourceRef, render, mirrored, focus, onClose, child
           ref={closeRef}
           type="button"
           onClick={onClose}
-          className="flex size-10 items-center justify-center rounded-full bg-white/10 text-xl leading-none hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
+          className="flex size-10 items-center justify-center rounded-[6px] bg-white/10 text-xl leading-none hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
           aria-label="닫기"
         >
           ×
@@ -185,9 +185,9 @@ export function PhotoViewer({ sourceRef, render, mirrored, focus, onClose, child
           onKeyDown={(e) => (e.key === " " || e.key === "Enter") && setComparing(true)}
           onKeyUp={() => setComparing(false)}
           onContextMenu={(e) => e.preventDefault()}
-          className="select-none rounded-full bg-white/10 px-3 py-2 text-sm font-medium hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
+          className="h-10 select-none rounded-[6px] bg-white/95 px-3 text-[13px] font-medium text-fg focus-visible:outline-2 focus-visible:outline-white"
         >
-          꾹: 바르기 전
+          꾹: 전후
         </button>
       </div>
 
@@ -206,7 +206,7 @@ export function PhotoViewer({ sourceRef, render, mirrored, focus, onClose, child
         </div>
       </div>
 
-      {children && <div className="max-h-[45svh] overflow-y-auto rounded-t-3xl bg-bg px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] text-fg">{children}</div>}
+      {children && <div className="max-h-[45svh] overflow-y-auto rounded-t-[12px] bg-bg px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] text-fg">{children}</div>}
     </div>,
     document.body,
   );

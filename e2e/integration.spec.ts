@@ -13,7 +13,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 test.beforeEach(async ({ page }) => {
   await page.goto("/try");
   await expect(page.getByText("준비됐어요")).toBeVisible({ timeout: MODEL_TIMEOUT });
-  await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
+  await page.getByLabel(/사진 올리기|사진으로 시작하기/).first().setInputFiles("e2e/fixtures/face.jpg");
   await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
 });
 

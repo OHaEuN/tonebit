@@ -12,9 +12,9 @@ export interface AccuracyStats {
   total: Tally;
   bySeason: (Tally & { season: Season })[];
   byMonth: (Tally & { month: string })[];
-  /** 사진 속 흰색으로 조명을 맞춘 진단과 아닌 진단 */
-  whiteFixed: Tally;
-  plain: Tally;
+  /** 흰색·흰 종이 고정·치아·흰자로 조명을 완전히 되돌린 진단과, 배경으로 절반만 되돌렸거나 못 한 진단 */
+  fullyCorrected: Tally;
+  partial: Tally;
   /** 기준값을 실제로 바꾼 재보정 기록(최근 순) */
   runs: { date: string; n: number; cvAccuracy: number; previousAccuracy: number }[];
 }
@@ -47,7 +47,7 @@ const ORDER: Season[] = ["spring", "summer", "autumn", "winter"];
 export async function queryAccuracyStats(sql: Sql): Promise<AccuracyStats> {
   const [row] = await sql<{ stats: AccuracyStats }[]>`
     with f as (
-      select expert_season, white_fixed, created_at, split_part(predicted, '-', 1) = expert_season as hit
+      select expert_season, reference in ('white', 'locked', 'teeth', 'sclera') as full_ref, created_at, split_part(predicted, '-', 1) = expert_season as hit
       from feedback
     ),
     tally as (
@@ -67,8 +67,8 @@ export async function queryAccuracyStats(sql: Sql): Promise<AccuracyStats> {
           from f group by 1 order by 1 desc limit 6
         ) m
       ),
-      'whiteFixed', (select json_build_object('n', count(*), 'matched', count(*) filter (where hit)) from f where white_fixed),
-      'plain', (select json_build_object('n', count(*), 'matched', count(*) filter (where hit)) from f where not white_fixed),
+      'fullyCorrected', (select json_build_object('n', count(*), 'matched', count(*) filter (where hit)) from f where full_ref),
+      'partial', (select json_build_object('n', count(*), 'matched', count(*) filter (where hit)) from f where not full_ref),
       'runs', (
         select coalesce(json_agg(r), '[]')
         from (
@@ -83,7 +83,7 @@ export async function queryAccuracyStats(sql: Sql): Promise<AccuracyStats> {
     ...s,
     bySeason: [...s.bySeason].sort((a, b) => ORDER.indexOf(a.season) - ORDER.indexOf(b.season)),
     total: s.total ?? EMPTY,
-    whiteFixed: s.whiteFixed ?? EMPTY,
-    plain: s.plain ?? EMPTY,
+    fullyCorrected: s.fullyCorrected ?? EMPTY,
+    partial: s.partial ?? EMPTY,
   };
 }

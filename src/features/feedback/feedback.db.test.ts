@@ -14,7 +14,7 @@ const base: Feedback = {
   shots: 1,
   source: "image",
   corrected: true,
-  whiteFixed: false,
+  reference: "scene",
 };
 
 describe.skipIf(!TEST_DB)("피드백 저장과 일치율 집계 (Postgres)", () => {
@@ -33,15 +33,15 @@ describe.skipIf(!TEST_DB)("피드백 저장과 일치율 집계 (Postgres)", () 
     const { appendFeedback } = await import("./store");
     await appendFeedback(base); // 맞음
     await appendFeedback({ ...base, predicted: "winter-true" }); // 틀림
-    await appendFeedback({ ...base, season: "autumn", predicted: "autumn-deep", whiteFixed: true }); // 맞음
+    await appendFeedback({ ...base, season: "autumn", predicted: "autumn-deep", reference: "white" }); // 맞음
     await sql`insert into calibration_runs (n, current_version, current_accuracy, cv_accuracy, params, applied, reason) values (3, 'v', 0.5, 0.7, '{}', true, 'test')`;
 
     const s = await queryAccuracyStats(sql);
     expect(s.total).toEqual({ n: 3, matched: 2 });
     expect(s.bySeason.map((x) => x.season)).toEqual(["summer", "autumn"]);
     expect(s.bySeason[0]).toMatchObject({ n: 2, matched: 1 });
-    expect(s.whiteFixed).toEqual({ n: 1, matched: 1 });
-    expect(s.plain).toEqual({ n: 2, matched: 1 });
+    expect(s.fullyCorrected).toEqual({ n: 1, matched: 1 });
+    expect(s.partial).toEqual({ n: 2, matched: 1 });
     expect(s.runs[0]).toMatchObject({ n: 3, cvAccuracy: 0.7, previousAccuracy: 0.5 });
     const [row] = await sql`select calibration from feedback limit 1`;
     expect(row.calibration).toMatch(/fairface|expert/);

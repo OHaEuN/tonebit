@@ -1,7 +1,7 @@
 import { coupangSearchUrl } from "@/features/recommend/affiliate";
 import { SEASON_INFO } from "@/features/recommend/palettes";
 import { SUBTYPE_LABEL } from "@/features/analysis/explain";
-import type { PriceTier, ProductCategory } from "@/types/product";
+import type { Finish, PriceTier, ProductCategory } from "@/types/product";
 import type { ChatModel, Content, Part } from "./gemini";
 import { PRODUCTS } from "./knowledge/products";
 import { productForModel, searchGuides, searchProducts, TOOL_DECLARATIONS, type ProductHit, type ToolContext } from "./tools";
@@ -14,7 +14,11 @@ export interface ChatTurn {
 export interface ProductCard {
   id: string;
   category: ProductCategory;
+  brand: string;
+  /** 제품명 + 색 이름 */
+  shade: string;
   label: string;
+  finish: Finish;
   hex: string;
   priceTier: PriceTier;
   url: string;
@@ -43,7 +47,10 @@ function card(id: string): ProductCard | null {
   return {
     id: p.id,
     category: p.category,
+    brand: p.brand,
+    shade: `${p.name} ${p.shade}`,
     label: `${p.brand} ${p.name} ${p.shade}`,
+    finish: p.finish,
     hex: p.hex,
     priceTier: p.priceTier,
     url: p.url ?? coupangSearchUrl(p.keyword ?? `${p.brand} ${p.name} ${p.shade}`),

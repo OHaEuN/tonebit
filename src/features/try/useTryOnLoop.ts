@@ -4,10 +4,11 @@ import { useEffect, type RefObject } from "react";
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import type { Lab } from "@/types/analysis";
 import { MEASURE_FRAMES } from "@/features/analysis/constants";
-import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, THUMB_SIZE } from "@/features/analysis/frame";
-import { medianLab } from "@/features/analysis/sample";
+import { createContext, createOffscreen, fitSize, measureLighting, sampleSkin, THUMB_SIZE, type SkinSample } from "@/features/analysis/frame";
+import { cameraWhite, weakerReference } from "@/features/analysis/reference";
+import { median, medianLab } from "@/features/analysis/sample";
 import { drawOverlays } from "@/features/lipTryOn/render";
-import { findSwatchById } from "@/features/recommend/palettes";
+import { resolveSwatchHex } from "@/features/myShade/store";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
 const LIGHTING_EVERY_N_FRAMES = 10;
@@ -36,7 +37,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
     let raf = 0;
     let lastTime = -1;
     let frame = 0;
-    let samples: { lab: Lab; corrected: boolean }[] = [];
+    let samples: SkinSample[] = [];
     let fpsCount = 0;
     let fpsAt = performance.now();
 
@@ -51,7 +52,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
       if (!mask || canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
-        mask = createOffscreen(w, h);
+        mask = createOffscreen(w, h, true);
       }
 
       const landmarks = lm.detectForVideo(video, performance.now()).faceLandmarks[0] ?? null;
@@ -66,20 +67,32 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
           store.setLighting(measureLighting(ctx, thumb, landmarks, w, h));
         }
         if (store.stage === "measuring") {
-          const skin = sampleSkin(ctx, landmarks, w, h);
+          const skin = sampleSkin(ctx, landmarks, w, h, { locked: store.lockedWhite });
           if (skin) samples.push(skin);
           store.setProgress(samples.length / MEASURE_FRAMES);
           if (samples.length >= MEASURE_FRAMES) {
             // 깜빡임 등으로 보정된 프레임과 안 된 프레임이 섞이면, 더 많은 쪽만 모아 median을 낸다
             const corrected = samples.filter((s) => s.corrected).length * 2 >= samples.length;
-            const labs = samples.filter((s) => s.corrected === corrected).map((s) => s.lab);
-            store.addShot({ lab: medianLab(labs), corrected });
+            const kept = samples.filter((s) => s.corrected === corrected);
+            const lips = kept.map((s) => s.lip).filter((l): l is Lab => l !== null);
+            store.addShot({
+              lab: medianLab(kept.map((s) => s.lab)),
+              corrected,
+              reference: kept.map((s) => s.reference).reduce(weakerReference),
+              lip: lips.length ? medianLab(lips) : null,
+              cameraWhite: {
+                r: median(kept.map((s) => s.cameraWhite.r)),
+                g: median(kept.map((s) => s.cameraWhite.g)),
+                b: median(kept.map((s) => s.cameraWhite.b)),
+              },
+            });
             samples = [];
           }
         }
         if (!store.comparing) drawOverlays(ctx, mask, landmarks, w, h, {
-          lip: findSwatchById("lips", store.lipId)?.hex ?? null,
-          blush: findSwatchById("blushes", store.blushId)?.hex ?? null,
+          camera: store.shots.at(-1)?.cameraWhite ?? cameraWhite(null),
+          lip: resolveSwatchHex("lips", store.lipId),
+          blush: resolveSwatchHex("blushes", store.blushId),
           lipStyle: store.lipStyle,
           blushStyle: store.blushStyle,
           lipIntensity: store.lipIntensity,

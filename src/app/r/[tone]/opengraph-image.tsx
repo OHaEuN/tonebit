@@ -31,38 +31,41 @@ export default async function Image({ params }: { params: Promise<{ tone: string
         width: "100%",
         height: "100%",
         display: "flex",
+        flexDirection: "column",
         background: "#ffffff",
         fontFamily: "NotoSansKR",
-        color: "#241f1d",
-        padding: 72,
+        color: "#1c1618",
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1, paddingRight: 40 }}>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 28, color: "#6b605b" }}>톤픽 · 재미로 보는 퍼스널 컬러 테스트</div>
-          <div style={{ fontSize: labelSize, fontWeight: 700, color: seasonInfo.accent, lineHeight: 1.1, marginTop: 12 }}>{label}</div>
-          <div style={{ fontSize: 34, marginTop: 16 }}>{seasonInfo.tagline}</div>
-          <div style={{ fontSize: 24, marginTop: 20, color: "#6b605b" }}>{`어울리는 색: ${TONE_INFO[parsed.tone].best.slice(0, 4).join(", ")}`}</div>
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: "64px 72px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", width: 34, gap: 4 }}>
+            {SEASONS.map((s) => (
+              <div key={s} style={{ width: 15, height: 15, borderRadius: 999, background: SEASON_INFO[s].accent }} />
+            ))}
+          </div>
+          <div style={{ fontSize: 28, color: "#6f676a" }}>톤픽 · 재미로 보는 퍼스널 컬러 테스트</div>
         </div>
-        <div style={{ fontSize: 22, color: "#6b605b" }}>{FOOTER}</div>
+        <div style={{ fontSize: labelSize, fontWeight: 700, lineHeight: 1.1, marginTop: 40 }}>{label}</div>
+        <div style={{ fontSize: 36, marginTop: 18 }}>{seasonInfo.tagline}</div>
+        <div style={{ fontSize: 26, marginTop: 18, color: "#6f676a" }}>{`어울리는 색: ${TONE_INFO[parsed.tone].best.slice(0, 4).join(", ")}`}</div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 20 }}>
-        <div style={{ display: "flex", gap: 20 }}>
-          {lips.slice(0, 3).map((s) => (
-            <div key={s.id} style={{ width: 110, height: 110, borderRadius: 999, background: s.hex }} />
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 20 }}>
-          {lips.slice(3, 6).map((s) => (
-            <div key={s.id} style={{ width: 110, height: 110, borderRadius: 999, background: s.hex }} />
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 20, justifyContent: "center" }}>
-          {blushes.map((s) => (
-            <div key={s.id} style={{ width: 70, height: 70, borderRadius: 999, background: s.hex }} />
-          ))}
-        </div>
+      <div style={{ display: "flex", height: 96, margin: "0 72px" }}>
+        {[...lips, ...blushes].map((s, i, all) => (
+          <div
+            key={s.id}
+            style={{
+              flex: 1,
+              background: s.hex,
+              borderTopLeftRadius: i === 0 ? 48 : 0,
+              borderBottomLeftRadius: i === 0 ? 48 : 0,
+              borderTopRightRadius: i === all.length - 1 ? 48 : 0,
+              borderBottomRightRadius: i === all.length - 1 ? 48 : 0,
+            }}
+          />
+        ))}
       </div>
+      <div style={{ display: "flex", fontSize: 22, color: "#6f676a", padding: "28px 72px 48px" }}>{FOOTER}</div>
     </div>,
     {
       ...size,

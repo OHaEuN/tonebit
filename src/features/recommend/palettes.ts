@@ -129,6 +129,17 @@ export function findSwatchById(kind: "lips" | "blushes", id: string | null): Swa
   return null;
 }
 
+/** 색이 가장 가까운(Lab 거리) 팔레트 색의 시즌. 이용자가 잰 자기 제품이 어느 톤 색인지 알려 줄 때 쓴다 */
+export function nearestSeason(hex: string, kind: "lips" | "blushes"): Season {
+  const lab = hexToLab(hex);
+  const dist = (other: string) => {
+    const o = hexToLab(other);
+    return Math.hypot(lab.L - o.L, lab.a - o.a, lab.b - o.b);
+  };
+  const best = (season: Season) => Math.min(...SEASON_INFO[season][kind].map((s) => dist(s.hex)));
+  return SEASONS.reduce((a, b) => (best(b) < best(a) ? b : a));
+}
+
 export const TONE_SLUGS = SEASONS.flatMap((season) => SEASON_SUBTYPES[season].map((sub) => `${season}-${sub}` as ToneSlug));
 
 /** "spring-light"와 시즌만 있는 "spring"(→ true) 둘 다 받는다. 옛 공유 링크 호환 */

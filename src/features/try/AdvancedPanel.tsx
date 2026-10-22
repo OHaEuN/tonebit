@@ -1,5 +1,6 @@
 "use client";
 
+import { REFERENCE_LABEL } from "@/features/analysis/reference";
 import { useAnalysisStore } from "@/stores/analysisStore";
 
 export function AdvancedPanel() {
@@ -10,8 +11,8 @@ export function AdvancedPanel() {
   const setDebug = useAnalysisStore((s) => s.setDebug);
 
   return (
-    <details className="rounded-2xl border border-line bg-card p-4 text-sm">
-      <summary className="cursor-pointer font-medium">고급</summary>
+    <details className="text-[13px] text-muted">
+      <summary className="cursor-pointer">측정값 자세히</summary>
       <div className="mt-3 space-y-3">
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={debug} onChange={(e) => setDebug(e.target.checked)} />
@@ -21,7 +22,7 @@ export function AdvancedPanel() {
         {result && (
           <p className="font-mono text-xs text-muted">
             L* {result.lab.L.toFixed(1)} a* {result.lab.a.toFixed(1)} b* {result.lab.b.toFixed(1)} · hue {result.hue.toFixed(1)}° · ITA{" "}
-            {result.ita.toFixed(1)}° · {result.depth} · {result.chroma} · {result.corrected ? "조명 보정" : "보정 없음"}
+            {result.ita.toFixed(1)}° · {result.depth} · {result.chroma} · {REFERENCE_LABEL[result.reference ?? "none"]}
           </p>
         )}
       </div>

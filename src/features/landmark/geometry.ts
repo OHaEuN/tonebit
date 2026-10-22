@@ -1,6 +1,6 @@
 import type { Point, Rect } from "@/types/analysis";
-import { PATCH_RATIO } from "@/features/analysis/constants";
-import { CHEEK_AXES, EYE_CORNERS, EYE_OUTER_PAIR, MOUTH_CENTER, MOUTH_CORNERS, MOUTH_VERTICAL, SKIN_CENTERS } from "./indices";
+import { IRIS_EXCLUDE_RATIO, PATCH_RATIO } from "@/features/analysis/constants";
+import { CHEEK_AXES, CHEEK_PAIR, EYE_CONTOURS, EYE_CORNERS, EYE_OUTER_PAIR, IRISES, LIP_INNER, LIP_OUTER, MOUTH_CENTER, MOUTH_CORNERS, MOUTH_VERTICAL, SKIN_CENTERS } from "./indices";
 
 /** 눈 바깥꼬리 사이 픽셀 거리. 얼굴 크기 기준 단위. */
 export function interocular(lm: Point[], w: number, h: number): number {
@@ -14,15 +14,53 @@ function clampRect(r: Rect, w: number, h: number): Rect {
   return { x: Math.round(x), y: Math.round(y), w: r.w, h: r.h };
 }
 
+function patchesAt(indices: readonly number[], lm: Point[], w: number, h: number): Rect[] {
+  const size = Math.max(4, Math.round(interocular(lm, w, h) * PATCH_RATIO));
+  return indices.map((i) => clampRect({ x: lm[i].x * w - size / 2, y: lm[i].y * h - size / 2, w: size, h: size }, w, h));
+}
+
 /** 피부 샘플링용 정사각 패치. 폴리곤 대신 랜드마크 중심 사각형이라 순서 문제가 없다. */
 export function skinPatches(lm: Point[], w: number, h: number): Rect[] {
-  const size = Math.max(4, Math.round(interocular(lm, w, h) * PATCH_RATIO));
-  return SKIN_CENTERS.map((i) =>
-    clampRect({ x: lm[i].x * w - size / 2, y: lm[i].y * h - size / 2, w: size, h: size }, w, h),
-  );
+  return patchesAt(SKIN_CENTERS, lm, w, h);
+}
+
+/** 측면 조명 판정용 [왼볼, 오른볼] 패치 */
+export function cheekPatches(lm: Point[], w: number, h: number): Rect[] {
+  return patchesAt(CHEEK_PAIR, lm, w, h);
 }
 
 const px = (p: Point, w: number, h: number): Point => ({ x: p.x * w, y: p.y * h });
+
+/** 점이 폴리곤 안에 있는지 (ray casting) */
+export function inPolygon(x: number, y: number, poly: Point[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i];
+    const b = poly[j];
+    if (a.y > y !== b.y > y && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+/** 흰자 후보: 눈 윤곽 폴리곤(픽셀)과 거기서 뺄 홍채 원. 홍채 반지름은 테두리 점 중 가장 먼 거리에 여유를 둔 값 */
+export function scleraRegions(lm: Point[], w: number, h: number): { poly: Point[]; hole: { x: number; y: number; r: number } }[] {
+  return EYE_CONTOURS.map((contour, k) => {
+    const iris = IRISES[k];
+    const c = px(lm[iris.center], w, h);
+    const r = Math.max(...iris.ring.map((i) => Math.hypot(px(lm[i], w, h).x - c.x, px(lm[i], w, h).y - c.y))) * IRIS_EXCLUDE_RATIO;
+    return { poly: contour.map((i) => px(lm[i], w, h)), hole: { x: c.x, y: c.y, r } };
+  });
+}
+
+/** 입술 바깥 링(픽셀) */
+export function lipOuterPolygon(lm: Point[], w: number, h: number): Point[] {
+  return LIP_OUTER.map((i) => px(lm[i], w, h));
+}
+
+/** 입 안쪽 링(픽셀). 입을 벌리면 치아가 보이는 영역 */
+export function mouthInnerPolygon(lm: Point[], w: number, h: number): Point[] {
+  return LIP_INNER.map((i) => px(lm[i], w, h));
+}
 
 /** 블러셔 기준점: 각 볼의 볼 사과, 광대 바깥쪽, 같은 쪽 눈 가운데 */
 export function cheekAnchors(lm: Point[], w: number, h: number): { apple: Point; outer: Point; eye: Point }[] {

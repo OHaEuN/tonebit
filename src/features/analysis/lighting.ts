@@ -7,12 +7,12 @@ import {
   LIGHT_CLIP_RATIO_MAX,
   LIGHT_LUMA_MAX,
   LIGHT_LUMA_MIN,
+  SIDE_LIGHT_DELTA_L,
 } from "./constants";
 
 /**
  * 측정 전 조명 점검. gray-world(장면 평균은 회색에 가깝다) 가정으로 색편향을 본다.
- * 전구색 조명이면 R/G가 커지고, 창가 그늘·주광색 LED면 B/G가 커진다.
- * 형광등은 G가 R·B보다 도드라진다. 이때 R/G·B/G가 같이 작아지는데 그걸 전구색·푸른빛으로 잘못 읽지 않게 먼저 거른다
+ * 전구색 조명이면 R/G가 커지고, 형광·창가 그늘이면 B/G가 커진다.
  */
 export function checkLighting(input: LightingInput): LightingIssue[] {
   const issues: LightingIssue[] = [];
@@ -23,12 +23,14 @@ export function checkLighting(input: LightingInput): LightingIssue[] {
   if (g > 0) {
     const rg = r / g;
     const bg = b / g;
+    // 형광등은 G가 R·B보다 도드라져 R/G·B/G가 같이 작아진다. 그걸 전구색·푸른빛으로 잘못 읽지 않게 먼저 거른다
     if (g / ((r + b) / 2) >= GREEN_CAST_MIN) issues.push("greenCast");
     else {
       if (rg > CAST_RATIO_MAX || bg < CAST_RATIO_MIN) issues.push("warmCast");
       if (bg > CAST_RATIO_MAX || rg < CAST_RATIO_MIN) issues.push("coolCast");
     }
   }
+  if (input.cheekDeltaL > SIDE_LIGHT_DELTA_L) issues.push("sideLight");
   if (input.faceWidthRatio < FACE_WIDTH_RATIO_MIN) issues.push("faceSmall");
   return issues;
 }
@@ -39,6 +41,7 @@ export const LIGHTING_MESSAGES: Record<LightingIssue, string> = {
   warmCast: "주황빛 조명이에요. 자연광이 가장 정확해요",
   coolCast: "푸른빛 조명이에요. 자연광이 가장 정확해요",
   greenCast: "형광등 같은 초록빛 조명이에요. 흰 종이를 얼굴 옆에 들고 찍으면 정확해져요",
+  sideLight: "한쪽만 밝아요. 빛을 정면에서 받아 주세요",
   faceSmall: "얼굴을 조금 더 가까이 비춰 주세요",
 };
 
@@ -49,5 +52,6 @@ export const LIGHTING_LABELS: Record<LightingIssue, string> = {
   warmCast: "주황빛 조명",
   coolCast: "푸른빛 조명",
   greenCast: "형광등 초록빛",
+  sideLight: "측면 조명",
   faceSmall: "얼굴이 작게 잡힘",
 };

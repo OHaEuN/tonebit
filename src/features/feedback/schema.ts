@@ -1,4 +1,4 @@
-import type { Season, Subtype, ToneSlug } from "@/types/analysis";
+import type { ReferenceSource, Season, Subtype, ToneSlug } from "@/types/analysis";
 import { SEASON_SUBTYPES } from "@/features/analysis/tone";
 
 /**
@@ -19,9 +19,11 @@ export interface Feedback {
   shots: number;
   source: "camera" | "image";
   corrected: boolean;
-  /** 사진 속 흰색으로 조명을 맞춘 사진이 있었는지 */
-  whiteFixed: boolean;
+  /** 조명 보정에 쓴 기준. 예전 클라이언트는 안 보낸다 */
+  reference: ReferenceSource;
 }
+
+const REFERENCES: ReferenceSource[] = ["white", "locked", "teeth", "sclera", "scene", "none"];
 
 const SEASONS = Object.keys(SEASON_SUBTYPES) as Season[];
 const SLUG = /^(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/;
@@ -41,7 +43,8 @@ export function parseFeedback(body: unknown): Feedback | null {
   if (!finite(b.hue, 0, 360) || !finite(b.ita, -90, 90) || !finite(b.shots, 1, 10)) return null;
   if (b.source !== "camera" && b.source !== "image") return null;
   if (typeof b.corrected !== "boolean") return null;
-  if (b.whiteFixed !== undefined && typeof b.whiteFixed !== "boolean") return null;
+  const reference = b.reference === undefined ? (b.corrected ? "scene" : "none") : (b.reference as ReferenceSource);
+  if (!REFERENCES.includes(reference)) return null;
   return {
     season,
     subtype,
@@ -52,6 +55,6 @@ export function parseFeedback(body: unknown): Feedback | null {
     shots: Math.round(b.shots),
     source: b.source,
     corrected: b.corrected,
-    whiteFixed: b.whiteFixed === true,
+    reference,
   };
 }

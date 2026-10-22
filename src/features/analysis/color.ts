@@ -1,4 +1,4 @@
-import type { Lab } from "@/types/analysis";
+import type { Lab, LinearRgb } from "@/types/analysis";
 
 /** sRGB 감마 해제. IEC 61966-2-1 */
 export function linearize(c: number): number {
@@ -30,6 +30,29 @@ export function linearRgbToLab(R: number, G: number, B: number): Lab {
   const fy = labF(y);
   const fz = labF(z);
   return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
+}
+
+function labFInverse(t: number): number {
+  return t ** 3 > EPSILON ? t ** 3 : (116 * t - 16) / KAPPA;
+}
+
+/** CIELAB → 선형 RGB. linearRgbToLab의 역변환. 색역 밖이면 0~1을 벗어날 수 있다 */
+export function labToLinear(lab: Lab): LinearRgb {
+  const fy = (lab.L + 16) / 116;
+  const x = labFInverse(fy + lab.a / 500) * XN;
+  const y = labFInverse(fy);
+  const z = labFInverse(fy - lab.b / 200) * ZN;
+  return {
+    r: 3.2404542 * x - 1.5371385 * y - 0.4985314 * z,
+    g: -0.969266 * x + 1.8760108 * y + 0.041556 * z,
+    b: 0.0556434 * x - 0.2040259 * y + 1.0572252 * z,
+  };
+}
+
+/** CIELAB L* → 상대 휘도 Y (0~1). 역변환 */
+export function labToY(L: number): number {
+  const fy = (L + 16) / 116;
+  return fy > 6 / 29 ? fy ** 3 : (3 * (6 / 29) ** 2) * (fy - 4 / 29);
 }
 
 /** 선형 RGB의 상대 휘도 Y (Rec.709) */

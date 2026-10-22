@@ -22,10 +22,10 @@ const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 
 async function main() {
   try {
-    const rows = await sql<{ hue: number; ita: number; lab_a: number; lab_b: number; expert_season: Season }[]>`
-      select hue, ita, lab_a, lab_b, expert_season from feedback order by id
+    const rows = await sql<{ hue: number; ita: number; lab_b: number; expert_season: Season }[]>`
+      select hue, ita, lab_b, expert_season from feedback order by id
     `;
-    const samples: LabeledSample[] = rows.map((r) => ({ hue: r.hue, ita: r.ita, chroma: Math.hypot(r.lab_a, r.lab_b), expert: r.expert_season }));
+    const samples: LabeledSample[] = rows.map((r) => ({ hue: r.hue, yellow: r.lab_b, ita: r.ita, expert: r.expert_season }));
     const report = calibrate(samples, CURRENT_THRESHOLDS);
 
     const seasons = Object.keys(report.confusion) as Season[];
@@ -40,8 +40,8 @@ async function main() {
       `| | 지금 | 제안 |`,
       `|---|---|---|`,
       `| 웜/쿨 중심 hue | ${report.current.hueCenter}° | ${report.proposed.hueCenter}° |`,
+      `| 뉴트럴일 때 웜 b* 하한 | ${report.current.yellowWarmMin} | ${report.proposed.yellowWarmMin} |`,
       `| 라이트 ITA 하한 | ${report.current.itaLightMin}° | ${report.proposed.itaLightMin}° |`,
-      `| 선명 C* 하한 | ${report.current.chromaClearMin} | ${report.proposed.chromaClearMin} |`,
       ``,
       `전문가(행) × 제안 기준 판정(열)`,
       ``,
@@ -67,6 +67,7 @@ async function main() {
               version: `${today}-expert`,
               basis: `전문가 진단 피드백 ${report.n}건으로 재보정 (교차검증 일치율 ${pct(report.cvAccuracy)})`,
               ...report.proposed,
+              chromaClearMin: calibration.chromaClearMin,
               expert: { n: report.n, cvAccuracy: Math.round(report.cvAccuracy * 1000) / 1000, previousAccuracy: Math.round(report.currentAccuracy * 1000) / 1000, date: today },
             },
             null,

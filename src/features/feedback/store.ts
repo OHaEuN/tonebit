@@ -8,9 +8,9 @@ export const feedbackEnabled = dbEnabled;
 export async function appendFeedback(f: Feedback): Promise<void> {
   await db()`
     insert into feedback
-      (expert_season, expert_subtype, predicted, lab_l, lab_a, lab_b, hue, ita, shots, source, corrected, white_fixed, calibration)
+      (expert_season, expert_subtype, predicted, lab_l, lab_a, lab_b, hue, ita, shots, source, corrected, reference, calibration)
     values
-      (${f.season}, ${f.subtype}, ${f.predicted}, ${f.lab.L}, ${f.lab.a}, ${f.lab.b}, ${f.hue}, ${f.ita}, ${f.shots}, ${f.source}, ${f.corrected}, ${f.whiteFixed}, ${CALIBRATION_VERSION})
+      (${f.season}, ${f.subtype}, ${f.predicted}, ${f.lab.L}, ${f.lab.a}, ${f.lab.b}, ${f.hue}, ${f.ita}, ${f.shots}, ${f.source}, ${f.corrected}, ${f.reference}, ${CALIBRATION_VERSION})
   `;
 }
 

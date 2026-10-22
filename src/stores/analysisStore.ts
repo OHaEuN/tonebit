@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import { track } from "@/features/analytics/track";
-import type { LightingIssue, Season, ToneResult } from "@/types/analysis";
+import type { LightingIssue, LinearRgb, Season, ToneResult } from "@/types/analysis";
 import { combineShots, MAX_SHOTS, shotResult, type SeasonVotes, type Shot } from "@/features/analysis/shots";
 import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/lipTryOn/render";
 
 export type Stage = "setup" | "live" | "measuring" | "done";
 export type Source = "camera" | "image";
+/** 결과 화면 탭. 발라 보기에서만 사진을 화면 위에 고정한다 */
+export type ResultTab = "result" | "tryon";
 
 interface AnalysisState {
   stage: Stage;
@@ -35,6 +37,9 @@ interface AnalysisState {
   paletteSeason: Season | null;
   debug: boolean;
   fps: number;
+  /** 실시간 카메라에서 화이트밸런스를 고정할 때 잰 흰 종이. 카메라를 끄면 사라진다 */
+  lockedWhite: LinearRgb | null;
+  resultTab: ResultTab;
 
   begin: (source: Source) => void;
   startMeasuring: () => void;
@@ -63,6 +68,8 @@ interface AnalysisState {
   setPaletteSeason: (s: Season | null) => void;
   setDebug: (on: boolean) => void;
   setFps: (fps: number) => void;
+  setLockedWhite: (white: LinearRgb | null) => void;
+  setResultTab: (tab: ResultTab) => void;
   reset: () => void;
 }
 
@@ -87,6 +94,8 @@ const initial = {
   paletteSeason: null,
   debug: false,
   fps: 0,
+  lockedWhite: null,
+  resultTab: "result" as ResultTab,
 };
 
 let shotSeq = 0;
@@ -136,5 +145,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   setPaletteSeason: (paletteSeason) => set({ paletteSeason }),
   setDebug: (debug) => set({ debug }),
   setFps: (fps) => set({ fps }),
+  setLockedWhite: (lockedWhite) => set({ lockedWhite }),
+  setResultTab: (resultTab) => set({ resultTab }),
   reset: () => set(initial),
 }));

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Disclosure } from "@/components/Disclosure";
+import { BUTTON, CHOICE_CHIP } from "@/components/styles";
 import { SUBTYPE_LABEL } from "@/features/analysis/explain";
 import { SEASON_SUBTYPES } from "@/features/analysis/tone";
 import { SEASON_INFO, SEASONS } from "@/features/recommend/palettes";
@@ -11,8 +13,7 @@ import type { Feedback } from "./schema";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
-const CHIP =
-  "inline-block rounded-full border border-line bg-bg px-3 py-1 text-sm peer-checked:border-fg peer-checked:bg-fg peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2";
+const CHIP = CHOICE_CHIP;
 
 /**
  * 전문가 진단 결과를 받는다. 동의하면 측정 숫자와 진단만 보내고 사진은 보내지 않는다.
@@ -30,9 +31,9 @@ export function FeedbackForm() {
   if (!process.env.NEXT_PUBLIC_FEEDBACK_ENABLED || !combined || !source) return null;
   if (status === "sent") {
     return (
-      <p className="rounded-2xl bg-accent-soft p-4 text-sm">
+      <p className="border-t border-line py-4 text-sm">
         보내 주셔서 고마워요. 모인 진단 결과로 판정 기준을 매주 다시 맞춰요.{" "}
-        <Link href="/accuracy" className="font-medium text-accent underline">
+        <Link href="/accuracy" className="font-medium underline">
           지금 일치율 보기
         </Link>
       </p>
@@ -52,7 +53,7 @@ export function FeedbackForm() {
       shots: shots.length,
       source,
       corrected: combined.corrected ?? false,
-      whiteFixed: shots.some((s) => s.whiteFixed),
+      reference: combined.reference ?? "none",
     };
     try {
       const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -63,10 +64,8 @@ export function FeedbackForm() {
   };
 
   return (
-    <details className="rounded-2xl border border-line p-4 text-sm">
-      <summary className="cursor-pointer font-medium">전문가에게 퍼스널 컬러 진단을 받아 봤나요?</summary>
-      <div className="mt-3 space-y-4">
-        <p className="text-muted">받은 진단 결과를 알려 주시면 톤픽 판정이 전문가 진단과 맞도록 기준을 다듬는 데 써요.</p>
+    <Disclosure title="전문가에게 퍼스널 컬러 진단을 받아 봤나요?" hint="알려 주시면 판정 기준을 전문가 진단에 맞게 다듬어요">
+      <div className="space-y-4">
         <div role="radiogroup" aria-label="진단받은 시즌" className="flex flex-wrap gap-1.5">
           {SEASONS.map((s) => (
             <label key={s} className="cursor-pointer">
@@ -103,16 +102,11 @@ export function FeedbackForm() {
             측정 숫자(색상각·밝기·채도)와 위에서 고른 진단 결과만 익명으로 보내는 데 동의해요. <strong>사진은 보내지 않아요.</strong>
           </span>
         </label>
-        <button
-          type="button"
-          onClick={submit}
-          disabled={!season || !agree || status === "sending"}
-          className="rounded-full bg-accent px-5 py-3 font-medium text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <button type="button" onClick={submit} disabled={!season || !agree || status === "sending"} className={BUTTON.primary}>
           {status === "sending" ? "보내는 중…" : "진단 결과 보내기"}
         </button>
         {status === "error" && <p className="text-amber-900">보내지 못했어요. 잠시 뒤에 다시 시도해 주세요.</p>}
       </div>
-    </details>
+    </Disclosure>
   );
 }

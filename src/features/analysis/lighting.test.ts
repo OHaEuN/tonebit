@@ -5,6 +5,7 @@ const GOOD = {
   faceLuma: 140,
   clippedRatio: 0.01,
   frameMean: { r: 120, g: 120, b: 120 },
+  cheekDeltaL: 3,
   faceWidthRatio: 0.4,
 };
 
@@ -25,6 +26,10 @@ describe("checkLighting", () => {
   it("R/G가 크면 warmCast, B/G가 크면 coolCast", () => {
     expect(checkLighting({ ...GOOD, frameMean: { r: 160, g: 120, b: 110 } })).toEqual(["warmCast"]);
     expect(checkLighting({ ...GOOD, frameMean: { r: 110, g: 120, b: 160 } })).toEqual(["coolCast"]);
+  });
+
+  it("양 볼 밝기가 크게 다르면 sideLight", () => {
+    expect(checkLighting({ ...GOOD, cheekDeltaL: 20 })).toEqual(["sideLight"]);
   });
 
   it("G가 R·B보다 도드라지면(형광등) greenCast만. 전구색·푸른빛으로 같이 잡지 않는다", () => {

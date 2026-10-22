@@ -4,8 +4,9 @@ import { seasonFor, type Thresholds } from "./tone";
 /** 재보정에 쓰는 진단 한 건: 측정값과 전문가 시즌 */
 export interface LabeledSample {
   hue: number;
+  /** 볼의 황색도 b*. 색상각이 뉴트럴일 때 웜/쿨을 가른다 */
+  yellow: number;
   ita: number;
-  chroma: number;
   expert: Season;
 }
 
@@ -22,30 +23,30 @@ export interface CalibrationPolicy {
 export const DEFAULT_POLICY: CalibrationPolicy = {
   minSamples: 50,
   minGain: 0.02,
-  maxStep: { hueCenter: 3, itaLightMin: 8, chromaClearMin: 3 },
+  maxStep: { hueCenter: 3, yellowWarmMin: 4, itaLightMin: 8 },
   folds: 5,
 };
 
 /** 탐색 범위와 간격 */
 const GRID: Record<keyof Thresholds, { lo: number; hi: number; step: number }> = {
   hueCenter: { lo: 35, hi: 65, step: 0.25 },
-  itaLightMin: { lo: -20, hi: 50, step: 0.5 },
-  chromaClearMin: { lo: 12, hi: 36, step: 0.5 },
+  yellowWarmMin: { lo: 6, hi: 32, step: 0.25 },
+  itaLightMin: { lo: -30, hi: 50, step: 0.5 },
 };
 const KEYS = Object.keys(GRID) as (keyof Thresholds)[];
 
 export function accuracy(samples: LabeledSample[], t: Thresholds): number {
   if (!samples.length) return 0;
   let hit = 0;
-  for (const s of samples) if (seasonFor(s.hue, s.ita, s.chroma, t) === s.expert) hit++;
+  for (const s of samples) if (seasonFor(s.hue, s.yellow, s.ita, t) === s.expert) hit++;
   return hit / samples.length;
 }
 
 const clampStep = (v: number, from: number, step: number) => Math.min(from + step, Math.max(from - step, v));
 
 /**
- * 일치율이 가장 높은 기준값. 한 축씩 번갈아 훑는 좌표 하강(3바퀴). 시즌은 웜/쿨(hue)과 명/암(ITA)으로 거의 정해지고
- * 채도는 뉴트럴일 때만 쓰여 축끼리 얽힘이 약해서 이걸로 충분하다. 동점이면 지금 값에 가까운 쪽(덜 움직이는 쪽)
+ * 일치율이 가장 높은 기준값. 한 축씩 번갈아 훑는 좌표 하강(3바퀴). 명/암(ITA)은 웜/쿨과 따로 놀고,
+ * 황색도는 색상각이 뉴트럴일 때만 쓰여 축끼리 얽힘이 약해서 이걸로 충분하다. 동점이면 지금 값에 가까운 쪽(덜 움직이는 쪽)
  */
 export function fitThresholds(samples: LabeledSample[], from: Thresholds, maxStep: Thresholds): Thresholds {
   let best = { ...from };
@@ -105,7 +106,7 @@ export function calibrate(samples: LabeledSample[], current: Thresholds, policy:
   }
   const cvAccuracy = n >= policy.folds ? cvHit / n : 0;
   const confusion = Object.fromEntries(SEASONS.map((e) => [e, Object.fromEntries(SEASONS.map((p) => [p, 0]))])) as CalibrationReport["confusion"];
-  for (const s of samples) confusion[s.expert][seasonFor(s.hue, s.ita, s.chroma, proposed)]++;
+  for (const s of samples) confusion[s.expert][seasonFor(s.hue, s.yellow, s.ita, proposed)]++;
 
   let apply = false;
   let reason: string;

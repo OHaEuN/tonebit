@@ -15,7 +15,8 @@ create table if not exists feedback (
   shots smallint not null,
   source text not null check (source in ('camera', 'image')),
   corrected boolean not null,
-  white_fixed boolean not null default false,
+  -- 조명 보정에 쓴 기준: white(직접 찍은 흰색) · locked(흰 종이로 카메라 고정) · teeth · sclera · scene(배경 절반) · none
+  reference text not null check (reference in ('white', 'locked', 'teeth', 'sclera', 'scene', 'none')),
   -- 판정할 때 쓴 기준값 버전(calibration.json)
   calibration text not null
 );

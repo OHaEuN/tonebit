@@ -1,18 +1,16 @@
 import type { LinearRgb } from "@/types/analysis";
-import { linearize, luma, relativeLuminance } from "./color";
+import { linearize, luma } from "./color";
 import {
   CLIP_MAX,
-  SCENE_REFERENCE,
   WHITE_BLUER_THAN_SKIN,
-  WHITE_GAIN_RANGE,
   WHITE_MAX_CLIPPED,
+  WHITE_MAX_SATURATION,
   WHITE_MIN_AREA,
   WHITE_MIN_DEPTH,
-  WHITE_MAX_SATURATION,
   WHITE_MIN_LUMA,
   WHITE_OVER_SKIN,
-  WHITE_TARGET_Y,
 } from "./constants";
+import { fullGains, WHITE_TARGET } from "./reference";
 
 export type WhiteCheck = { white: LinearRgb } | { error: "dark" | "clipped" | "colored" };
 
@@ -51,17 +49,12 @@ export function checkWhitePatch(pixels: ArrayLike<number>, skinLuma = 0): WhiteC
   return { white };
 }
 
-const clamp = (v: number) => Math.min(WHITE_GAIN_RANGE[1], Math.max(WHITE_GAIN_RANGE[0], v));
-
 /**
  * 누른 흰색을 기준으로 조명을 완전히 되돌리는 게인. 흰색이 배경 보정 공간의 "흰 종이"
  * (SCENE_REFERENCE 색 비율 × WHITE_TARGET_Y)가 되게 해서 같은 임계값으로 판정한다
  */
 export function whiteGains(white: LinearRgb): LinearRgb | null {
-  const y = relativeLuminance(white.r, white.g, white.b);
-  if (!(y > 0) || white.r <= 0 || white.g <= 0 || white.b <= 0) return null;
-  const g = (k: "r" | "g" | "b") => clamp((SCENE_REFERENCE[k] * WHITE_TARGET_Y) / white[k]);
-  return { r: g("r"), g: g("g"), b: g("b") };
+  return fullGains(white, WHITE_TARGET);
 }
 
 export interface WhiteSearchInput {

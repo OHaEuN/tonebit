@@ -1,0 +1,6 @@
+[    4150ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3100/_next/static/chunks/14zp_next_dist_07jqkgxcwo0ox._.js:719
+[    4195ms] [LOG] [HMR] connected @ http://localhost:3100/_next/static/chunks/14zp_next_dist_07jqkgxcwo0ox._.js:719
+[    4380ms] [WARNING] W1020 09:05:17.934000 2172416 face_landmarker_graph.cc:180] Sets FaceBlendshapesGraph acceleration to xnnpack by default. @ http://localhost:3100/_next/static/chunks/14zp_next_dist_07jqkgxcwo0ox._.js:719
+[    4409ms] [LOG] I1020 09:05:17.966000 2172416 gl_context.cc:408] GL version: 3.0 (OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))), renderer: WebKit WebGL @ http://localhost:3100/_next/static/chunks/14zp_next_dist_07jqkgxcwo0ox._.js:719
+[    4409ms] [WARNING] W1020 09:05:17.967000 2172416 gl_context.cc:1135] OpenGL error checking is disabled @ http://localhost:3100/_next/static/chunks/14zp_next_dist_07jqkgxcwo0ox._.js:719
+[    4410ms] [LOG] Graph successfully started running. @ http://localhost:3100/_next/static/chunks/14zp_next_dist_07jqkgxcwo0ox._.js:719

@@ -42,5 +42,8 @@ export function useCameraStream(videoRef: RefObject<HTMLVideoElement | null>) {
 
   useEffect(() => stop, [stop]);
 
-  return { status, start, stop };
+  /** 지금 켜진 영상 트랙. 화이트밸런스 고정에 쓴다 */
+  const videoTrack = useCallback(() => streamRef.current?.getVideoTracks()[0] ?? null, []);
+
+  return { status, start, stop, videoTrack };
 }

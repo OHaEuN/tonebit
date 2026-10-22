@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 import { TrySession } from "@/features/try/TrySession";
 
 export const metadata: Metadata = { title: "컬러 테스트" };
 
 export default function TryPage() {
   return (
-    <main className="mx-auto w-full max-w-xl flex-1 space-y-6 px-4 py-6">
-      <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-muted hover:text-fg">
-          ← 톤픽 홈
-        </Link>
-        <h1 className="text-lg font-bold">컬러 테스트</h1>
-      </header>
-      <TrySession />
-    </main>
+    <>
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-10 md:px-8">
+        <h1 className="sr-only">컬러 테스트</h1>
+        <TrySession />
+      </main>
+    </>
   );
 }
