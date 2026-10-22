@@ -7,18 +7,17 @@ import { FeedbackForm } from "@/features/feedback/FeedbackForm";
 import { ApplyControls } from "@/features/lipTryOn/ApplyControls";
 import { ColorPicker } from "@/features/lipTryOn/ColorPicker";
 import { BLUSH_STYLES, LIP_STYLES } from "@/features/lipTryOn/render";
-import { productSwatches } from "@/features/recommend/getProducts";
-import { CONFIDENCE_LABEL, SEASON_INFO, SEASONS, sortSwatches, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
+import { CONFIDENCE_LABEL, SEASON_INFO, SEASONS, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
 import { resultPath } from "@/features/share/resultUrl";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { ShotsPanel } from "./ShotsPanel";
+import { useTrySwatches, type Part } from "./useTrySwatches";
 
 const BUTTON = "rounded-lg px-5 py-3 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 const SEGMENT =
   "flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 type Tab = "result" | "tryon";
-type Part = "lip" | "blush";
 
 interface ResultPanelProps {
   onAddPhotos: (files: File[]) => void;
@@ -130,10 +129,9 @@ function TryOnControls({ onShowResult }: { onShowResult: () => void }) {
   const setBlushIntensity = useAnalysisStore((s) => s.setBlushIntensity);
   const setPaletteSeason = useAnalysisStore((s) => s.setPaletteSeason);
 
-  const { season, subtype } = result;
+  const sections = useTrySwatches(part);
+  const { season } = result;
   const shown = paletteSeason ?? season;
-  const shownInfo = SEASON_INFO[shown];
-  const isMine = shown === season;
   const isLip = part === "lip";
 
   return (
@@ -190,13 +188,7 @@ function TryOnControls({ onShowResult }: { onShowResult: () => void }) {
         key={part}
         name={part}
         label={isLip ? "립" : "블러셔"}
-        sections={[
-          {
-            title: `${shownInfo.label} ${shownInfo.tone} 팔레트`,
-            swatches: isLip ? (isMine ? sortSwatches(shownInfo.lips, subtype) : shownInfo.lips) : isMine ? sortSwatches(shownInfo.blushes, subtype) : shownInfo.blushes,
-          },
-          { title: "많이 찾는 제품", swatches: productSwatches(shown, isLip ? "lip" : "blush") },
-        ]}
+        sections={sections}
         value={isLip ? lipId : blushId}
         onChange={isLip ? selectLip : selectBlush}
       />

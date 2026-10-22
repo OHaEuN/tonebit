@@ -184,36 +184,49 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
   /** 고른 사진, 합친 결과를 볼 땐 마지막에 올린 사진 */
   const shown = (view !== null ? photos.find((p) => p.id === view) : undefined) ?? photos.at(-1);
 
+  /**
+   * 고른 사진을 지금 설정(색·바르는 방법·비교 중)으로 canvas에 그린다. maxWidth까지 원본 해상도를 살린다.
+   * 결과 화면 캔버스는 분석과 같은 크기로, 크게 보기는 확대해도 선명하게 더 크게 그린다
+   */
+  const paint = useCallback(
+    (canvas: HTMLCanvasElement, maxWidth?: number) => {
+      if (!shown) return;
+      const { img, landmarks } = shown;
+      const fit = fitSize(img.naturalWidth, img.naturalHeight);
+      const s = maxWidth ? Math.min(1, maxWidth / img.naturalWidth) : fit.w / img.naturalWidth;
+      const w = Math.round(img.naturalWidth * s);
+      const h = Math.round(img.naturalHeight * s);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      const ctx = createContext(canvas);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      ctx.drawImage(img, 0, 0, w, h);
+      if (comparing) return;
+      drawOverlays(ctx, createOffscreen(w, h), landmarks, w, h, {
+        lip: findSwatchById("lips", lipId)?.hex ?? null,
+        blush: findSwatchById("blushes", blushId)?.hex ?? null,
+        lipStyle,
+        blushStyle,
+        lipIntensity,
+        blushIntensity,
+        debug,
+      });
+      if (shown.white) drawWhiteMarker(ctx, shown.white.u * w, shown.white.v * h, Math.max(6, w * 0.02));
+    },
+    [shown, comparing, lipId, blushId, lipStyle, blushStyle, lipIntensity, blushIntensity, debug],
+  );
+
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!shown || !canvas) return;
-    const { img, landmarks } = shown;
-    const { w, h } = fitSize(img.naturalWidth, img.naturalHeight);
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
-    }
-    const ctx = createContext(canvas);
-    ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1;
-    ctx.drawImage(img, 0, 0, w, h);
-    if (comparing) return;
-    drawOverlays(ctx, createOffscreen(w, h), landmarks, w, h, {
-      lip: findSwatchById("lips", lipId)?.hex ?? null,
-      blush: findSwatchById("blushes", blushId)?.hex ?? null,
-      lipStyle,
-      blushStyle,
-      lipIntensity,
-      blushIntensity,
-      debug,
-    });
-    if (shown.white) drawWhiteMarker(ctx, shown.white.u * w, shown.white.v * h, Math.max(6, w * 0.02));
-  }, [canvasRef, shown, comparing, lipId, blushId, lipStyle, blushStyle, lipIntensity, blushIntensity, debug]);
+    if (canvasRef.current) paint(canvasRef.current);
+  }, [canvasRef, paint]);
 
   const clear = useCallback(() => {
     setPhotos([]);
     setError(null);
   }, []);
 
-  return { analyze, error, clear, photos, shown, setWhitePoint };
+  return { analyze, error, clear, photos, shown, setWhitePoint, paint: shown ? paint : null };
 }

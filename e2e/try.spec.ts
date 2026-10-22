@@ -71,6 +71,29 @@ test.describe("폰 화면 폭", () => {
   });
 });
 
+test.describe("폰에서 사진 크게 보기", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  test("사진을 탭하면 크게 열리고, 두 번 탭해 확대하고, 아래에서 고른 색이 결과 화면에도 남는다", async ({ page }) => {
+    await waitForModel(page);
+    await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
+    await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
+    await page.getByLabel(/카메라 미리보기와 립 컬러 체험/).tap();
+    const viewer = page.getByRole("dialog", { name: "사진 크게 보기" });
+    await expect(viewer).toBeVisible();
+    const stage = page.getByTestId("photo-viewer-stage");
+    const box = (await stage.boundingBox())!;
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 3);
+    await expect(viewer.getByText(/2\.5배/)).toBeVisible();
+    await viewer.locator('label:has(input[name="viewer-lip"])').nth(2).click();
+    const picked = (await viewer.locator("legend span").textContent())!;
+    expect(picked).not.toBe("선택 안 함");
+    await viewer.getByRole("button", { name: "닫기" }).click();
+    await expect(viewer).toBeHidden();
+    await page.getByRole("tab", { name: "발라 보기", exact: true }).click();
+    await expect(page.locator("legend span").filter({ hasText: picked })).toBeVisible();
+  });
+});
+
 test("형광등 아래에서 찍어도 사진 속 흰 종이를 찾아 맞추면 자연광과 같은 색으로 읽는다", async ({ page }) => {
   await waitForModel(page);
   const hueAfterWhiteFix = async (file: string) => {

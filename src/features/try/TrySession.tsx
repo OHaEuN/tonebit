@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type RefObject } from "react";
 import { PrivacyNote } from "@/components/PrivacyNote";
 import { Disclaimer } from "@/components/Disclaimer";
 import { LIGHTING_LABELS } from "@/features/analysis/lighting";
@@ -12,6 +12,8 @@ import type { LightingIssue } from "@/types/analysis";
 import { AdvancedPanel } from "./AdvancedPanel";
 import { LightingBadges } from "./LightingBadges";
 import { ModelLoading } from "./ModelLoading";
+import { PhotoViewer } from "./PhotoViewer";
+import { QuickTryOn } from "./QuickTryOn";
 import { ResultPanel } from "./ResultPanel";
 import { UploadButton } from "./UploadButton";
 import { useIsMobile } from "./useIsMobile";
@@ -23,6 +25,9 @@ const CAMERA_MESSAGES = {
   unavailable: "카메라를 열 수 없어요. 다른 앱이 쓰고 있지 않은지 확인하거나, 사진을 올려서 해볼 수 있어요.",
   unsupported: "이 브라우저는 카메라를 지원하지 않아요. 사진을 올려서 해볼 수 있어요.",
 } as const;
+
+/** 이보다 오래 누르면 "바르기 전" 비교, 짧게 떼면 크게 보기 */
+const HOLD_MS = 220;
 
 const BUTTON = "rounded-full px-5 py-3 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -48,6 +53,11 @@ export function TrySession() {
   /** 흰색 기준을 찍는 중 */
   const [pickingWhite, setPickingWhite] = useState(false);
   const [whiteMessage, setWhiteMessage] = useState<string | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const closeViewer = useCallback(() => setViewerOpen(false), []);
+  const holdTimer = useRef<number | null>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const compact = useCompactOnScroll(stickyRef, stage === "done");
 
   useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active: camera.status === "active" && source === "camera" });
 
@@ -70,7 +80,10 @@ export function TrySession() {
 
   const addPhotos = (files: File[]) => void still.analyze(files, true);
 
-  /** 캔버스를 누른 자리: 흰색 찍는 중이면 기준으로 쓰고, 아니면 꾹 누르는 동안 바르기 전 모습을 보여 준다 */
+  /**
+   * 캔버스를 누른 자리: 흰색 찍는 중이면 기준으로 쓴다. 아니면 꾹 누르는 동안 바르기 전 모습, 짧게 탭하면 크게 보기.
+   * 결과가 나오기 전(카메라 미리보기)엔 아무것도 하지 않는다
+   */
   const onCanvasDown = (e: PointerEvent<HTMLCanvasElement>) => {
     if (stage !== "done") return;
     if (pickingWhite && still.shown) {
@@ -80,13 +93,28 @@ export function TrySession() {
       if (!message) setPickingWhite(false);
       return;
     }
-    setComparing(true);
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = null;
+      setComparing(true);
+    }, HOLD_MS);
   };
-  const stopCompare = () => {
+  const onCanvasUp = () => {
+    if (holdTimer.current !== null) {
+      window.clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+      setViewerOpen(true);
+      return;
+    }
+    if (comparing) setComparing(false);
+  };
+  const cancelHold = () => {
+    if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
+    holdTimer.current = null;
     if (comparing) setComparing(false);
   };
 
   const restart = () => {
+    setViewerOpen(false);
     setPickingWhite(false);
     setWhiteMessage(null);
     camera.stop();
@@ -169,8 +197,9 @@ export function TrySession() {
       )}
 
       <div className={showStage ? "space-y-5" : "hidden"}>
-        {/* 아래 색을 고르는 동안 얼굴이 계속 보이게 상단에 고정한다. 화면을 덮지 않게 높이는 화면 비율과 절대 크기 중 작은 쪽으로 묶는다 */}
-        <div className="sticky top-0 z-10 -mx-4 bg-bg px-4 py-2">
+        {/* 아래 색을 고르는 동안 얼굴이 계속 보이게 상단에 고정한다. 화면을 덮지 않게 높이는 화면 비율과 절대 크기 중 작은 쪽으로 묶고,
+            결과를 읽으려고 내리면 작게 접는다. 접힌 만큼 아래 여백으로 채워 글이 튀지 않게 한다 */}
+        <div ref={stickyRef} className="sticky top-0 z-10 -mx-4 bg-bg px-4 py-2">
           {/* 캔버스가 레이아웃 크기를 정하고, 비디오는 그 뒤에 깔린다. 전면 카메라는 거울처럼 좌우 반전 */}
           <div className="relative mx-auto w-fit max-w-full overflow-hidden rounded-3xl bg-black">
             <video
@@ -184,19 +213,37 @@ export function TrySession() {
               ref={canvasRef}
               aria-label="카메라 미리보기와 립 컬러 체험. 꾹 누르면 바르기 전 모습"
               onPointerDown={onCanvasDown}
-              onPointerUp={stopCompare}
-              onPointerLeave={stopCompare}
-              onPointerCancel={stopCompare}
+              onPointerUp={onCanvasUp}
+              onPointerLeave={cancelHold}
+              onPointerCancel={cancelHold}
               onContextMenu={(e) => e.preventDefault()}
-              className={`relative block touch-manipulation select-none ${pickingWhite ? "cursor-crosshair" : ""} h-auto max-h-[min(34svh,300px)] w-auto max-w-full md:max-h-[min(50svh,440px)] ${source === "camera" ? "-scale-x-100" : ""}`}
+              className={`relative block touch-manipulation select-none ${pickingWhite ? "cursor-crosshair" : ""} h-auto w-auto max-w-full ${compact ? "max-h-[min(18svh,140px)] md:max-h-[min(26svh,220px)]" : "max-h-[min(34svh,300px)] md:max-h-[min(50svh,440px)]"} ${source === "camera" ? "-scale-x-100" : ""}`}
             />
             {(comparing || pickingWhite) && (
               <span className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium whitespace-nowrap text-white">
                 {pickingWhite ? "흰 종이·흰 벽을 눌러 주세요" : "바르기 전"}
               </span>
             )}
+            {stage === "done" && !pickingWhite && (
+              <button
+                type="button"
+                onClick={() => setViewerOpen(true)}
+                aria-label="사진 크게 보기"
+                className="absolute right-2 bottom-2 flex size-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm hover:bg-black/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3h5v5M8 17H3v-5M17 3l-6 6M3 17l6-6" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
+
+        {viewerOpen && (
+          <PhotoViewer sourceRef={canvasRef} render={source === "image" ? still.paint : null} mirrored={source === "camera"} onClose={closeViewer}>
+            <QuickTryOn />
+          </PhotoViewer>
+        )}
 
         {still.error && (
           <p role="alert" className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
@@ -269,6 +316,42 @@ export function TrySession() {
       </div>
     </div>
   );
+}
+
+/**
+ * 결과 화면에서 아래로 내리면 고정된 사진을 작게 접는다. 접혀 줄어든 높이만큼 spacer(아래 여백)로 채워
+ * 문서 높이가 그대로라 스크롤 위치·글 위치가 튀지 않는다. 경계에서 깜빡이지 않게 접는 지점과 펴는 지점을 다르게 둔다
+ */
+function useCompactOnScroll(ref: RefObject<HTMLDivElement | null>, enabled: boolean): boolean {
+  const [on, setOn] = useState(false);
+  const fullHeight = useRef(0);
+  const active = enabled && on;
+
+  useEffect(() => {
+    if (!enabled) return;
+    let current = false;
+    const update = () => {
+      const next = current ? window.scrollY > 60 : window.scrollY > 160;
+      if (next === current) return;
+      // 접기 직전 펼친 높이를 잰다
+      if (next && ref.current) fullHeight.current = ref.current.offsetHeight;
+      current = next;
+      setOn(next);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", update);
+      setOn(false);
+    };
+  }, [ref, enabled]);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el) el.style.marginBottom = active ? `${Math.max(0, fullHeight.current - el.offsetHeight)}px` : "";
+  }, [ref, active]);
+
+  return active;
 }
 
 interface WhiteFixCardProps {
