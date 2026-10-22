@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { SUBTYPE_LABEL } from "@/features/analysis/explain";
 import { SEASON_SUBTYPES } from "@/features/analysis/tone";
@@ -28,7 +29,14 @@ export function FeedbackForm() {
 
   if (!process.env.NEXT_PUBLIC_FEEDBACK_ENABLED || !combined || !source) return null;
   if (status === "sent") {
-    return <p className="rounded-2xl bg-accent-soft p-4 text-sm">보내 주셔서 고마워요. 모인 진단 결과로 판정 기준을 더 정확하게 맞출게요.</p>;
+    return (
+      <p className="rounded-2xl bg-accent-soft p-4 text-sm">
+        보내 주셔서 고마워요. 모인 진단 결과로 판정 기준을 매주 다시 맞춰요.{" "}
+        <Link href="/accuracy" className="font-medium text-accent underline">
+          지금 일치율 보기
+        </Link>
+      </p>
+    );
   }
 
   const submit = async () => {
@@ -44,6 +52,7 @@ export function FeedbackForm() {
       shots: shots.length,
       source,
       corrected: combined.corrected ?? false,
+      whiteFixed: shots.some((s) => s.whiteFixed),
     };
     try {
       const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

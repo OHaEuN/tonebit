@@ -19,6 +19,8 @@ export interface Feedback {
   shots: number;
   source: "camera" | "image";
   corrected: boolean;
+  /** 사진 속 흰색으로 조명을 맞춘 사진이 있었는지 */
+  whiteFixed: boolean;
 }
 
 const SEASONS = Object.keys(SEASON_SUBTYPES) as Season[];
@@ -39,6 +41,7 @@ export function parseFeedback(body: unknown): Feedback | null {
   if (!finite(b.hue, 0, 360) || !finite(b.ita, -90, 90) || !finite(b.shots, 1, 10)) return null;
   if (b.source !== "camera" && b.source !== "image") return null;
   if (typeof b.corrected !== "boolean") return null;
+  if (b.whiteFixed !== undefined && typeof b.whiteFixed !== "boolean") return null;
   return {
     season,
     subtype,
@@ -49,5 +52,6 @@ export function parseFeedback(body: unknown): Feedback | null {
     shots: Math.round(b.shots),
     source: b.source,
     corrected: b.corrected,
+    whiteFixed: b.whiteFixed === true,
   };
 }

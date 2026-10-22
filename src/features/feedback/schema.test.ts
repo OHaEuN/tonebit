@@ -15,7 +15,8 @@ const VALID = {
 
 describe("parseFeedback", () => {
   it("필요한 필드만 골라 돌려준다", () => {
-    expect(parseFeedback({ ...VALID, extra: "x", image: "data:..." })).toEqual(VALID);
+    expect(parseFeedback({ ...VALID, extra: "x", image: "data:..." })).toEqual({ ...VALID, whiteFixed: false });
+    expect(parseFeedback({ ...VALID, whiteFixed: true })?.whiteFixed).toBe(true);
   });
 
   it("세부 타입을 모르면 null로 받는다", () => {

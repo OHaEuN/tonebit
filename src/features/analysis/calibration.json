@@ -1,0 +1,8 @@
+{
+  "version": "2026-10-13-fairface",
+  "basis": "FairFace 동아시아인 사진 1,281장(배경 보정 후) 분포의 중앙값",
+  "hueCenter": 50.5,
+  "itaLightMin": 17,
+  "chromaClearMin": 24,
+  "expert": null
+}

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = { title: "개인정보처리방침" };
 
-const UPDATED = "2026-10-13";
+const UPDATED = "2026-10-22";
 const ISSUES_URL = "https://github.com/OHaEuN/tonepick/issues";
 
 export default function PrivacyPage() {
@@ -30,11 +30,11 @@ export default function PrivacyPage() {
         <p>
           결과 화면의 &ldquo;전문가에게 퍼스널 컬러 진단을 받아 봤나요?&rdquo;에서 이용자가 동의하고 보내기를 누른 경우에만, 다음 값을 익명으로
           저장합니다: 이용자가 고른 진단 시즌·세부 타입, 톤픽의 판정, 판정에 쓴 측정 숫자(피부색의 Lab 값, 색상각, 밝기 지표), 합친 사진 수, 카메라·사진
-          구분, 보낸 날짜.
+          구분, 흰색 기준 보정 여부, 그때 쓴 판정 기준 버전, 보낸 날짜.
         </p>
         <p>
           사진, 얼굴 이미지, 기기 정보, 계정이나 연락처처럼 사람을 알아볼 수 있는 값은 보내지 않습니다. 모은 값은 판정 기준을 전문가 진단에 맞게 다듬는
-          데에만 쓰고, 저장소(Upstash Redis)에 보관합니다.
+          데에만 쓰고, 데이터베이스(Supabase Postgres)에 보관합니다. 모은 값의 시즌별 일치 건수는 정확도 페이지에 집계로만 공개합니다.
         </p>
       </section>
 

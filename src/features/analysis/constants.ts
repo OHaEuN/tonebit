@@ -1,3 +1,5 @@
+import calibration from "./calibration.json";
+
 /**
  * 색 분석 임계값. 전부 "재미로 보는" 수준의 휴리스틱이고 카메라·조명에 따라
  * 흔들리므로 한 곳에 모아 튜닝한다. 각 값의 근거는 README 알고리즘 절 참고.
@@ -66,17 +68,19 @@ export const SCENE_THUMB = { w: 64, h: 64 } as const;
 
 // ---- 판정 ----
 /**
- * 임계값은 FairFace 동아시아인 사진(10세 이상 1,281장, 얼굴 인식 1,075장)을 배경 보정한 뒤 잰 분포의 중앙값이다.
- * 이전 값(웜 57°·ITA 41°·C* 20, 분광측색 문헌 기준)은 카메라 사진에선 한쪽으로 쏠려 55%가 겨울로 나왔다.
- * 지금 값으로 네 시즌이 20~30%씩 고르게 나뉜다
+ * 판정 기준값은 calibration.json에 있다. 처음 값은 FairFace 동아시아인 사진(10세 이상 1,281장, 얼굴 인식 1,075장)을
+ * 배경 보정한 뒤 잰 분포의 중앙값이고(이전 문헌 기준값은 카메라 사진에서 55%가 겨울로 쏠렸다),
+ * 이후엔 이용자가 보내 준 전문가 진단으로 scripts/calibrate.ts가 다시 맞춰 PR을 연다
  */
-/** 웜/쿨: Lab hue angle(°). 중앙값 50.5°를 중심으로 ±2° 뉴트럴 구간 */
-export const HUE_WARM_MIN = 52.5;
-export const HUE_COOL_MAX = 48.5;
-/** 명/암: ITA°. 배경 보정 공간에서의 중앙값 */
-export const ITA_LIGHT_MIN = 17;
-/** 선명/뮤트: chroma C*. 중앙값 */
-export const CHROMA_CLEAR_MIN = 24;
+export const CALIBRATION_VERSION: string = calibration.version;
+/** 웜/쿨: Lab hue angle(°). 중심값 ±2° 뉴트럴 구간 */
+export const HUE_NEUTRAL_HALF = 2;
+export const HUE_WARM_MIN = calibration.hueCenter + HUE_NEUTRAL_HALF;
+export const HUE_COOL_MAX = calibration.hueCenter - HUE_NEUTRAL_HALF;
+/** 명/암: ITA° */
+export const ITA_LIGHT_MIN = calibration.itaLightMin;
+/** 선명/뮤트: chroma C* */
+export const CHROMA_CLEAR_MIN = calibration.chromaClearMin;
 /**
  * 각 축에서 "충분히 떨어졌다"고 보는 거리. 확신도와 12시즌 세부 타입 판정에 같이 쓴다.
  * 각 지표의 사분위 범위(IQR)의 1/4이다

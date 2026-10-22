@@ -1,10 +1,23 @@
 import type { ChromaLevel, Confidence, Depth, Lab, Season, Subtype, ToneResult, ToneSlug, Undertone } from "@/types/analysis";
 import { chroma, hueAngle, ita } from "./color";
-import { AXIS_MARGIN, CHROMA_CLEAR_MIN, HUE_COOL_MAX, HUE_WARM_MIN, ITA_LIGHT_MIN } from "./constants";
+import { AXIS_MARGIN, CHROMA_CLEAR_MIN, HUE_COOL_MAX, HUE_NEUTRAL_HALF, HUE_WARM_MIN, ITA_LIGHT_MIN } from "./constants";
 
-function undertoneOf(hue: number): Undertone {
-  if (hue >= HUE_WARM_MIN) return "warm";
-  if (hue <= HUE_COOL_MAX) return "cool";
+/** 시즌을 가르는 세 기준값. 재보정 스크립트가 후보 값을 같은 규칙으로 시험할 수 있게 밖으로 뺐다 */
+export interface Thresholds {
+  hueCenter: number;
+  itaLightMin: number;
+  chromaClearMin: number;
+}
+
+export const CURRENT_THRESHOLDS: Thresholds = {
+  hueCenter: HUE_WARM_MIN - HUE_NEUTRAL_HALF,
+  itaLightMin: ITA_LIGHT_MIN,
+  chromaClearMin: CHROMA_CLEAR_MIN,
+};
+
+function undertoneOf(hue: number, center = CURRENT_THRESHOLDS.hueCenter): Undertone {
+  if (hue >= center + HUE_NEUTRAL_HALF) return "warm";
+  if (hue <= center - HUE_NEUTRAL_HALF) return "cool";
   return "neutral";
 }
 
@@ -22,6 +35,11 @@ function seasonOf(undertone: Undertone, depth: Depth, level: ChromaLevel): Seaso
   if (undertone !== "neutral") return SEASON_TABLE[undertone][depth];
   const warmLike = (depth === "light") === (level === "clear");
   return SEASON_TABLE[warmLike ? "warm" : "cool"][depth];
+}
+
+/** 기준값 t로 시즌만 낸다. classifyTone과 같은 규칙 */
+export function seasonFor(hue: number, itaDeg: number, c: number, t: Thresholds): Season {
+  return seasonOf(undertoneOf(hue, t.hueCenter), itaDeg >= t.itaLightMin ? "light" : "deep", c >= t.chromaClearMin ? "clear" : "muted");
 }
 
 /** 웜/쿨 임계값을 넘어선 거리(°). 뉴트럴이면 0 */
