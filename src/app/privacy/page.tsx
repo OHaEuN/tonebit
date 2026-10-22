@@ -39,7 +39,17 @@ export default function PrivacyPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">3. 쿠키와 저장소</h2>
+        <h2 className="text-xl font-semibold">3. AI 뷰티 상담 (선택)</h2>
+        <p>
+          결과 화면에서 질문을 보내면, 이용자가 입력한 질문과 판정 결과(시즌·세부 타입)와 측정 숫자(색상각, 밝기 지표, 채도)가 서버를 거쳐 답변 생성을
+          위해 Google Gemini API로 전달됩니다. 사진과 얼굴 이미지는 보내지 않습니다. 무료 이용 등급에서는 전달된 내용이 Google의 서비스 개선에 쓰일 수
+          있으니 개인정보를 질문에 적지 말아 주세요.
+        </p>
+        <p>톤픽은 질문 내용을 저장하지 않습니다. 무료 사용 한도를 지키기 위해 하루 전체 호출 횟수만 날짜별로 셉니다.</p>
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-xl font-semibold">4. 쿠키와 저장소</h2>
         <p>톤픽은 쿠키, 로컬 저장소, 계정 어느 것으로도 이용자를 식별하거나 기억하지 않습니다. 광고 스크립트도 싣지 않습니다.</p>
         <p>
           서비스 개선을 위해 쿠키 없는 방문 통계 도구(Umami)로 어떤 페이지를 봤는지, 테스트의 어느 단계까지 진행했는지 같은 흐름만 집계합니다.
@@ -48,7 +58,7 @@ export default function PrivacyPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">4. 제휴 링크 (쿠팡 파트너스)</h2>
+        <h2 className="text-xl font-semibold">5. 제휴 링크 (쿠팡 파트너스)</h2>
         <p>
           결과 페이지의 제품 링크는 쿠팡 파트너스 제휴 링크입니다. 링크를 통해 구매가 이루어지면 운영자가 일정액의 수수료를 받습니다. 링크를
           클릭해 쿠팡으로 이동한 뒤부터는 쿠팡의 서비스 약관과 개인정보처리방침이 적용됩니다.
@@ -56,12 +66,12 @@ export default function PrivacyPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">5. 호스팅과 접속 기록</h2>
+        <h2 className="text-xl font-semibold">6. 호스팅과 접속 기록</h2>
         <p>사이트는 호스팅 제공자의 서버에서 제공되며, 제공자는 서비스 운영을 위해 IP 주소와 접속 시각 같은 로그를 일시적으로 보관할 수 있습니다.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">6. 문의</h2>
+        <h2 className="text-xl font-semibold">7. 문의</h2>
         <p>
           개인을 알아볼 수 있는 정보를 수집하지 않아 별도의 연락처를 두지 않았습니다. 질문이나 요청은{" "}
           <a href={ISSUES_URL} target="_blank" rel="noopener" className="text-accent underline">

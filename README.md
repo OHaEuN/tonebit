@@ -6,9 +6,11 @@
 얼굴 이미지는 어떤 경우에도 서버로 가지 않습니다. 분석·렌더링 전부가 브라우저 안에서 끝납니다.
 
 - 스택: Next.js 16 (App Router, Cache Components) · React 19 · TypeScript strict · Tailwind v4 · Zustand · MediaPipe Tasks Vision (Face Landmarker)
-- 결과: 웜·쿨과 12시즌 세부 타입, 그렇게 판정한 근거 문장, 톤별 설명과 어울리는 색, 시즌 팔레트와 인기 립·블러셔 제품 색으로 가상 체험
-- 테스트: Vitest (색 분석 순수 함수) · Playwright (가짜 카메라 + 고정 셀카 fixture)
-- CI: GitHub Actions (lint → typecheck → unit → e2e)
+- 서버: Postgres + pgvector (Supabase 무료 등급) · Gemini API 무료 등급(함수 호출·임베딩) · Docker
+- 결과: 웜·쿨과 12시즌 세부 타입, 그렇게 판정한 근거 문장, 톤별 설명과 어울리는 색, 시즌 팔레트와 인기 립·블러셔 제품 색으로 가상 체험, 결과에 맞춘 AI 뷰티 상담
+- 데이터 루프: 이용자가 알려 준 전문가 진단 → Postgres → 매주 교차검증으로 판정 기준 재보정 → PR → 배포, 일치율은 `/accuracy`에 공개
+- 테스트: Vitest (색 분석·재보정 순수 함수, 실제 Postgres 통합) · Playwright (가짜 카메라 + 고정 셀카, 가짜 Gemini로 에이전트 전체 흐름)
+- CI/CD: GitHub Actions (lint → typecheck → unit → e2e · DB 통합 · Docker 빌드), master 머지 시 DB 마이그레이션·지식 적재, 주간 재보정
 
 ## 프라이버시 설계
 
@@ -23,6 +25,7 @@
 | 공유 URL | `/r/{tone}` 뿐입니다 (예: `/r/spring-light`). 측정값, 이미지, 식별자 어떤 것도 싣지 않습니다. |
 | 공유 카드 | `next/og`로 서버에서 그리는 OG 이미지는 톤 이름과 팔레트만 담습니다. 얼굴이 들어갈 입력 자체가 없습니다. |
 | 방문 통계 | Umami(쿠키 없음)를 `/stats`로 프록시해서 씁니다. 브라우저는 우리 도메인만 보고, 이벤트에는 단계 이름과 톤 이름만 싣습니다. |
+| 진단 피드백·AI 상담 | 서버로 가는 건 측정 숫자(색상각·ITA·채도)와 이용자가 고른 진단·입력한 질문뿐입니다. 요청 본문은 서버에서 필요한 필드만 골라 쓰고(사진 필드가 있어도 버림), 질문 내용은 DB에 남기지 않습니다. |
 
 ## 아키텍처
 
@@ -44,9 +47,16 @@ src/
     try/         useTryOnLoop (rAF 루프), useStillAnalysis (업로드), TrySession 및 하위 UI
     recommend/   palettes(시즌·12톤 설명), products.json(인기 립·블러셔), getProducts, affiliate, ProductCard
     analytics/   track (Umami 이벤트), Analytics (스크립트 로더)
+    feedback/    전문가 진단 입력·검사·저장(Postgres), 일치율 집계 SQL
+    advisor/     AI 상담: gemini(REST), tools(검색), agent(함수 호출 루프·폴백), seed(지식 적재), knowledge/
+  app/api/       feedback·advisor 라우트 핸들러
+  app/accuracy/  전문가 진단 일치율 공개 페이지
+  lib/db.ts      Postgres 연결(postgres.js, 풀러용 prepare: false)
     share/       resultUrl, ShareButtons (Web Share API, 복사 fallback)
   stores/analysisStore.ts           Zustand. 단계·조명·결과·선택 색
   types/                            도메인 타입
+db/migrations/                      SQL 마이그레이션 (pnpm db:migrate)
+scripts/                            migrate · seed-knowledge · calibrate (tsx로 실행)
 ```
 
 프레임 흐름 (카메라):
@@ -61,6 +71,41 @@ video frame ─ detectForVideo ─▶ 478 landmarks
 업로드 경로는 같은 함수를 한 번만 호출하고, 색을 고를 때마다 정지 화면을 다시 그립니다.
 
 tasks-vision(약 10MB)은 `/try`의 훅이 마운트될 때 `import()`로 처음 내려받습니다. 랜딩 페이지 번들에는 들어가지 않습니다. 모델·wasm은 `Cache-Control: immutable`이라 재방문은 즉시 뜹니다.
+
+## 서버 쪽: 데이터 루프와 AI 상담
+
+얼굴 분석은 계속 브라우저에서만 돕니다. 서버는 숫자와 글만 다룹니다.
+
+```
+ 브라우저 (온디바이스 분석)                     서버 (Vercel 함수)                         Postgres + pgvector (Supabase)
+ ─────────────────────────                   ─────────────────                         ──────────────────────────────
+ 측정 숫자 + 전문가 진단 ──POST /api/feedback──▶ 필드 검사 → insert ─────────────────────▶ feedback
+                                             revalidateTag("accuracy")                      │
+ /accuracy ◀──────── 'use cache' (1시간) ◀──── SQL 한 번으로 시즌별·흰색 보정별 일치율 ◀───────┤
+                                                                                           │
+ GitHub Actions (매주) ── scripts/calibrate.ts: 좌표 하강 + 5겹 교차검증 ◀──────────────────────┘
+        └─ 지금보다 2%p 넘게 나으면 calibration.json을 고쳐 PR → 사람이 머지 → Vercel 배포
+
+ 질문 + 진단 숫자 ──POST /api/advisor──▶ 에이전트 루프 (Gemini 함수 호출, 최대 5단계)
+        ▲ NDJSON 진행 이벤트              ├─ search_products ─▶ products: 벡터 유사도 + 내 팔레트 색차 + 가격대 SQL
+        │ ("립을 찾는 중…", 제품 카드,     ├─ search_guides   ─▶ guides: 퍼스널 컬러 가이드 RAG
+        │  발라 보기)                      ├─ show_products / try_on ─▶ 화면 동작(검색에 나온 id만)
+        └────────────────────────────────┘  한도 초과·장애 → 검색만으로 답하는 폴백, 하루 호출 수는 advisor_usage
+```
+
+**전문가 진단으로 기준 다시 맞추기.** 처음 기준값(웜·쿨 중심 색상각, 라이트·딥 ITA, 선명·뮤트 채도)은 FairFace 분포의 중앙값이라 "사람들 사이에서 고르게 나뉘는" 값일 뿐 전문가 진단과 맞는다는 보장은 없습니다. 그래서 결과 화면에서 전문가 진단을 받아 본 이용자가 동의하고 알려 주면 측정 숫자와 함께 저장하고, `scripts/calibrate.ts`가 매주 기준값을 다시 찾습니다.
+- 시즌은 웜·쿨과 라이트·딥으로 거의 정해지고 채도는 뉴트럴일 때만 쓰여 축끼리 얽힘이 약해서, 축마다 번갈아 훑는 좌표 하강(3바퀴)으로 일치율 최대값을 찾습니다. 동점이면 덜 움직이는 값.
+- 그 데이터로 맞춘 기준을 같은 데이터로 채점하면 낙관적이라, 맞추는 절차 전체를 5겹 교차검증으로 채점하고 지금 기준(이 데이터로 맞춘 게 아님)의 일치율과 비교합니다.
+- 50건 미만, 이득 2%p 미만이면 바꾸지 않고, 한 번에 움직이는 폭(색상각 ±3°, ITA ±8°, 채도 ±3)도 묶어 표본 치우침으로 크게 튀지 않게 합니다.
+- 바꿀 만하면 워크플로가 `calibration.json`만 고친 PR을 엽니다(GITHUB_TOKEN PR엔 CI가 돌지 않아 워크플로 안에서 typecheck·test를 먼저 돌림). 피드백마다 그때 쓴 기준 버전이 남아서 버전별 성능을 비교할 수 있습니다.
+
+**AI 뷰티 상담 (RAG + 함수 호출 에이전트).** 결과 화면에서 "출근할 때 바를 립 골라 줘" 같은 질문을 하면, 모델이 도구를 골라 쓰며 답합니다.
+- 지식: 제품 25개와 퍼스널 컬러 가이드 14조각을 Gemini `gemini-embedding-001`(768차원으로 줄여 정규화)로 임베딩해 pgvector에 둡니다. 제품 설명은 손으로 쓰지 않고 Lab 색에서 "코랄·피치, 웜", "모브·라벤더 핑크, 쿨" 같은 색 낱말을 만들어 붙여서, "차분한 MLBB" 같은 질문이 제품과 만나게 했습니다. 내용 해시가 바뀐 줄만 다시 임베딩해 무료 한도를 아낍니다.
+- 검색 점수 = 0.5 × 질문과의 코사인 유사도 + 0.35 × 내 시즌 팔레트와의 색 가까움(가장 가까운 팔레트 색과의 ΔE) + 0.15(내 시즌 제품). 가격대·제형·카테고리는 SQL 조건으로 거릅니다.
+- 환각 막기: 모델이 보여 주거나 바를 수 있는 제품은 이번 대화에서 검색으로 나온 id뿐이고, 없는 id는 도구가 거절합니다. 답은 평문으로만 렌더링합니다.
+- 무료 등급 지키기: IP별 분당 8회, 하루 전체 호출 수 상한(`ADVISOR_DAILY_CAP`, 기본 200)을 DB에 셉니다. 한도 초과나 장애면 임베딩 없이 키워드 + 색 점수로 검색만 해서 제품을 보여 주는 폴백으로 내려갑니다.
+- 진행 상황을 NDJSON으로 흘려 "립을 찾는 중…" → 제품 카드 → 답 순서로 바로 보이고, 카드의 "발라 보기"나 모델의 `try_on`은 그 색을 사진에 바로 바르고 얼굴을 크게 잡은 뷰어를 엽니다.
+- 테스트: 각본대로 답하는 가짜 모델로 에이전트 루프를 실제 Postgres 위에서 검증하고(지어낸 id 거절, 폴백, 사용량), CI에서는 가짜 Gemini 서버(`e2e/mock-gemini.mjs`)를 띄워 브라우저 → API → 에이전트 → DB → 화면 동작까지 e2e로 돌립니다.
 
 ## 색 분석 알고리즘
 
@@ -159,6 +204,21 @@ pnpm e2e              # Playwright. 가짜 카메라 플래그 + e2e/fixtures/fa
 pnpm build
 ```
 
+DB·AI까지 로컬에서 돌리려면 Docker로 Postgres(pgvector)를 띄웁니다. Gemini 키가 없으면 가짜 서버로 대신합니다.
+
+```bash
+docker compose up -d db
+export DATABASE_URL=postgres://postgres:postgres@localhost:5432/tonepick
+pnpm db:migrate && pnpm db:seed           # 스키마 + 제품·가이드 적재(GEMINI_API_KEY가 있으면 임베딩)
+node e2e/mock-gemini.mjs &                # 키 없이: 가짜 Gemini
+export GEMINI_API_KEY=test GEMINI_BASE_URL=http://localhost:3999/v1beta
+TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/tonepick_test pnpm test   # DB 통합 테스트 포함
+INTEGRATION=1 pnpm e2e e2e/integration.spec.ts
+pnpm calibrate --dry-run                  # 재보정 결과만 보기
+
+docker compose up --build                 # 앱까지 컨테이너로 (http://localhost:3000)
+```
+
 Next 16은 디렉토리당 dev 서버를 하나만 허용합니다. E2E는 3100 포트에 자체 dev 서버를 띄우므로 다른 dev 서버가 떠 있으면 먼저 내려야 합니다.
 
 OG 카드나 톤 설명 문구를 바꿨으면 한글 서브셋 폰트를 다시 만듭니다 (카드에 쓰는 글자만 담아 약 60KB).
@@ -181,17 +241,16 @@ Vercel 기준으로 맞춰져 있습니다. `headers()`, `next/og`, 정적 생�
 
 Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수익이 실제로 붙는 시점에는 Pro 또는 Cloudflare(OpenNext)로 옮깁니다. 코드에 플랫폼 종속은 없습니다.
 
-### 진단 결과 모으기 (선택 기능)
+### DB·AI 켜기 (무료)
 
-결과 화면의 "전문가에게 퍼스널 컬러 진단을 받아 봤나요?"는 저장소가 연결돼 있을 때만 보입니다.
+전부 무료 등급으로 돕니다. 값이 없으면 해당 기능만 꺼지고 나머지는 그대로 동작합니다.
 
-1. Vercel 프로젝트 → Storage → Marketplace에서 **Upstash for Redis**를 만들어 이 프로젝트에 연결합니다. `KV_REST_API_URL`·`KV_REST_API_TOKEN`이 자동으로 생깁니다. Upstash를 직접 만들면 `UPSTASH_REDIS_REST_URL`·`UPSTASH_REDIS_REST_TOKEN`을 넣어도 됩니다.
-2. 모은 데이터를 내려받을 비밀값 `FEEDBACK_ADMIN_TOKEN`을 환경 변수에 넣습니다.
-3. 다시 배포합니다. 진단 입력 칸이 켜지는지는 빌드할 때 정해집니다.
+1. **Supabase** 프로젝트를 만들고(무료) Project Settings → Database → Connection string에서 **Transaction pooler** 주소(6543 포트)를 복사합니다. 서버리스 함수와 GitHub Actions(IPv4)에서 붙을 수 있는 주소입니다. 무료 프로젝트는 일주일 동안 요청이 없으면 일시정지되니, 주간 재보정 워크플로가 깨워 주는 역할도 합니다.
+2. **Google AI Studio**에서 Gemini API 키를 만듭니다(무료 등급). 무료 등급 입력은 Google 서비스 개선에 쓰일 수 있어서, 상담에는 사진 없이 진단 숫자와 질문만 보냅니다.
+3. **Vercel** 환경 변수: `DATABASE_URL`, `GEMINI_API_KEY`(선택: `GEMINI_MODEL`, `ADVISOR_DAILY_CAP`). 화면에 기능을 켤지는 빌드 때 정해지므로 넣은 뒤 다시 배포합니다.
+4. **GitHub 저장소 Secrets**: `DATABASE_URL`, `GEMINI_API_KEY`. master에 머지되면 `DB 배포` 워크플로가 마이그레이션과 지식 적재를, 매주 월요일 `판정 기준 재보정` 워크플로가 재보정을 합니다. 처음 한 번은 Actions 탭에서 `DB 배포`를 수동 실행하면 됩니다.
 
-내려받기: `curl -H "Authorization: Bearer $FEEDBACK_ADMIN_TOKEN" https://<도메인>/api/feedback`
-
-한 건에는 이용자가 고른 진단(시즌·세부 타입), 톤픽 판정, 측정 숫자(Lab·색상각·ITA), 합친 장수, 소스, 보정 여부, 날짜만 있습니다. 사진이나 사람을 알아볼 값은 없습니다. 충분히 모이면 FairFace로 분포를 맞춘 지금 기준선을 전문가 진단과 맞도록 다시 맞춥니다.
+모은 진단을 내려받기: `FEEDBACK_ADMIN_TOKEN`을 환경 변수에 넣고 `curl -H "Authorization: Bearer $FEEDBACK_ADMIN_TOKEN" https://<도메인>/api/feedback`.
 
 ## 수익화 연결
 
@@ -211,4 +270,5 @@ Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수�
 - 12시즌 세분화 (chroma·ITA 2차 분할)
 - 실측 FPS가 모바일에서 30 미만이면 랜드마커를 Web Worker로
 - 실제 광고 스크립트 연결 시 `/r` 라우트 CSP 완화
-- 진단 결과가 모이면 `features/analysis/constants.ts` 임계값을 전문가 진단과 맞도록 튜닝
+- 실시간 카메라에도 흰 종이 자동 찾기
+- 제품 DB 확장(쇼핑몰 API 승인 후 `seed`가 API에서 읽게)
