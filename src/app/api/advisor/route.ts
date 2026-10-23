@@ -1,5 +1,5 @@
 import { runAgent, runFallback, type AdvisorEvent } from "@/features/advisor/agent";
-import { gemini, geminiChat, geminiEnabled } from "@/features/advisor/gemini";
+import { CHAT_MODELS, gemini, geminiChat, geminiEnabled, switchable } from "@/features/advisor/gemini";
 import { createRateLimiter, parseAdvisorRequest } from "@/features/advisor/request";
 import { hasBudget, recordCalls } from "@/features/advisor/usage";
 import { db, dbEnabled } from "@/lib/db";
@@ -33,13 +33,25 @@ export async function POST(request: Request) {
       const ctx = { sql, embedder: geminiEnabled() ? gemini : null, profile };
       try {
         if (geminiEnabled() && (await hasBudget(sql))) {
-          try {
-            const { calls } = await runAgent({ model: geminiChat(), ctx, history, emit });
-            await recordCalls(sql, calls);
-          } catch (e) {
-            console.error("advisor agent", e);
-            await runFallback(ctx, history, emit);
+          let models = CHAT_MODELS;
+          let calls = 0;
+          let answered = false;
+          // 붙은 모델이 대화 중간에 막히면(무료 한도·붐빔) 남은 모델로 처음부터 다시 돌린다. 두 번까지
+          for (let attempt = 0; attempt < 2 && !answered && models.length; attempt++) {
+            const chat = geminiChat(models);
+            try {
+              await runAgent({ model: chat, ctx, history, emit });
+              answered = true;
+            } catch (e) {
+              console.error("advisor agent", chat.model(), e);
+              if (!switchable(e) || !chat.model()) break;
+              models = models.filter((m) => m !== chat.model());
+            } finally {
+              calls += chat.calls();
+            }
           }
+          await recordCalls(sql, calls);
+          if (!answered) await runFallback(ctx, history, emit);
         } else {
           await runFallback(ctx, history, emit);
         }

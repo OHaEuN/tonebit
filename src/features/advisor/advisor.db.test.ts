@@ -40,9 +40,6 @@ function scripted(steps: ((contents: Content[]) => Content["parts"])[]): ChatMod
   };
 }
 
-const lastResults = (contents: Content[]) =>
-  (contents.at(-1)!.parts[0].functionResponse!.response as { results: { id: string }[] }).results;
-
 describe.skipIf(!TEST_DB)("AI 상담: 지식 적재·검색·에이전트 (Postgres + pgvector)", () => {
   let sql: postgres.Sql;
   let ctx: ToolContext;
@@ -69,27 +66,42 @@ describe.skipIf(!TEST_DB)("AI 상담: 지식 적재·검색·에이전트 (Postg
     expect(cheap.every((h) => h.priceTier === "under20k")).toBe(true);
   });
 
-  it("에이전트: 검색 → 카드로 보여 주고 발라 보기 → 답", async () => {
+  it("에이전트: 검색 → 발라 보기 → 답, 답에 나온 검색 결과만 카드로 붙는다", async () => {
+    let picked = "";
     const model = scripted([
       () => [{ functionCall: { name: "search_products", args: { query: "출근용 차분한 로즈", category: "lip" } } }],
       (c) => {
-        const id = lastResults(c)[0].id;
-        return [
-          { functionCall: { name: "show_products", args: { ids: [id, "made-up-id"] } } },
-          { functionCall: { name: "try_on", args: { id } } },
-        ];
+        const r = (c.at(-1)!.parts[0].functionResponse!.response as { results: { id: string; product: string }[] }).results[0];
+        picked = r.product;
+        return [{ functionCall: { name: "try_on", args: { id: r.id } } }];
       },
-      () => [{ text: "차분한 로즈가 여름 쿨 피부의 핑크기와 잘 맞아요." }],
+      // 검색에 없던 "맥 립스틱 디바"는 이름이 나와도 카드가 붙지 않는다
+      () => [{ text: `${picked}가 여름 쿨 피부의 핑크기와 잘 맞아요. 맥 립스틱 디바도 유명하죠.` }],
     ]);
     const events: AdvisorEvent[] = [];
     const { calls } = await runAgent({ model, ctx, history: [{ role: "user", text: "출근용 립 추천해 줘" }], emit: (e) => events.push(e) });
     expect(calls).toBe(3);
     const products = events.find((e) => e.type === "products");
-    expect(products && products.type === "products" && products.items.map((i) => i.id)).toHaveLength(1); // 지어낸 id는 빠진다
+    expect(products?.type === "products" && products.items.map((i) => i.label)).toEqual([picked]);
     expect(events.some((e) => e.type === "tryOn")).toBe(true);
-    expect(events.at(-1)).toEqual({ type: "answer", text: "차분한 로즈가 여름 쿨 피부의 핑크기와 잘 맞아요.", mode: "ai" });
-    // 시스템 프롬프트 대신 대화엔 사진이 없고, 함수 응답이 모델에 돌아갔다
+    expect(events.at(-1)).toMatchObject({ type: "answer", mode: "ai" });
     expect(model.seen[1].at(-1)!.parts[0].functionResponse?.name).toBe("search_products");
+  });
+
+  it("모델이 카드를 안 붙이고 글로만 말해도, 답에 나온 검색 결과를 카드로 붙인다", async () => {
+    let named = "";
+    const model = scripted([
+      () => [{ functionCall: { name: "search_products", args: { query: "모브 로즈 립", category: "lip" } } }],
+      (c) => {
+        const r = (c.at(-1)!.parts[0].functionResponse!.response as { results: { product: string }[] }).results[0];
+        named = r.product;
+        return [{ text: `${named}가 잘 어울려요.` }];
+      },
+    ]);
+    const events: AdvisorEvent[] = [];
+    await runAgent({ model, ctx, history: [{ role: "user", text: "립 추천" }], emit: (e) => events.push(e) });
+    const products = events.find((e) => e.type === "products");
+    expect(products?.type === "products" && products.items.map((i) => i.label)).toEqual([named]);
   });
 
   it("검색하지 않은 제품은 바를 수 없다", async () => {
