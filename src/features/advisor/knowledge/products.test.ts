@@ -12,3 +12,13 @@ describe("colorWords", () => {
     for (const p of PRODUCTS) expect(describeProduct(p)).toMatch(/가격대/);
   });
 });
+
+describe("mentionedProducts", () => {
+  const hit = (brand: string, shade: string) => ({ id: shade, category: "lip" as const, brand, name: "", shade, hex: "#000", finish: "matte", seasons: [], priceTier: "under20k" as const, description: "", score: 1 });
+  it("브랜드와 색 이름이 같이 나와야 센다", async () => {
+    const { mentionedProducts } = await import("../agent");
+    const hits = [hit("롬앤", "05 피치 미"), hit("디올", "004 코랄"), hit("맥", "칠리")];
+    expect(mentionedProducts("롬앤 피치 미와 디올 코랄 립밤이 좋아요", hits).map((h) => h.shade)).toEqual(["05 피치 미", "004 코랄"]);
+    expect(mentionedProducts("코랄 컬러가 잘 어울려요", hits)).toEqual([]);
+  });
+});

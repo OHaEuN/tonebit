@@ -92,6 +92,22 @@ describe.skipIf(!TEST_DB)("AI 상담: 지식 적재·검색·에이전트 (Postg
     expect(model.seen[1].at(-1)!.parts[0].functionResponse?.name).toBe("search_products");
   });
 
+  it("모델이 카드를 안 붙이고 글로만 말해도, 답에 나온 검색 결과를 카드로 붙인다", async () => {
+    let named = "";
+    const model = scripted([
+      () => [{ functionCall: { name: "search_products", args: { query: "모브 로즈 립", category: "lip" } } }],
+      (c) => {
+        const r = (c.at(-1)!.parts[0].functionResponse!.response as { results: { product: string }[] }).results[0];
+        named = r.product;
+        return [{ text: `${named}가 잘 어울려요.` }];
+      },
+    ]);
+    const events: AdvisorEvent[] = [];
+    await runAgent({ model, ctx, history: [{ role: "user", text: "립 추천" }], emit: (e) => events.push(e) });
+    const products = events.find((e) => e.type === "products");
+    expect(products?.type === "products" && products.items.map((i) => i.label)).toEqual([named]);
+  });
+
   it("검색하지 않은 제품은 바를 수 없다", async () => {
     const model = scripted([() => [{ functionCall: { name: "try_on", args: { id: "lip-mac-diva" } } }], () => [{ text: "죄송해요" }]]);
     const events: AdvisorEvent[] = [];

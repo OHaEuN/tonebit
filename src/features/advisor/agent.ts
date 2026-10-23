@@ -57,6 +57,19 @@ function card(id: string): ProductCard | null {
   };
 }
 
+/**
+ * 답 글에 이름이 나온 제품. 브랜드와 색 이름(앞 번호를 뗀 "피치 미"·"코랄" 등)이 둘 다 나와야 센다.
+ * "코랄 컬러"처럼 색 이름만 겹치는 일반 낱말에 걸리지 않게 브랜드를 같이 본다
+ */
+export function mentionedProducts(text: string, hits: ProductHit[], max = 3): ProductHit[] {
+  return hits
+    .filter((h) => {
+      const shade = h.shade.replace(/^\d+\s*/, "").trim();
+      return text.includes(h.brand) && (text.includes(h.shade) || (shade.length >= 2 && text.includes(shade)));
+    })
+    .slice(0, max);
+}
+
 export function systemPrompt(ctx: ToolContext): string {
   const { season, subtype, hue, ita, chroma } = ctx.profile;
   const info = SEASON_INFO[season];
@@ -106,6 +119,13 @@ export async function runAgent({ model, ctx, history, emit }: RunOptions): Promi
         .map((p) => p.text)
         .join("")
         .trim();
+      // 모델이 제품을 글로만 말하고 카드(show_products)를 안 붙일 때가 있다. 답에 이름이 나온 검색 결과를 대신 붙인다
+      if (!shown) {
+        const items = mentionedProducts(text, [...seen.values()])
+          .map((h) => card(h.id))
+          .filter((c): c is ProductCard => c !== null);
+        if (items.length) emit({ type: "products", items });
+      }
       emit({ type: "answer", text: text || "음, 답을 정리하지 못했어요. 다르게 물어봐 주세요.", mode: "ai" });
       return { calls: step + 1 };
     }
