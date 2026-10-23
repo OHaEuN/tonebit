@@ -105,6 +105,7 @@ tasks-vision(약 10MB)은 `/try`의 훅이 마운트될 때 `import()`로 처음
 - 지식: 제품 25개와 퍼스널 컬러 가이드 14조각을 Gemini `gemini-embedding-001`(768차원으로 줄여 정규화)로 임베딩해 pgvector에 둡니다. 제품 설명은 손으로 쓰지 않고 Lab 색에서 "코랄·피치, 웜", "모브·라벤더 핑크, 쿨" 같은 색 낱말을 만들어 붙여서, "차분한 MLBB" 같은 질문이 제품과 만나게 했습니다. 내용 해시가 바뀐 줄만 다시 임베딩해 무료 한도를 아낍니다.
 - 검색 점수 = 0.5 × 질문과의 코사인 유사도 + 0.35 × 내 시즌 팔레트와의 색 가까움(가장 가까운 팔레트 색과의 ΔE) + 0.15(내 시즌 제품). 가격대·제형·카테고리는 SQL 조건으로 거릅니다.
 - 환각 막기: 모델이 보여 주거나 바를 수 있는 제품은 이번 대화에서 검색으로 나온 id뿐이고, 없는 id는 도구가 거절합니다. 답은 평문으로만 렌더링합니다.
+- 모델 교체에 버티기: 무료 모델은 예고 없이 내려가고(2026-10 `gemini-2.5-flash`가 새 키에 404) 자주 붐벼서(503), `gemini-3.8-flash → gemini-flash-latest → gemini-flash-lite-latest` 순으로 시도합니다(`GEMINI_MODEL`에 쉼표로 바꿈). 대화 한 번은 처음 응답한 모델에 붙어 끝까지 가고(함수 호출 다음 턴의 생각 서명이 모델마다 달라서), 404를 받은 모델은 그 서버에서 다시 시도하지 않습니다.
 - 무료 등급 지키기: IP별 분당 8회, 하루 전체 호출 수 상한(`ADVISOR_DAILY_CAP`, 기본 200)을 DB에 셉니다. 한도 초과나 장애면 임베딩 없이 키워드 + 색 점수로 검색만 해서 제품을 보여 주는 폴백으로 내려갑니다.
 - 진행 상황을 NDJSON으로 흘려 "립을 찾는 중…" → 제품 카드 → 답 순서로 바로 보이고, 카드의 "발라 보기"나 모델의 `try_on`은 그 색을 사진에 바로 바르고 얼굴을 크게 잡은 뷰어를 엽니다.
 - 테스트: 각본대로 답하는 가짜 모델로 에이전트 루프를 실제 Postgres 위에서 검증하고(지어낸 id 거절, 폴백, 사용량), CI에서는 가짜 Gemini 서버(`e2e/mock-gemini.mjs`)를 띄워 브라우저 → API → 에이전트 → DB → 화면 동작까지 e2e로 돌립니다.
@@ -331,7 +332,7 @@ Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수�
 
 1. **Supabase** 프로젝트를 만들고(무료) Project Settings → Database → Connection string에서 **Transaction pooler** 주소(6543 포트)를 복사합니다. 서버리스 함수와 GitHub Actions(IPv4)에서 붙을 수 있는 주소입니다. 무료 프로젝트는 일주일 동안 요청이 없으면 일시정지되니, 주간 재보정 워크플로가 깨워 주는 역할도 합니다.
 2. **Google AI Studio**에서 Gemini API 키를 만듭니다(무료 등급). 무료 등급 입력은 Google 서비스 개선에 쓰일 수 있어서, 상담에는 사진 없이 진단 숫자와 질문만 보냅니다.
-3. **Vercel** 환경 변수: `DATABASE_URL`, `GEMINI_API_KEY`(선택: `GEMINI_MODEL`, `ADVISOR_DAILY_CAP`). 화면에 기능을 켤지는 빌드 때 정해지므로 넣은 뒤 다시 배포합니다.
+3. **Vercel** 환경 변수: `DATABASE_URL`, `GEMINI_API_KEY`(선택: `GEMINI_MODEL`=쉼표로 구분한 모델 목록, `ADVISOR_DAILY_CAP`). 화면에 기능을 켤지는 빌드 때 정해지므로 넣은 뒤 다시 배포합니다.
 4. **GitHub 저장소 Secrets**: `DATABASE_URL`, `GEMINI_API_KEY`. master에 머지되면 `DB 배포` 워크플로가 마이그레이션과 지식 적재를, 매주 월요일 `판정 기준 재보정` 워크플로가 재보정을 합니다. 처음 한 번은 Actions 탭에서 `DB 배포`를 수동 실행하면 됩니다.
 
 모은 진단을 내려받기: `FEEDBACK_ADMIN_TOKEN`을 환경 변수에 넣고 `curl -H "Authorization: Bearer $FEEDBACK_ADMIN_TOKEN" https://<도메인>/api/feedback`.

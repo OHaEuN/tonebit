@@ -1,5 +1,5 @@
 import { runAgent, runFallback, type AdvisorEvent } from "@/features/advisor/agent";
-import { gemini, geminiEnabled } from "@/features/advisor/gemini";
+import { gemini, geminiChat, geminiEnabled } from "@/features/advisor/gemini";
 import { createRateLimiter, parseAdvisorRequest } from "@/features/advisor/request";
 import { hasBudget, recordCalls } from "@/features/advisor/usage";
 import { db, dbEnabled } from "@/lib/db";
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       try {
         if (geminiEnabled() && (await hasBudget(sql))) {
           try {
-            const { calls } = await runAgent({ model: gemini, ctx, history, emit });
+            const { calls } = await runAgent({ model: geminiChat(), ctx, history, emit });
             await recordCalls(sql, calls);
           } catch (e) {
             console.error("advisor agent", e);
