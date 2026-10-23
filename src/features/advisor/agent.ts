@@ -37,7 +37,6 @@ const MAX_STEPS = 5;
 const STATUS: Record<string, (args: Record<string, unknown>) => string> = {
   search_products: (a) => `${a.category === "blush" ? "블러셔" : a.category === "lip" ? "립" : "제품"}을 찾는 중…`,
   search_guides: () => "퍼스널 컬러 가이드를 찾아보는 중…",
-  show_products: () => "고른 제품을 정리하는 중…",
   try_on: () => "사진에 발라 보는 중…",
 };
 
@@ -57,6 +56,19 @@ function card(id: string): ProductCard | null {
   };
 }
 
+/**
+ * 답 글에 이름이 나온 제품. 브랜드와 색 이름(앞 번호를 뗀 "피치 미"·"코랄" 등)이 둘 다 나와야 센다.
+ * "코랄 컬러"처럼 색 이름만 겹치는 일반 낱말에 걸리지 않게 브랜드를 같이 본다
+ */
+export function mentionedProducts(text: string, hits: ProductHit[], max = 3): ProductHit[] {
+  return hits
+    .filter((h) => {
+      const shade = h.shade.replace(/^\d+\s*/, "").trim();
+      return text.includes(h.brand) && (text.includes(h.shade) || (shade.length >= 2 && text.includes(shade)));
+    })
+    .slice(0, max);
+}
+
 export function systemPrompt(ctx: ToolContext): string {
   const { season, subtype, hue, ita, chroma } = ctx.profile;
   const info = SEASON_INFO[season];
@@ -66,7 +78,7 @@ export function systemPrompt(ctx: ToolContext): string {
     "규칙:",
     "- 한국어 해요체로, 3~5문장 안에서 짧고 구체적으로 답한다. 마크다운 제목·표는 쓰지 않는다.",
     "- 제품은 search_products 결과에 있는 것만 말한다. 없는 제품·가격·성분을 지어내지 않는다.",
-    "- 제품을 추천하면 show_products로 고른 id를 최대 3개 보여 준다. 답에서 왜 어울리는지 색 이유를 한 줄씩 말한다.",
+    "- 검색한 다음엔 바로 답한다. 추천할 제품(최대 3개)은 답에 브랜드와 색 이름을 결과 그대로 쓴다(그러면 화면에 카드가 붙는다). 왜 어울리는지 색 이유를 한 줄씩 말한다.",
     "- 이용자가 발라 달라·보여 달라고 하면 try_on을 부른다. 한 번에 하나.",
     "- 색 이론·피할 색·제형·블러셔 위치처럼 일반 질문은 search_guides로 근거를 찾아 답한다.",
     "- 퍼스널 컬러·메이크업과 상관없는 요청은 정중히 상담 범위를 알려 준다.",
@@ -87,14 +99,14 @@ export interface RunResult {
 
 /**
  * 함수 호출 에이전트 루프. 모델이 도구를 부르면 서버에서 실행해 결과를 돌려주고, 글로 답하면 끝낸다.
- * show_products·try_on은 화면에서 할 일이라 이벤트로 흘려보내고 모델에는 "했다"고만 알린다
+ * try_on은 화면에서 할 일이라 이벤트로 흘려보내고 모델에는 "했다"고만 알린다.
+ * 제품 카드는 따로 도구를 부르지 않고, 최종 답에 이름이 나온 검색 결과로 붙인다(무료 한도가 작아 호출 한 번을 아낀다)
  */
 export async function runAgent({ model, ctx, history, emit }: RunOptions): Promise<RunResult> {
   const contents: Content[] = history.map((t) => ({ role: t.role === "user" ? "user" : "model", parts: [{ text: t.text }] }));
   const system = systemPrompt(ctx);
   /** 이번 대화에서 검색으로 나온 제품만 보여 주거나 바를 수 있다(모델이 지어낸 id를 막는다) */
   const seen = new Map<string, ProductHit>();
-  let shown = false;
 
   for (let step = 0; step < MAX_STEPS; step++) {
     const reply = await model.generate({ system, contents, tools: TOOL_DECLARATIONS });
@@ -106,6 +118,10 @@ export async function runAgent({ model, ctx, history, emit }: RunOptions): Promi
         .map((p) => p.text)
         .join("")
         .trim();
+      const items = mentionedProducts(text, [...seen.values()])
+        .map((h) => card(h.id))
+        .filter((c): c is ProductCard => c !== null);
+      if (items.length) emit({ type: "products", items });
       emit({ type: "answer", text: text || "음, 답을 정리하지 못했어요. 다르게 물어봐 주세요.", mode: "ai" });
       return { calls: step + 1 };
     }
@@ -136,15 +152,6 @@ export async function runAgent({ model, ctx, history, emit }: RunOptions): Promi
       }
       case "search_guides":
         return { results: await searchGuides(ctx, String(args.query ?? "")) };
-      case "show_products": {
-        const ids = (Array.isArray(args.ids) ? args.ids : []).map(String).filter((id) => seen.has(id)).slice(0, 3);
-        const items = ids.map(card).filter((c): c is ProductCard => c !== null);
-        if (items.length && !shown) {
-          emit({ type: "products", items });
-          shown = true;
-        }
-        return { shown: items.map((c) => c.id) };
-      }
       case "try_on": {
         const id = String(args.id ?? "");
         const item = seen.has(id) ? card(id) : null;

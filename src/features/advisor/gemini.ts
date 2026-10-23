@@ -62,7 +62,21 @@ export class GeminiError extends Error {
   }
 }
 
-export class QuotaError extends GeminiError {}
+export class QuotaError extends GeminiError {
+  constructor(
+    detail: string,
+    /** 구글이 알려 준 다시 시도할 수 있는 때까지(ms). 무료 등급 하루 한도면 몇 시간 */
+    readonly retryAfterMs = 60_000,
+  ) {
+    super(429, detail);
+  }
+}
+
+/** 429 응답의 RetryInfo.retryDelay("11554s")를 ms로 */
+export function retryDelayMs(body: string): number | undefined {
+  const m = /"retryDelay":\s*"(\d+(?:\.\d+)?)s"/.exec(body);
+  return m ? Math.ceil(Number(m[1]) * 1000) : undefined;
+}
 
 async function call(path: string, body: unknown): Promise<unknown> {
   const key = process.env.GEMINI_API_KEY;
@@ -73,16 +87,29 @@ async function call(path: string, body: unknown): Promise<unknown> {
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(25_000),
   });
-  if (res.status === 429) throw new QuotaError(429, "무료 한도 초과");
+  if (res.status === 429) {
+    const text = await res.text();
+    throw new QuotaError(`무료 한도 초과 ${text.slice(0, 200)}`, retryDelayMs(text));
+  }
   if (!res.ok) throw new GeminiError(res.status, await res.text());
   return res.json();
 }
 
-/** 이 서버 인스턴스에서 404(내려간 모델)를 받은 모델. 다음 요청부터 건너뛴다 */
-const retired = new Set<string>();
+/**
+ * 이 서버 인스턴스에서 쓰지 말아야 할 모델과 그 기한. 내려간 모델(404)은 영영, 한도를 다 쓴 모델(429)은 구글이 알려 준 때까지.
+ * 무료 등급은 모델마다 하루 요청 수가 작아서(2026-10 gemini-3.8-flash 하루 20회) 한 번 막히면 몇 시간 그대로다
+ */
+const unavailableUntil = new Map<string, number>();
+
+export function markUnavailable(model: string, e: unknown, now = Date.now()) {
+  if (e instanceof QuotaError) unavailableUntil.set(model, now + e.retryAfterMs);
+  else if (e instanceof GeminiError && e.status === 404) unavailableUntil.set(model, Infinity);
+}
+
+export const isAvailable = (model: string, now = Date.now()) => (unavailableUntil.get(model) ?? 0) <= now;
 
 /** 다음 모델로 넘어갈 만한 실패: 내려감(404), 한도(429), 붐빔·장애(5xx), 시간 초과 */
-const switchable = (e: unknown) =>
+export const switchable = (e: unknown) =>
   e instanceof GeminiError ? e.status === 404 || e.status === 429 || e.status >= 500 : e instanceof Error && e.name === "TimeoutError";
 
 /** 768차원으로 줄인 임베딩은 정규화가 안 돼 있어 코사인 거리를 쓰기 전에 단위 벡터로 맞춘다 */
@@ -91,7 +118,18 @@ function normalize(v: number[]): number[] {
   return v.map((x) => x / n);
 }
 
-async function generateWith(model: string, { system, contents, tools }: GenerateRequest): Promise<Content> {
+/** 붐빔(5xx)은 잠깐이면 풀릴 때가 많아 한 번만 1초 뒤 다시 시도한다 */
+async function generateWith(model: string, req: GenerateRequest, retry = true): Promise<Content> {
+  try {
+    return await generateOnce(model, req);
+  } catch (e) {
+    if (!retry || !(e instanceof GeminiError) || e.status < 500) throw e;
+    await new Promise((r) => setTimeout(r, Number(process.env.GEMINI_RETRY_MS ?? 1000)));
+    return generateWith(model, req, false);
+  }
+}
+
+async function generateOnce(model: string, { system, contents, tools }: GenerateRequest): Promise<Content> {
   const data = (await call(`models/${model}:generateContent`, {
     systemInstruction: { parts: [{ text: system }] },
     contents,
@@ -106,30 +144,42 @@ async function generateWith(model: string, { system, contents, tools }: Generate
 /**
  * 대화 한 번(에이전트 루프 한 번)에 쓸 모델. 처음 응답한 모델에 붙어서 끝까지 그 모델로 간다.
  * 함수 호출 다음 턴에 돌려주는 생각 서명은 모델마다 달라서 중간에 바꾸면 거절될 수 있다.
- * 처음 응답 전에는 내려갔거나(404) 붐비거나(5xx) 한도(429)면 다음 모델로 넘어간다
+ * 처음 응답 전에는 내려갔거나(404) 붐비거나(5xx) 한도(429)면 다음 모델로 넘어간다.
+ * 붙은 모델이 중간에 막히면 그 오류를 그대로 던지고, 라우트가 남은 모델로 대화를 처음부터 다시 돌린다
  */
-export function geminiChat(models: string[] = CHAT_MODELS): ChatModel & { model: () => string | null } {
+export function geminiChat(models: string[] = CHAT_MODELS): ChatModel & { model: () => string | null; calls: () => number } {
   let pinned: string | null = null;
+  let calls = 0;
   return {
     model: () => pinned,
+    calls: () => calls,
     async generate(req) {
-      if (pinned) return generateWith(pinned, req);
-      const candidates = models.filter((m) => !retired.has(m));
-      let last: unknown = new Error("쓸 수 있는 Gemini 모델이 없어요");
-      let allQuota = candidates.length > 0;
+      if (pinned) {
+        calls++;
+        try {
+          return await generateWith(pinned, req);
+        } catch (e) {
+          markUnavailable(pinned, e);
+          throw e;
+        }
+      }
+      const candidates = models.filter((m) => isAvailable(m));
+      let last: unknown = new QuotaError("쓸 수 있는 Gemini 모델이 없어요(모두 한도 초과이거나 내려감)");
+      let allQuota = true;
       for (const m of candidates) {
+        calls++;
         try {
           const reply = await generateWith(m, req);
           pinned = m;
           return reply;
         } catch (e) {
           if (!switchable(e)) throw e;
-          if (e instanceof GeminiError && e.status === 404) retired.add(m);
+          markUnavailable(m, e);
           if (!(e instanceof QuotaError)) allQuota = false;
           last = e;
         }
       }
-      throw allQuota ? new QuotaError(429, "모든 모델이 무료 한도 초과") : last;
+      throw allQuota && !(last instanceof QuotaError) ? new QuotaError("모든 모델이 무료 한도 초과") : last;
     },
   };
 }
