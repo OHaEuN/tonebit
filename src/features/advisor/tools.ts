@@ -72,15 +72,6 @@ export const TOOL_DECLARATIONS: FunctionDeclaration[] = [
     },
   },
   {
-    name: "show_products",
-    description: "답변 아래에 제품 카드로 보여 준다. search_products 결과의 id만 쓴다. 최대 3개.",
-    parameters: {
-      type: "object",
-      properties: { ids: { type: "array", items: { type: "string" } } },
-      required: ["ids"],
-    },
-  },
-  {
     name: "try_on",
     description: "이용자 사진에 제품 색을 바로 발라 보여 준다. 이용자가 발라 달라·보여 달라고 할 때 부른다. search_products 결과의 id만 쓴다.",
     parameters: {
