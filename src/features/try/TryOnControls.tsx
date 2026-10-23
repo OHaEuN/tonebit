@@ -3,21 +3,15 @@
 import { useState } from "react";
 import { BUTTON } from "@/components/styles";
 import { ApplyControls } from "@/features/lipTryOn/ApplyControls";
-import { ColorPicker, type SwatchSection } from "@/features/lipTryOn/ColorPicker";
+import { ColorPicker } from "@/features/lipTryOn/ColorPicker";
 import { BLUSH_STYLES, LIP_STYLES } from "@/features/lipTryOn/render";
 import { ShadeScanner } from "@/features/myShade/ShadeScanner";
-import { useMyShadeStore } from "@/features/myShade/store";
 import { DrapeCompare } from "@/features/recommend/DrapeCompare";
-import { productSwatches } from "@/features/recommend/getProducts";
 import { HarmonyLine } from "@/features/recommend/HarmonyLine";
-import { SEASON_INFO, sortSwatches } from "@/features/recommend/palettes";
-import { useLipRanking } from "@/features/recommend/useLipRanking";
 import { useAnalysisStore } from "@/stores/analysisStore";
-import type { Swatch } from "@/types/product";
 import { PaletteSeasonPicker } from "./PaletteSeasonPicker";
 import { TryOnBar } from "./TryOnBar";
-
-type Part = "lip" | "blush";
+import { useTrySwatches, type Part } from "./useTrySwatches";
 
 const PARTS: [Part, string][] = [
   ["lip", "립"],
@@ -26,11 +20,6 @@ const PARTS: [Part, string][] = [
 
 interface TryOnControlsProps {
   onShowResult: () => void;
-}
-
-/** 어울림 순위가 있으면 그 순서로 줄 세운다 */
-function byRank(swatches: Swatch[], order: Map<string, number>): Swatch[] {
-  return order.size ? [...swatches].sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity)) : swatches;
 }
 
 /** 발라 보기: 팔레트 시즌, 립/블러셔 전환, 색·바르는 방법·진하기, 내 톤 고르기, 내 제품 색 재기 */
@@ -51,22 +40,11 @@ export function TryOnControls({ onShowResult }: TryOnControlsProps) {
   const setLipIntensity = useAnalysisStore((s) => s.setLipIntensity);
   const setBlushIntensity = useAnalysisStore((s) => s.setBlushIntensity);
   const setPaletteSeason = useAnalysisStore((s) => s.setPaletteSeason);
-  const mine = useMyShadeStore((s) => s.shades);
-  const ranking = useLipRanking();
+  const sections = useTrySwatches(part);
 
-  const { season, subtype } = result;
+  const { season } = result;
   const shown = paletteSeason ?? season;
-  const shownInfo = SEASON_INFO[shown];
-  const isMine = shown === season;
   const isLip = part === "lip";
-  const order = new Map(isLip && ranking ? ranking.ranked.map((r, i) => [r.item.id, i]) : []);
-  const myShades = mine.filter((m) => m.category === part);
-  const palette = isLip ? shownInfo.lips : shownInfo.blushes;
-  const sections: SwatchSection[] = [
-    ...(myShades.length ? [{ title: "내 제품", swatches: myShades }] : []),
-    { title: `${shownInfo.label} ${shownInfo.tone} 팔레트`, swatches: isMine ? sortSwatches(palette, subtype) : palette },
-    { title: isLip ? "많이 찾는 제품 · 어울리는 순" : "많이 찾는 제품", swatches: byRank(productSwatches(shown, isLip ? "lip" : "blush"), order) },
-  ];
 
   return (
     // 모바일은 사진 무대가 위에 고정돼 있어서, 칩이 스크롤로 화면에 들어올 때(키보드 이동 등) 사진 밑에 가리지 않게 그 높이만큼 여백을 둔다

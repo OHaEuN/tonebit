@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: url("/"), priority: 1 },
     { url: url("/try"), priority: 0.9 },
     ...TONE_SLUGS.map((tone) => ({ url: url(resultPath(tone)), priority: 0.8 })),
+    { url: url("/accuracy"), priority: 0.5 },
     { url: url("/privacy"), priority: 0.2 },
   ];
 }

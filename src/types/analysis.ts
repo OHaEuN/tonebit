@@ -76,6 +76,7 @@ export type LightingIssue =
   | "bright"
   | "warmCast"
   | "coolCast"
+  | "greenCast"
   | "sideLight"
   | "faceSmall";
 

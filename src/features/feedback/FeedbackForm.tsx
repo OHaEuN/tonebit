@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Disclosure } from "@/components/Disclosure";
 import { BUTTON, CHOICE_CHIP } from "@/components/styles";
@@ -29,7 +30,14 @@ export function FeedbackForm() {
 
   if (!process.env.NEXT_PUBLIC_FEEDBACK_ENABLED || !combined || !source) return null;
   if (status === "sent") {
-    return <p className="border-t border-line py-4 text-sm">보내 주셔서 고마워요. 모인 진단 결과로 판정 기준을 더 정확하게 맞출게요.</p>;
+    return (
+      <p className="border-t border-line py-4 text-sm">
+        보내 주셔서 고마워요. 모인 진단 결과로 판정 기준을 매주 다시 맞춰요.{" "}
+        <Link href="/accuracy" className="font-medium underline">
+          지금 일치율 보기
+        </Link>
+      </p>
+    );
   }
 
   const submit = async () => {

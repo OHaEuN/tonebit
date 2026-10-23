@@ -1,0 +1,38 @@
+# 로컬 전체 구성: 앱 + Postgres(pgvector). GEMINI_API_KEY는 .env에 두면 AI 상담이 켜진다
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tonepick
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      target: runner
+      args: { FEATURE_DB: "1", FEATURE_AI: "1" }
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/tonepick
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports: ["3000:3000"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  # 마이그레이션·지식 적재·재보정: docker compose run --rm tools pnpm db:migrate
+  tools:
+    build: { context: ., target: builder }
+    profiles: [tools]
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/tonepick
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      db: { condition: service_healthy }
+
+volumes:
+  pgdata:

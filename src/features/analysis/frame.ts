@@ -5,10 +5,11 @@
 import type { Lab, LightingIssue, LinearRgb, Point, ReferenceSource } from "@/types/analysis";
 import { cheekPatches, faceBounds, faceWidthRatio, inPolygon, lipOuterPolygon, mouthInnerPolygon, scleraRegions, skinPatches } from "@/features/landmark/geometry";
 import { labToY, linearRgbToLab, luma } from "./color";
-import { SCENE_THUMB, SCLERA_KEEP_BRIGHTEST, TEETH_MAX_SATURATION, TEETH_MIN_LUMA } from "./constants";
+import { SCENE_THUMB, SCLERA_KEEP_BRIGHTEST, TEETH_MAX_SATURATION, TEETH_MIN_LUMA, WHITE_SEARCH_THUMB } from "./constants";
 import { checkLighting } from "./lighting";
 import { cameraWhite, pickGains } from "./reference";
 import { lumaStats, meanRgb, medianLab, meanLinearRgbMasked, regionStat, representativeLab, type RegionStat } from "./sample";
+import { findWhiteCandidate } from "./whitePoint";
 
 /** 렌더·샘플링 해상도 상한. 이보다 크면 비례 축소 */
 export const MAX_RENDER_WIDTH = 720;
@@ -141,6 +142,31 @@ export function skinLuma(ctx: CanvasRenderingContext2D, lm: Point[], w: number, 
 export function cheekDeltaL(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: number): number {
   const [l, r] = cheekPatches(lm, w, h).map((p) => representativeLab(ctx.getImageData(p.x, p.y, p.w, p.h).data));
   return l && r ? Math.abs(l.L - r.L) : 0;
+}
+
+/** 얼굴 밖에서 흰 종이·흰 벽으로 보이는 자리(정규화 좌표). 이용자에게 제안만 한다 */
+export function suggestWhitePoint(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: number): { u: number; v: number } | null {
+  const skin = skinPatches(lm, w, h)
+    .map((r) => meanLinearRgbMasked(ctx.getImageData(r.x, r.y, r.w, r.h).data, r.w, () => true))
+    .filter((c): c is LinearRgb => c !== null);
+  if (!skin.length) return null;
+  const avg = (k: keyof LinearRgb) => skin.reduce((s, c) => s + c[k], 0) / skin.length;
+  const { w: tw, h: th } = WHITE_SEARCH_THUMB;
+  const thumb = createOffscreen(tw, th, true);
+  thumb.drawImage(ctx.canvas, 0, 0, tw, th);
+  const b = faceBounds(lm);
+  return findWhiteCandidate({
+    pixels: thumb.getImageData(0, 0, tw, th).data,
+    width: tw,
+    height: th,
+    include: (x, y) => {
+      const u = (x + 0.5) / tw;
+      const v = (y + 0.5) / th;
+      return u < b.minX || u > b.maxX || v < b.minY || v > b.maxY;
+    },
+    skinLuma: skinLuma(ctx, lm, w, h),
+    skin: { r: avg("r"), g: avg("g"), b: avg("b") },
+  });
 }
 
 export function measureLighting(

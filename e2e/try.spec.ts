@@ -122,3 +122,48 @@ test.describe("폰 화면 폭", () => {
     expect(scroll, "셀프 비교·색 재기를 펼쳐도").toBeLessThanOrEqual(client);
   });
 });
+
+test.describe("폰에서 사진 크게 보기", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  test("사진을 탭하면 얼굴을 크게 잡아 열리고, 두 번 탭해 전체·확대를 오가고, 아래에서 고른 색이 결과 화면에도 남는다", async ({ page }) => {
+    await waitForModel(page);
+    await page.getByLabel(/사진 올리기|사진으로 시작하기/).first().setInputFiles("e2e/fixtures/face.jpg");
+    await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
+    await page.getByLabel(/카메라 미리보기와 립 컬러 체험/).tap();
+    const viewer = page.getByRole("dialog", { name: "사진 크게 보기" });
+    await expect(viewer).toBeVisible();
+    const stage = page.getByTestId("photo-viewer-stage");
+    const box = (await stage.boundingBox())!;
+    await expect(viewer.getByText(/배 · 두 번 탭하면 원래 크기/)).toBeVisible();
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 3);
+    await expect(viewer.getByText("두 손가락으로 확대 · 두 번 탭")).toBeVisible();
+    await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 3);
+    await expect(viewer.getByText(/2\.5배/)).toBeVisible();
+    await viewer.locator('label:has(input[name="viewer-lip"])').nth(2).click();
+    const picked = (await viewer.locator("legend span").textContent())!;
+    expect(picked).not.toBe("선택 안 함");
+    await viewer.getByRole("button", { name: "닫기" }).click();
+    await expect(viewer).toBeHidden();
+    await page.getByRole("tab", { name: "발라 보기", exact: true }).click();
+    await expect(page.locator("legend span").filter({ hasText: picked })).toBeVisible();
+  });
+});
+
+test("형광등 아래에서 찍어도 치아 기준으로 조명을 되돌려 자연광과 같은 색으로 읽는다", async ({ page }) => {
+  await waitForModel(page);
+  const hue = async (file: string) => {
+    await page.getByLabel("사진 올리기").first().setInputFiles(file);
+    await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
+    const details = page.locator("details", { hasText: "측정값 자세히" });
+    if (!(await details.getAttribute("open"))) await details.locator("summary").click();
+    const text = (await details.locator("p.font-mono").textContent()) ?? "";
+    // 치아가 보이는 사진이라 완전 보정 기준이 있고, 그래서 흰색 자동 제안은 띄우지 않는다
+    expect(text).toContain("치아 기준");
+    await expect(page.getByRole("button", { name: "찾은 흰색으로 맞추기" })).toHaveCount(0);
+    return Number(/hue ([\d.]+)°/.exec(text)?.[1]);
+  };
+  const daylight = await hue("e2e/fixtures/face-paper.jpg");
+  await page.getByRole("button", { name: "처음부터" }).click();
+  const fluorescent = await hue("e2e/fixtures/face-paper-fluorescent.jpg");
+  expect(Math.abs(daylight - fluorescent)).toBeLessThan(2.5);
+});

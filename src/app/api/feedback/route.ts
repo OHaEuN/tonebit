@@ -1,4 +1,6 @@
+import { revalidateTag } from "next/cache";
 import { parseFeedback } from "@/features/feedback/schema";
+import { ACCURACY_TAG } from "@/features/feedback/stats";
 import { appendFeedback, feedbackEnabled, readFeedback } from "@/features/feedback/store";
 
 /** 이용자가 동의하고 보낸 진단 결과 한 건을 저장한다. 사진은 받지 않는다 */
@@ -19,6 +21,8 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ error: "store failed" }, { status: 502 });
   }
+  // 하루 몇 건 수준이라 바로 비워도 부담이 없다. 보낸 사람이 정확도 페이지에서 곧바로 반영된 숫자를 본다
+  revalidateTag(ACCURACY_TAG, { expire: 0 });
   return Response.json({ ok: true });
 }
 
