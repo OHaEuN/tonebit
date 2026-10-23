@@ -13,7 +13,8 @@
     "postinstall": "node scripts/copy-wasm.mjs",
     "db:migrate": "tsx scripts/migrate.ts",
     "calibrate": "tsx scripts/calibrate.ts",
-    "db:seed": "tsx scripts/seed-knowledge.ts"
+    "db:seed": "tsx scripts/seed-knowledge.ts",
+    "check:env": "tsx scripts/check-env.ts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",

@@ -1,7 +1,15 @@
 name: DB 배포
 
-# master에 스키마나 지식(제품·가이드)이 바뀌어 들어오면 운영 DB에 마이그레이션하고 바뀐 지식만 다시 임베딩한다
+# PR: 운영 DB·Gemini 연결과 머지하면 적용될 마이그레이션을 미리 본다(읽기만)
+# master: 스키마나 지식(제품·가이드)이 바뀌어 들어오면 운영 DB에 마이그레이션하고 바뀐 지식만 다시 임베딩한다
 on:
+  pull_request:
+    paths:
+      - db/migrations/**
+      - src/features/advisor/**
+      - src/features/recommend/products.json
+      - scripts/**
+      - .github/workflows/db.yml
   push:
     branches: [master]
     paths:
@@ -11,7 +19,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: db-deploy
+  group: db-deploy-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:
@@ -40,6 +48,8 @@ jobs:
       - if: steps.guard.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
       - if: steps.guard.outputs.skip != 'true'
+        run: pnpm check:env
+      - if: steps.guard.outputs.skip != 'true' && github.event_name != 'pull_request'
         run: pnpm db:migrate
-      - if: steps.guard.outputs.skip != 'true'
+      - if: steps.guard.outputs.skip != 'true' && github.event_name != 'pull_request'
         run: pnpm db:seed
