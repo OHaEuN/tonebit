@@ -1,0 +1,55 @@
+name: DB 배포
+
+# PR: 운영 DB·Gemini 연결과 머지하면 적용될 마이그레이션을 미리 본다(읽기만)
+# master: 스키마나 지식(제품·가이드)이 바뀌어 들어오면 운영 DB에 마이그레이션하고 바뀐 지식만 다시 임베딩한다
+on:
+  pull_request:
+    paths:
+      - db/migrations/**
+      - src/features/advisor/**
+      - src/features/recommend/products.json
+      - scripts/**
+      - .github/workflows/db.yml
+  push:
+    branches: [master]
+    paths:
+      - db/migrations/**
+      - src/features/advisor/knowledge/**
+      - src/features/recommend/products.json
+  workflow_dispatch:
+
+concurrency:
+  group: db-deploy-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - name: DB 연결 확인
+        id: guard
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL 시크릿이 없어 건너뜀" >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.skip != 'true'
+      - uses: pnpm/action-setup@v4
+        if: steps.guard.outputs.skip != 'true'
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.guard.outputs.skip != 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.guard.outputs.skip != 'true'
+        run: pnpm check:env
+      - if: steps.guard.outputs.skip != 'true' && github.event_name != 'pull_request'
+        run: pnpm db:migrate
+      - if: steps.guard.outputs.skip != 'true' && github.event_name != 'pull_request'
+        run: pnpm db:seed

@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = { title: "개인정보처리방침" };
 
-const UPDATED = "2026-10-13";
+const UPDATED = "2026-10-22";
 const ISSUES_URL = "https://github.com/OHaEuN/tonepick/issues";
 
 export default function PrivacyPage() {
@@ -40,17 +40,35 @@ export default function PrivacyPage() {
             봤나요?&rdquo;에서 이용자가 동의하고 보내기를 누른 경우에만, 다음
             값을 익명으로 저장합니다: 이용자가 고른 진단 시즌·세부 타입, 톤픽의
             판정, 판정에 쓴 측정 숫자(피부색의 Lab 값, 색상각, 밝기 지표), 합친
-            사진 수, 카메라·사진 구분, 보낸 날짜.
+            사진 수, 카메라·사진 구분, 조명 보정에 쓴 기준, 그때 쓴 판정 기준
+            버전, 보낸 날짜.
           </p>
           <p>
             사진, 얼굴 이미지, 기기 정보, 계정이나 연락처처럼 사람을 알아볼 수
             있는 값은 보내지 않습니다. 모은 값은 판정 기준을 전문가 진단에 맞게
-            다듬는 데에만 쓰고, 저장소(Upstash Redis)에 보관합니다.
+            다듬는 데에만 쓰고, 데이터베이스(Supabase Postgres)에 보관합니다.
+            시즌별 일치 건수는 정확도 페이지에 집계로만 공개합니다.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">3. 쿠키와 저장소</h2>
+          <h2 className="text-xl font-semibold">3. AI 뷰티 상담 (선택)</h2>
+          <p>
+            결과 화면에서 질문을 보내면, 이용자가 입력한 질문과 판정
+            결과(시즌·세부 타입)와 측정 숫자(색상각, 밝기 지표, 채도)가 서버를
+            거쳐 답변 생성을 위해 Google Gemini API로 전달됩니다. 사진과 얼굴
+            이미지는 보내지 않습니다. 무료 이용 등급에서는 전달된 내용이
+            Google의 서비스 개선에 쓰일 수 있으니 개인정보를 질문에 적지 말아
+            주세요.
+          </p>
+          <p>
+            톤픽은 질문 내용을 저장하지 않습니다. 무료 사용 한도를 지키기 위해
+            하루 전체 호출 횟수만 날짜별로 셉니다.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-xl font-semibold">4. 쿠키와 저장소</h2>
           <p>
             톤픽은 쿠키, 로컬 저장소, 계정 어느 것으로도 이용자를 식별하거나
             기억하지 않습니다. 광고 스크립트도 싣지 않습니다.
@@ -66,7 +84,7 @@ export default function PrivacyPage() {
 
         <section className="space-y-2">
           <h2 className="text-xl font-semibold">
-            4. 제휴 링크 (쿠팡 파트너스)
+            5. 제휴 링크 (쿠팡 파트너스)
           </h2>
           <p>
             결과 페이지의 제품 링크는 쿠팡 파트너스 제휴 링크입니다. 링크를 통해
@@ -77,7 +95,7 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">5. 호스팅과 접속 기록</h2>
+          <h2 className="text-xl font-semibold">6. 호스팅과 접속 기록</h2>
           <p>
             사이트는 호스팅 제공자의 서버에서 제공되며, 제공자는 서비스 운영을
             위해 IP 주소와 접속 시각 같은 로그를 일시적으로 보관할 수 있습니다.
@@ -85,7 +103,7 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">6. 문의</h2>
+          <h2 className="text-xl font-semibold">7. 문의</h2>
           <p>
             개인을 알아볼 수 있는 정보를 수집하지 않아 별도의 연락처를 두지
             않았습니다. 질문이나 요청은{" "}

@@ -1,3 +1,5 @@
+import calibration from "./calibration.json";
+
 /**
  * 색 분석 임계값. 전부 "재미로 보는" 수준의 휴리스틱이고 카메라·조명에 따라
  * 흔들리므로 한 곳에 모아 튜닝한다. 각 값의 근거는 README 알고리즘 절 참고.
@@ -80,6 +82,16 @@ export const WHITE_MIN_LUMA = 90;
 export const WHITE_OVER_SKIN = 1.1;
 export const WHITE_MAX_CLIPPED = 0.3;
 export const WHITE_MAX_SATURATION = 0.65;
+/**
+ * 흰색 자동 찾기: 같은 조명 아래 흰색은 피부보다 푸르다. 피부 R/B ÷ 후보 R/B가 이 값 이상이어야 한다.
+ * 크림색·베이지 벽과 피부를 거른다
+ */
+export const WHITE_BLUER_THAN_SKIN = 1.4;
+/** 흰색 자동 찾기: 후보 영역이 축소본에서 차지해야 하는 최소 비율과 가장자리에서 떨어진 최소 거리(축소본 픽셀) */
+export const WHITE_MIN_AREA = 0.01;
+export const WHITE_MIN_DEPTH = 2;
+/** 흰색 자동 찾기용 축소본 크기 */
+export const WHITE_SEARCH_THUMB = { w: 96, h: 96 } as const;
 /** 누른 자리에서 평균 낼 정사각형 한 변 = 이미지 폭 × 이 비율 */
 export const WHITE_PATCH_RATIO = 0.03;
 
@@ -106,18 +118,24 @@ export const TRUE_EXPOSURE = 1.33;
  * 한국인 분광측색 문헌(색상각 50~60°, 표본 SD ±3~4°)보다 카메라 사진의 색상각 IQR(15.8°)이 3배 넓으므로
  * 중앙 ±3°는 뉴트럴로 두고 황색도(b*)로 가른다
  */
-/** 웜/쿨: Lab hue angle(°). 중앙값 50.7°를 중심으로 ±3° 뉴트럴 구간 */
-export const HUE_WARM_MIN = 53.7;
-export const HUE_COOL_MAX = 47.7;
+/**
+ * 아래 기준값(색상각 중심·황색도·ITA·채도)은 calibration.json에 있다. 처음 값은 위 FairFace 중앙값이고,
+ * 이후엔 이용자가 보내 준 전문가 진단으로 scripts/calibrate.ts가 다시 맞춰 PR을 연다
+ */
+export const CALIBRATION_VERSION: string = calibration.version;
+/** 웜/쿨: Lab hue angle(°). 중심(처음 50.7°) ±3° 뉴트럴 구간 */
+export const HUE_NEUTRAL_HALF = 3;
+export const HUE_WARM_MIN = calibration.hueCenter + HUE_NEUTRAL_HALF;
+export const HUE_COOL_MAX = calibration.hueCenter - HUE_NEUTRAL_HALF;
 /**
  * 뉴트럴 구간에서 웜/쿨을 가르는 황색도 b* 하한. 한국 측색 연구 3편(이·박 2012 n=136, 김용현 2018 n=993, 최 2021 n=496)에서
  * 전문가 웜/쿨 판정과 이어지는 변수는 색상각이 아니라 볼의 b*였다. 값은 FairFace 중앙값
  */
-export const YELLOW_WARM_MIN = 18.3;
+export const YELLOW_WARM_MIN = calibration.yellowWarmMin;
 /** 명/암: ITA°. 보정 공간에서의 중앙값. 혈류만으로도 ITA가 16~31° 움직여(Harunani 2026) 두 단계 이상 쪼개지 않는다 */
-export const ITA_LIGHT_MIN = 9.5;
+export const ITA_LIGHT_MIN = calibration.itaLightMin;
 /** 선명/뮤트: chroma C*. 중앙값 */
-export const CHROMA_CLEAR_MIN = 24;
+export const CHROMA_CLEAR_MIN = calibration.chromaClearMin;
 /**
  * 각 축에서 "충분히 떨어졌다"고 보는 거리. 확신도와 12시즌 세부 타입 판정에 같이 쓴다.
  * 각 지표의 사분위 범위(IQR: hue 15.8, ITA 50.8, C* 11.8)의 1/4이다
@@ -131,6 +149,11 @@ export const LIGHT_CLIP_RATIO_MAX = 0.05;
 /** gray-world: 프레임 평균 R/G, B/G가 이 범위를 벗어나면 색편향 */
 export const CAST_RATIO_MIN = 0.8;
 export const CAST_RATIO_MAX = 1.25;
+/**
+ * 형광등: 프레임 평균 G ÷ (R와 B의 평균)이 이 값 이상. 프레임에 붉은 피부가 섞여 있어 보통 사진은 1보다 작다.
+ * FairFace 동아시아인 사진에선 중앙값 0.92, 이 값을 넘는 사진 3%. G를 8~15% 키운 합성 형광등은 20~45%가 걸린다
+ */
+export const GREEN_CAST_MIN = 1.02;
 /** 양 볼 L* 차이가 이보다 크면 측면 조명. FairFace 사진의 상위 약 30%에 해당하는 또렷한 그늘 */
 export const SIDE_LIGHT_DELTA_L = 15;
 export const FACE_WIDTH_RATIO_MIN = 0.25;

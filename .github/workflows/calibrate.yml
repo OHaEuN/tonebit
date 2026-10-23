@@ -1,0 +1,64 @@
+name: 판정 기준 재보정
+
+# 이용자가 보낸 전문가 진단으로 판정 기준값을 다시 맞춘다. 바꿀 만하면 PR을 연다(사람이 보고 머지해야 배포된다)
+on:
+  schedule:
+    - cron: "17 0 * * 1" # 매주 월요일 09:17 KST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: calibrate
+  cancel-in-progress: false
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: DB 연결 확인
+        id: guard
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL 시크릿이 없어 건너뜀" >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.skip != 'true'
+      - uses: pnpm/action-setup@v4
+        if: steps.guard.outputs.skip != 'true'
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.guard.outputs.skip != 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.guard.outputs.skip != 'true'
+        run: pnpm db:migrate
+      - if: steps.guard.outputs.skip != 'true'
+        run: pnpm calibrate
+      # GITHUB_TOKEN으로 연 PR에는 CI가 돌지 않아서, 바뀐 기준값으로 여기서 먼저 검사한다
+      - name: 바뀐 기준값 검사
+        id: changed
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          if git diff --quiet src/features/analysis/calibration.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            pnpm typecheck && pnpm test
+          fi
+      - uses: peter-evans/create-pull-request@v7
+        if: steps.changed.outputs.changed == 'true'
+        with:
+          branch: calibration/auto
+          add-paths: src/features/analysis/calibration.json
+          commit-message: "chore : 전문가 진단 피드백으로 판정 기준 재보정"
+          title: "chore : 전문가 진단 피드백으로 판정 기준 재보정"
+          body-path: calibration-report.md
+          delete-branch: true

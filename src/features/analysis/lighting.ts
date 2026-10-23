@@ -3,6 +3,7 @@ import {
   CAST_RATIO_MAX,
   CAST_RATIO_MIN,
   FACE_WIDTH_RATIO_MIN,
+  GREEN_CAST_MIN,
   LIGHT_CLIP_RATIO_MAX,
   LIGHT_LUMA_MAX,
   LIGHT_LUMA_MIN,
@@ -22,8 +23,12 @@ export function checkLighting(input: LightingInput): LightingIssue[] {
   if (g > 0) {
     const rg = r / g;
     const bg = b / g;
-    if (rg > CAST_RATIO_MAX || bg < CAST_RATIO_MIN) issues.push("warmCast");
-    if (bg > CAST_RATIO_MAX || rg < CAST_RATIO_MIN) issues.push("coolCast");
+    // 형광등은 G가 R·B보다 도드라져 R/G·B/G가 같이 작아진다. 그걸 전구색·푸른빛으로 잘못 읽지 않게 먼저 거른다
+    if (g / ((r + b) / 2) >= GREEN_CAST_MIN) issues.push("greenCast");
+    else {
+      if (rg > CAST_RATIO_MAX || bg < CAST_RATIO_MIN) issues.push("warmCast");
+      if (bg > CAST_RATIO_MAX || rg < CAST_RATIO_MIN) issues.push("coolCast");
+    }
   }
   if (input.cheekDeltaL > SIDE_LIGHT_DELTA_L) issues.push("sideLight");
   if (input.faceWidthRatio < FACE_WIDTH_RATIO_MIN) issues.push("faceSmall");
@@ -35,6 +40,7 @@ export const LIGHTING_MESSAGES: Record<LightingIssue, string> = {
   bright: "너무 밝거나 역광이에요",
   warmCast: "주황빛 조명이에요. 자연광이 가장 정확해요",
   coolCast: "푸른빛 조명이에요. 자연광이 가장 정확해요",
+  greenCast: "형광등 같은 초록빛 조명이에요. 흰 종이를 얼굴 옆에 들고 찍으면 정확해져요",
   sideLight: "한쪽만 밝아요. 빛을 정면에서 받아 주세요",
   faceSmall: "얼굴을 조금 더 가까이 비춰 주세요",
 };
@@ -45,6 +51,7 @@ export const LIGHTING_LABELS: Record<LightingIssue, string> = {
   bright: "밝은 조명·역광",
   warmCast: "주황빛 조명",
   coolCast: "푸른빛 조명",
+  greenCast: "형광등 초록빛",
   sideLight: "측면 조명",
   faceSmall: "얼굴이 작게 잡힘",
 };

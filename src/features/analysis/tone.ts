@@ -11,7 +11,16 @@ import type {
   Undertone,
 } from "@/types/analysis";
 import { chroma, hueAngle, ita } from "./color";
-import { AXIS_MARGIN, CHROMA_CLEAR_MIN, HUE_COOL_MAX, HUE_WARM_MIN, ITA_LIGHT_MIN, REFERENCE_NOISE, YELLOW_WARM_MIN } from "./constants";
+import {
+  AXIS_MARGIN,
+  CHROMA_CLEAR_MIN,
+  HUE_COOL_MAX,
+  HUE_NEUTRAL_HALF,
+  HUE_WARM_MIN,
+  ITA_LIGHT_MIN,
+  REFERENCE_NOISE,
+  YELLOW_WARM_MIN,
+} from "./constants";
 import { REFERENCE_RANK } from "./reference";
 
 export function undertoneOf(hue: number): Undertone {
@@ -24,6 +33,27 @@ const SEASON_TABLE: Record<"warm" | "cool", Record<Depth, Season>> = {
   warm: { light: "spring", deep: "autumn" },
   cool: { light: "summer", deep: "winter" },
 };
+
+/** 시즌을 가르는 기준값. 재보정 스크립트가 후보 값을 같은 규칙으로 시험할 수 있게 밖으로 뺐다 */
+export interface Thresholds {
+  hueCenter: number;
+  yellowWarmMin: number;
+  itaLightMin: number;
+}
+
+export const CURRENT_THRESHOLDS: Thresholds = {
+  hueCenter: HUE_WARM_MIN - HUE_NEUTRAL_HALF,
+  yellowWarmMin: YELLOW_WARM_MIN,
+  itaLightMin: ITA_LIGHT_MIN,
+};
+
+/** 기준값 t로 시즌만 낸다. classifyTone과 같은 규칙(색상각 → 뉴트럴이면 황색도, ITA로 명/암) */
+export function seasonFor(hue: number, yellow: number, itaDeg: number, t: Thresholds): Season {
+  const undertone: Undertone = hue >= t.hueCenter + HUE_NEUTRAL_HALF ? "warm" : hue <= t.hueCenter - HUE_NEUTRAL_HALF ? "cool" : "neutral";
+  const depth: Depth = itaDeg >= t.itaLightMin ? "light" : "deep";
+  const warm = undertone === "neutral" ? yellow >= t.yellowWarmMin : undertone === "warm";
+  return SEASON_TABLE[warm ? "warm" : "cool"][depth];
+}
 
 /**
  * 시즌 = 웜/쿨 × 명/암. 색상각이 뉴트럴 구간이면 황색도 b*로 가른다.

@@ -1,0 +1,9 @@
+{
+  "version": "2026-10-14-fairface",
+  "basis": "FairFace 동아시아인 1,176장(볼·이마 10패치, 흰색>치아>흰자>배경 기준) 분포의 중앙값",
+  "hueCenter": 50.7,
+  "yellowWarmMin": 18.3,
+  "itaLightMin": 9.5,
+  "chromaClearMin": 24,
+  "expert": null
+}

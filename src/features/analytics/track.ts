@@ -11,7 +11,9 @@ export type AnalyticsEvent =
   | { name: "swatch-select"; kind: "lip" | "blush"; product: boolean }
   | { name: "wb-lock" }
   | { name: "drape-done"; season: string; same: boolean }
-  | { name: "shade-saved"; kind: "lip" | "blush" };
+  | { name: "shade-saved"; kind: "lip" | "blush" }
+  | { name: "advisor-ask" }
+  | { name: "advisor-try-on" };
 
 interface Umami {
   track: (name: string, data?: Record<string, string | number | boolean>) => void;

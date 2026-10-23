@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState, type RefObject } from "react";
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
-import type { Point } from "@/types/analysis";
-import { createContext, createOffscreen, fitSize, measureLighting, patchAt, sampleSkin, skinLuma, THUMB_SIZE } from "@/features/analysis/frame";
+import type { LightingIssue, Point } from "@/types/analysis";
+import { createContext, createOffscreen, fitSize, measureLighting, patchAt, sampleSkin, skinLuma, suggestWhitePoint, THUMB_SIZE } from "@/features/analysis/frame";
 import { STILL_ANALYSIS_WIDTH, WHITE_PATCH_RATIO } from "@/features/analysis/constants";
 import { checkWhitePatch } from "@/features/analysis/whitePoint";
 import { cameraWhite } from "@/features/analysis/reference";
@@ -37,6 +37,10 @@ export interface StillPhoto {
   thumb: string;
   /** 이용자가 찍은 흰색 기준 자리(정규화 좌표) */
   white?: { u: number; v: number };
+  /** 자동으로 찾은 흰 종이·흰 벽 후보(정규화 좌표). 이용자가 고르면 white가 된다 */
+  whiteHint: { u: number; v: number } | null;
+  /** 이 사진의 조명 점검 결과 */
+  lighting: LightingIssue[];
 }
 
 const WHITE_ERRORS = {
@@ -100,12 +104,13 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
         track({ name: "face-not-found", source: "image" });
         return "noFace";
       }
-      store.setLighting(measureLighting(ctx, createOffscreen(THUMB_SIZE.w, THUMB_SIZE.h, true), points, w, h));
+      const lighting = measureLighting(ctx, createOffscreen(THUMB_SIZE.w, THUMB_SIZE.h, true), points, w, h);
+      store.setLighting(lighting);
       const skin = sampleSkin(ctx, points, w, h);
       if (!skin) return "noSkin";
       const id = store.addShot(skin);
       const kept = new Set(useAnalysisStore.getState().shots.map((s) => s.id));
-      const photo = { id, img, landmarks: points, thumb: makeThumb(img) };
+      const photo = { id, img, landmarks: points, thumb: makeThumb(img), whiteHint: suggestWhitePoint(ctx, points, w, h), lighting };
       setPhotos((prev) => [...prev, photo].filter((p) => kept.has(p.id)));
       return "ok";
     },
@@ -171,37 +176,49 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
   const shown = (view !== null ? photos.find((p) => p.id === view) : undefined) ?? photos.at(-1);
   const camera = shots.find((s) => s.id === shown?.id)?.cameraWhite;
 
+  /**
+   * 고른 사진을 지금 설정(색·바르는 방법·비교 중)으로 canvas에 그린다. maxWidth를 주면 그만큼 원본 해상도를 살린다.
+   * 결과 화면 캔버스는 분석 크기로, 크게 보기는 확대해도 선명하게 더 크게 그린다
+   */
+  const paint = useCallback(
+    (canvas: HTMLCanvasElement, maxWidth?: number) => {
+      if (!shown) return;
+      const { img, landmarks } = shown;
+      const { w, h } = maxWidth ? fitSize(img.naturalWidth, img.naturalHeight, maxWidth) : fitSize(img.naturalWidth, img.naturalHeight);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      const ctx = createContext(canvas);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      ctx.drawImage(img, 0, 0, w, h);
+      if (comparing) return;
+      drawOverlays(ctx, createOffscreen(w, h, true), landmarks, w, h, {
+        camera: camera ?? cameraWhite(null),
+        lip: resolveSwatchHex("lips", lipId),
+        blush: resolveSwatchHex("blushes", blushId),
+        lipStyle,
+        blushStyle,
+        lipIntensity,
+        blushIntensity,
+        debug,
+      });
+      if (shown.white) drawWhiteMarker(ctx, shown.white.u * w, shown.white.v * h, Math.max(6, w * 0.02));
+    },
+    // myShades: 내 제품 색이 바뀌면 resolveSwatchHex 결과가 달라진다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [shown, camera, comparing, lipId, blushId, lipStyle, blushStyle, lipIntensity, blushIntensity, debug, myShades],
+  );
+
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!shown || !canvas) return;
-    const { img, landmarks } = shown;
-    const { w, h } = fitSize(img.naturalWidth, img.naturalHeight);
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
-    }
-    const ctx = createContext(canvas);
-    ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1;
-    ctx.drawImage(img, 0, 0, w, h);
-    if (comparing) return;
-    drawOverlays(ctx, createOffscreen(w, h, true), landmarks, w, h, {
-      camera: camera ?? cameraWhite(null),
-      lip: resolveSwatchHex("lips", lipId),
-      blush: resolveSwatchHex("blushes", blushId),
-      lipStyle,
-      blushStyle,
-      lipIntensity,
-      blushIntensity,
-      debug,
-    });
-    if (shown.white) drawWhiteMarker(ctx, shown.white.u * w, shown.white.v * h, Math.max(6, w * 0.02));
-  }, [canvasRef, shown, camera, comparing, lipId, blushId, lipStyle, blushStyle, lipIntensity, blushIntensity, debug, myShades]);
+    if (canvasRef.current) paint(canvasRef.current);
+  }, [canvasRef, paint]);
 
   const clear = useCallback(() => {
     setPhotos([]);
     setError(null);
   }, []);
 
-  return { analyze, error, clear, photos, shown, setWhitePoint };
+  return { analyze, error, clear, photos, shown, setWhitePoint, paint: shown ? paint : null };
 }
