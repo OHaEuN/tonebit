@@ -35,7 +35,10 @@ test("결과 바로 아래에서 한 번에 반응을 남기고, 달라요면 �
   await page.getByRole("button", { name: "달라요" }).click();
   await expect(page.getByText("알려 주셔서 고마워요")).toBeVisible();
   await page.getByRole("button", { name: "전문가 진단을 받아 봤다면 알려 주세요" }).click();
-  await expect(page.locator("details#expert-feedback")).toHaveAttribute("open", "");
+  const form = page.locator("details#expert-feedback");
+  await expect(form).toHaveAttribute("open", "");
+  await expect(form).toHaveAttribute("data-spotlight", "");
+  await expect(form.getByText("받아 본 진단을 골라 주시면")).toBeVisible();
 });
 
 test("AI 상담 답에 도움이 됐는지 남긴다", async ({ page }) => {
