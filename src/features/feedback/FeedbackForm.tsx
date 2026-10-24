@@ -66,6 +66,8 @@ export function FeedbackForm() {
   return (
     <Disclosure id="expert-feedback" title="전문가에게 퍼스널 컬러 진단을 받아 봤나요?" hint="알려 주시면 판정 기준을 전문가 진단에 맞게 다듬어요">
       <div className="space-y-4">
+        {/* 결과 반응에서 넘어왔을 때만(Disclosure에 data-spotlight) 보인다 */}
+        <p className="hidden text-[14px] font-medium group-data-[spotlight]:block">받아 본 진단을 골라 주시면, 다음 판정부터 그 기준에 맞춰 가요.</p>
         <div role="radiogroup" aria-label="진단받은 시즌" className="flex flex-wrap gap-1.5">
           {SEASONS.map((s) => (
             <label key={s} className="cursor-pointer">
