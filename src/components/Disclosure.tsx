@@ -8,12 +8,14 @@ interface DisclosureProps {
   onToggle?: (e: SyntheticEvent<HTMLDetailsElement>) => void;
   /** 처음부터 펼쳐 둔다(놓치면 안 되는 안내) */
   defaultOpen?: boolean;
+  /** 다른 곳에서 펼치고 그리로 내릴 때 쓰는 id */
+  id?: string;
 }
 
 /** 접었다 펴는 행. 상자 대신 위 헤어라인과 여백으로 나눈다 */
-export function Disclosure({ title, hint, children, onToggle, defaultOpen }: DisclosureProps) {
+export function Disclosure({ title, hint, children, onToggle, defaultOpen, id }: DisclosureProps) {
   return (
-    <details className="group border-t border-line" onToggle={onToggle} open={defaultOpen}>
+    <details id={id} className="group scroll-mt-24 border-t border-line" onToggle={onToggle} open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden">
         <span>
           <span className="block text-[15px] font-medium">{title}</span>

@@ -29,6 +29,25 @@ test("AI 상담: 추천 질문을 누르면 제품 카드가 나오고, 고른 �
   await expect(page.getByRole("dialog").locator("legend span")).not.toHaveText("선택 안 함");
 });
 
+test("결과 바로 아래에서 한 번에 반응을 남기고, 달라요면 전문가 진단 입력으로 이어진다", async ({ page }) => {
+  const box = page.getByText("이 결과, 내 생각과 비슷해요?");
+  await expect(box).toBeVisible();
+  await page.getByRole("button", { name: "달라요" }).click();
+  await expect(page.getByText("알려 주셔서 고마워요")).toBeVisible();
+  await page.getByRole("button", { name: "전문가 진단을 받아 봤다면 알려 주세요" }).click();
+  await expect(page.locator("details#expert-feedback")).toHaveAttribute("open", "");
+});
+
+test("AI 상담 답에 도움이 됐는지 남긴다", async ({ page }) => {
+  const panel = page.locator("section[aria-labelledby=advisor-heading]");
+  await panel.getByRole("button", { name: "출근할 때 바를 립 골라 줘" }).click();
+  await expect(panel.getByText("첫 번째 색을 사진에 발라 뒀어요")).toBeVisible({ timeout: 30_000 });
+  const rated = page.waitForResponse((r) => r.url().endsWith("/api/advisor/rating") && r.ok());
+  await panel.getByRole("button", { name: "도움이 됐어요" }).click();
+  await rated;
+  await expect(panel.getByText("평가 고마워요")).toBeVisible();
+});
+
 test("진단 피드백을 보내면 정확도 페이지에 집계된다", async ({ page }) => {
   const count = async () => Number(/지금까지 (?:<!-- -->)?(\d+)(?:<!-- -->)?건/.exec(await (await page.request.get("/accuracy")).text())?.[1]);
   const before = await count();

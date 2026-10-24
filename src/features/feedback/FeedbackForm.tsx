@@ -64,7 +64,7 @@ export function FeedbackForm() {
   };
 
   return (
-    <Disclosure title="전문가에게 퍼스널 컬러 진단을 받아 봤나요?" hint="알려 주시면 판정 기준을 전문가 진단에 맞게 다듬어요">
+    <Disclosure id="expert-feedback" title="전문가에게 퍼스널 컬러 진단을 받아 봤나요?" hint="알려 주시면 판정 기준을 전문가 진단에 맞게 다듬어요">
       <div className="space-y-4">
         <div role="radiogroup" aria-label="진단받은 시즌" className="flex flex-wrap gap-1.5">
           {SEASONS.map((s) => (

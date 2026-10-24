@@ -26,6 +26,8 @@ interface Message extends ChatTurn {
   /** 에이전트가 사진에 발라 본 제품 */
   applied?: ProductCard;
   mode?: "ai" | "search";
+  /** 이 답에 대한 이용자 평가 */
+  rated?: boolean;
 }
 
 interface AdvisorPanelProps {
@@ -106,6 +108,22 @@ export function AdvisorPanel({ onPreview }: AdvisorPanelProps) {
     } finally {
       setStatus(null);
       requestAnimationFrame(() => endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+    }
+  };
+
+  /** 답 하나에 "도움이 됐어요 / 아쉬워요". 질문·답 글은 보내지 않고 모드와 붙은 제품만 */
+  const rate = async (index: number, helpful: boolean) => {
+    const m = messages[index];
+    if (!m || m.rated || !m.mode) return;
+    setMessages((prev) => prev.map((x, j) => (j === index ? { ...x, rated: true } : x)));
+    try {
+      await fetch("/api/advisor/rating", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ helpful, mode: m.mode, products: (m.products ?? []).map((p) => p.id).slice(0, 3) }),
+      });
+    } catch {
+      // 평가는 놓쳐도 상담엔 지장이 없다
     }
   };
 
@@ -190,6 +208,32 @@ export function AdvisorPanel({ onPreview }: AdvisorPanelProps) {
                   </ul>
                 )}
                 {m.mode === "search" && <p className="text-[12px] text-muted">AI 대신 검색으로 찾은 결과예요.</p>}
+                {m.mode && (
+                  <div className="flex items-center gap-1.5 text-[12px] text-muted">
+                    {m.rated ? (
+                      <span>평가 고마워요</span>
+                    ) : (
+                      <>
+                        <span className="mr-1">이 답이</span>
+                        {(
+                          [
+                            [true, "도움이 됐어요"],
+                            [false, "아쉬워요"],
+                          ] as const
+                        ).map(([helpful, label]) => (
+                          <button
+                            key={label}
+                            type="button"
+                            onClick={() => void rate(i, helpful)}
+                            className="inline-flex h-7 items-center rounded-[6px] border border-fg/20 px-2.5 text-[12px] text-fg hover:border-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
               </li>
             ),
           )}

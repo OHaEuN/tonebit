@@ -9,6 +9,7 @@ import { explainTone } from "@/features/analysis/explain";
 import { REFERENCE_LABEL } from "@/features/analysis/reference";
 import { seasonOdds } from "@/features/analysis/tone";
 import { FeedbackForm } from "@/features/feedback/FeedbackForm";
+import { ResultReaction } from "@/features/feedback/ResultReaction";
 import { HarmonyPicks } from "@/features/recommend/HarmonyPicks";
 import { PaletteBand } from "@/features/recommend/PaletteBand";
 import { CONFIDENCE_LABEL, SEASON_INFO, sortSwatches, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
@@ -59,6 +60,7 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix, whit
           확신도 {CONFIDENCE_LABEL[result.confidence]} · {REFERENCE_LABEL[result.reference ?? "none"]}
         </p>
       </div>
+      <ResultReaction key={`${tone}-${result.reference}`} />
 
       <div role="tablist" aria-label="결과 보기" className="mt-7 flex gap-6 border-b border-line">
         {TABS.map(([key, label]) => (
