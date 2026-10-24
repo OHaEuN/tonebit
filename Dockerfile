@@ -1,4 +1,4 @@
-# 톤픽 컨테이너 이미지. Vercel 말고 아무 데서나(로컬·클라우드 런·VM) 같은 모습으로 돌린다
+# 톤빛 컨테이너 이미지. Vercel 말고 아무 데서나(로컬·클라우드 런·VM) 같은 모습으로 돌린다
 #   docker compose up --build        # 앱 + Postgres(pgvector)
 #   docker compose run --rm tools pnpm db:migrate && docker compose run --rm tools pnpm db:seed
 

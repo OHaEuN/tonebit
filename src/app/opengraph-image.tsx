@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { SEASON_INFO, SEASONS } from "@/features/recommend/palettes";
 
-export const alt = "톤픽 · 퍼스널 컬러 & 립 가상 체험";
+export const alt = "톤빛 · 퍼스널 컬러 & 립 가상 체험";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -31,7 +31,7 @@ export default async function Image() {
                 <div key={s} style={{ width: 15, height: 15, borderRadius: 999, background: SEASON_INFO[s].accent }} />
               ))}
             </div>
-            <div style={{ fontSize: 30, fontWeight: 700 }}>톤픽 tonepick</div>
+            <div style={{ fontSize: 30, fontWeight: 700 }}>톤빛 ToneBit</div>
           </div>
           <div style={{ fontSize: 58, fontWeight: 700, lineHeight: 1.2, marginTop: 20 }}>내 피부톤에 맞는</div>
           <div style={{ fontSize: 58, fontWeight: 700, lineHeight: 1.2 }}>립과 블러셔를</div>

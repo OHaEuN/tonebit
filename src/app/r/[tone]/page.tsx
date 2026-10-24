@@ -75,7 +75,7 @@ export default async function ResultPage({ params }: PageProps<"/r/[tone]">) {
         <section className="bg-card">
           <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 pb-10 pt-8 md:grid-cols-[1fr_1fr] md:gap-12 md:px-8 md:py-16">
             <div className="order-2 md:order-1">
-              <span className={TAG}>Tonepick result</span>
+              <span className={TAG}>ToneBit result</span>
               <h1 className="mt-4 text-[42px] font-semibold leading-[1.08] md:text-[60px]">
                 {title}
               </h1>

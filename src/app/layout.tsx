@@ -18,8 +18,8 @@ const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: "톤픽 · 퍼스널 컬러 & 립 가상 체험", template: "%s | 톤픽" },
-  description: "톤픽은 웹캠이나 셀카로 재미로 보는 퍼스널 컬러 테스트예요. 어울리는 립과 블러셔를 얼굴에 바로 발라볼 수 있어요. 사진은 기기 밖으로 나가지 않아요.",
+  title: { default: "톤빛 · 퍼스널 컬러 & 립 가상 체험", template: "%s | 톤빛" },
+  description: "톤빛은 웹캠이나 셀카로 재미로 보는 퍼스널 컬러 테스트예요. 어울리는 립과 블러셔를 얼굴에 바로 발라볼 수 있어요. 사진은 기기 밖으로 나가지 않아요.",
   verification: {
     google: googleVerification,
     other: naverVerification ? { "naver-site-verification": naverVerification } : undefined,

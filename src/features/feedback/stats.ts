@@ -29,7 +29,7 @@ export const ACCURACY_TAG = "accuracy";
 const EMPTY: Tally = { n: 0, matched: 0 };
 
 /**
- * 전문가 진단과 톤픽 판정(보낸 그 순간의 판정)이 시즌 단위로 얼마나 맞았는지. 집계는 SQL 한 번으로 끝낸다.
+ * 전문가 진단과 톤빛 판정(보낸 그 순간의 판정)이 시즌 단위로 얼마나 맞았는지. 집계는 SQL 한 번으로 끝낸다.
  * 사람 단위 값은 내보내지 않고 건수만 낸다. 한 시간 캐시
  */
 export async function getAccuracyStats(): Promise<AccuracyStats | null> {

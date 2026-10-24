@@ -1,6 +1,6 @@
-# 톤픽 (TonePick)
+# 톤빛 (ToneBit)
 
-**https://tonepick-three.vercel.app**
+**https://tonebit.vercel.app**
 
 내 톤을 찾고 립을 픽한다. 웹캠이나 셀카 한 장으로 웜·쿨 톤과 시즌을 "재미로" 가늠하고, 추천 립·블러셔를 얼굴에 실시간으로 얹어 보는 웹 서비스입니다.
 얼굴 이미지는 어떤 경우에도 서버로 가지 않습니다. 분석·렌더링 전부가 브라우저 안에서 끝납니다.
@@ -295,11 +295,11 @@ DB·AI까지 로컬에서 돌리려면 Docker로 Postgres(pgvector)를 띄웁니
 
 ```bash
 docker compose up -d db
-export DATABASE_URL=postgres://postgres:postgres@localhost:5432/tonepick
+export DATABASE_URL=postgres://postgres:postgres@localhost:5432/tonebit
 pnpm db:migrate && pnpm db:seed           # 스키마 + 제품·가이드 적재(GEMINI_API_KEY가 있으면 임베딩)
 node e2e/mock-gemini.mjs &                # 키 없이: 가짜 Gemini
 export GEMINI_API_KEY=test GEMINI_BASE_URL=http://localhost:3999/v1beta
-TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/tonepick_test pnpm test   # DB 통합 테스트 포함
+TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/tonebit_test pnpm test   # DB 통합 테스트 포함
 INTEGRATION=1 pnpm e2e e2e/integration.spec.ts
 pnpm calibrate --dry-run                  # 재보정 결과만 보기
 
@@ -352,7 +352,7 @@ Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수�
 
 **쿠팡 파트너스 (제품 카드 링크)**
 - 파트너스 ID는 `features/recommend/affiliate.ts`에 있다. 링크에 노출되는 공개값이다.
-- `products.json`의 각 항목은 `keyword`로 쿠팡 검색 결과 제휴 링크(`link.coupang.com/re/AFFSRP?lptag=…&subid=tonepick&pageKey=검색어`)를 만든다. 검색어는 `q`가 아니라 `pageKey`다. `q`는 쿠팡 홈으로 떨어진다. 특정 상품을 밀고 싶으면 콘솔에서 만든 상품 링크를 `url`에 넣으면 그게 우선한다. 카드의 `rel="sponsored"`와 결과 페이지의 수수료 고지 문구는 들어 있다.
+- `products.json`의 각 항목은 `keyword`로 쿠팡 검색 결과 제휴 링크(`link.coupang.com/re/AFFSRP?lptag=…&subid=tonebit&pageKey=검색어`)를 만든다. 검색어는 `q`가 아니라 `pageKey`다. `q`는 쿠팡 홈으로 떨어진다. 특정 상품을 밀고 싶으면 콘솔에서 만든 상품 링크를 `url`에 넣으면 그게 우선한다. 카드의 `rel="sponsored"`와 결과 페이지의 수수료 고지 문구는 들어 있다.
 - 최종 승인(누적 판매 금액 기준, 콘솔 공지에서 확인)이 나야 정산과 Open API(상품 검색·딥링크)를 쓸 수 있다. API를 쓰게 되면 `getProducts`만 fetch로 바꾼다.
 
 개인정보처리방침은 `/privacy`에 있고 푸터에서 링크된다. 수집하는 개인정보가 없어 연락처 대신 GitHub 이슈를 안내한다. 광고 네트워크는 붙이지 않았다.

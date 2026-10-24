@@ -8,7 +8,7 @@ import { SEASON_INFO } from "@/features/recommend/palettes";
 
 export const metadata: Metadata = {
   title: "정확도",
-  description: "톤픽 판정이 이용자가 받은 전문가 퍼스널 컬러 진단과 얼마나 맞는지, 모인 진단으로 기준을 어떻게 다시 맞췄는지 공개해요.",
+  description: "톤빛 판정이 이용자가 받은 전문가 퍼스널 컬러 진단과 얼마나 맞는지, 모인 진단으로 기준을 어떻게 다시 맞췄는지 공개해요.",
 };
 
 /** 이보다 적으면 비율을 보여 주지 않는다(몇 건으로 낸 퍼센트는 오해를 부른다) */
@@ -85,7 +85,7 @@ export default async function AccuracyPage() {
         <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">Accuracy</p>
         <h1 className="text-3xl font-semibold">전문가 진단과 얼마나 맞을까요</h1>
         <p className="text-muted">
-          결과 화면에서 &ldquo;전문가 진단을 받아 봤다&rdquo;고 알려 준 분들의 진단과, 그때 톤픽이 낸 판정을 시즌 단위로 비교해요. 사진은 받지 않고 측정 숫자와 진단만
+          결과 화면에서 &ldquo;전문가 진단을 받아 봤다&rdquo;고 알려 준 분들의 진단과, 그때 톤빛이 낸 판정을 시즌 단위로 비교해요. 사진은 받지 않고 측정 숫자와 진단만
           모아요.
         </p>
       </header>

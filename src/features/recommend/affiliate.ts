@@ -2,7 +2,7 @@
 export const COUPANG_PARTNER_ID = "AF7794727";
 
 /** 파트너스 콘솔에서 채널별 실적을 구분하는 서브 ID */
-const SUB_ID = "tonepick";
+const SUB_ID = "tonebit";
 
 /**
  * 검색 결과로 가는 제휴 링크. 검색어는 q가 아니라 pageKey에 넣어야 검색 페이지로 간다 (q는 홈으로 떨어짐, 2026-10 확인).

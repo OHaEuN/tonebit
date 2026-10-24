@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 export const metadata: Metadata = { title: "개인정보처리방침" };
 
 const UPDATED = "2026-10-22";
-const ISSUES_URL = "https://github.com/OHaEuN/tonepick/issues";
+const ISSUES_URL = "https://github.com/OHaEuN/tonebit/issues";
 
 export default function PrivacyPage() {
   return (
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold">개인정보처리방침</h1>
           <p className="text-muted">
-            톤픽은 이용자의 개인정보를 수집하지 않습니다. 이 문서는 그 설계와,
+            톤빛은 이용자의 개인정보를 수집하지 않습니다. 이 문서는 그 설계와,
             이용자가 직접 보내는 선택 항목, 외부 서비스로 이어지는 지점을
             설명합니다.
           </p>
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
           <p>
             결과 화면의 &ldquo;전문가에게 퍼스널 컬러 진단을 받아
             봤나요?&rdquo;에서 이용자가 동의하고 보내기를 누른 경우에만, 다음
-            값을 익명으로 저장합니다: 이용자가 고른 진단 시즌·세부 타입, 톤픽의
+            값을 익명으로 저장합니다: 이용자가 고른 진단 시즌·세부 타입, 톤빛의
             판정, 판정에 쓴 측정 숫자(피부색의 Lab 값, 색상각, 밝기 지표), 합친
             사진 수, 카메라·사진 구분, 조명 보정에 쓴 기준, 그때 쓴 판정 기준
             버전, 보낸 날짜.
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             결과 화면의 &ldquo;이 결과, 내 생각과 비슷해요?&rdquo;와 AI 상담 답의
-            &ldquo;도움이 됐어요 / 아쉬워요&rdquo;를 누르면, 누른 답과 톤픽의
+            &ldquo;도움이 됐어요 / 아쉬워요&rdquo;를 누르면, 누른 답과 톤빛의
             판정·조명 보정 기준(또는 답에 붙은 제품 이름)만 익명으로 저장합니다.
             질문과 답의 글, 사진은 저장하지 않습니다.
           </p>
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
             주세요.
           </p>
           <p>
-            톤픽은 질문 내용을 저장하지 않습니다. 무료 사용 한도를 지키기 위해
+            톤빛은 질문 내용을 저장하지 않습니다. 무료 사용 한도를 지키기 위해
             하루 전체 호출 횟수만 날짜별로 셉니다.
           </p>
         </section>
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
         <section className="space-y-2">
           <h2 className="text-xl font-semibold">4. 쿠키와 저장소</h2>
           <p>
-            톤픽은 쿠키, 로컬 저장소, 계정 어느 것으로도 이용자를 식별하거나
+            톤빛은 쿠키, 로컬 저장소, 계정 어느 것으로도 이용자를 식별하거나
             기억하지 않습니다. 광고 스크립트도 싣지 않습니다.
           </p>
           <p>
@@ -127,7 +127,7 @@ export default function PrivacyPage() {
         </section>
 
         <Link href="/" className="inline-block text-accent hover:underline">
-          ← 톤픽 홈
+          ← 톤빛 홈
         </Link>
       </main>
     </>

@@ -7,14 +7,22 @@ export interface MyShade extends Swatch {
   category: ProductCategory;
 }
 
-const STORAGE_KEY = "tonepick:my-shades";
+const STORAGE_KEY = "tonebit:my-shades";
+/** 이름을 바꾸기 전(톤픽) 키. 있으면 한 번 읽어 새 키로 옮긴다 */
+const LEGACY_KEY = "tonepick:my-shades";
 /** 너무 많이 쌓이면 칩 줄이 길어진다. 넘치면 오래된 것부터 버린다 */
 const MAX_SHADES = 12;
 
 /** 색 hex와 이름만 이 브라우저에 남긴다. 사생활 모드·저장소 차단이면 이번 방문 동안만 기억한다 */
 function load(): MyShade[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    const legacy = raw === null ? localStorage.getItem(LEGACY_KEY) : null;
+    if (legacy !== null) {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem(LEGACY_KEY);
+      raw = legacy;
+    }
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed.filter(isMyShade) : [];
   } catch {
