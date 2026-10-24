@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { BUTTON } from "@/components/styles";
 import calibration from "@/features/analysis/calibration.json";
-import { getAccuracyStats, type Tally } from "@/features/feedback/stats";
+import { getAccuracyStats, type AccuracyStats, type Tally } from "@/features/feedback/stats";
 import { SEASON_INFO } from "@/features/recommend/palettes";
 
 export const metadata: Metadata = {
@@ -15,6 +15,62 @@ export const metadata: Metadata = {
 const MIN_TO_SHOW = 20;
 
 const pct = (t: Tally) => Math.round((t.matched / t.n) * 100);
+const share = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
+
+/** 한 번 누르는 반응: 결과가 내 생각과 비슷했는지, AI 상담이 도움이 됐는지. 건수가 적으면 비율 대신 건수만 */
+function Reactions({ stats }: { stats: AccuracyStats }) {
+  const { agree, unsure, disagree } = stats.reactions;
+  const total = agree + unsure + disagree;
+  const { n, helpful, aiN, aiHelpful } = stats.advisor;
+  if (!total && !n) return null;
+  const rows: [string, number, string][] = [
+    ["비슷해요", agree, "bg-fg"],
+    ["잘 모르겠어요", unsure, "bg-fg/40"],
+    ["달라요", disagree, "bg-fg/15"],
+  ];
+  return (
+    <section className="space-y-4">
+      <h2 className="text-xl font-semibold">이용자 반응</h2>
+      {total > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm text-muted">결과 화면에서 &ldquo;이 결과, 내 생각과 비슷해요?&rdquo;에 답한 {total.toLocaleString()}건</p>
+          {total >= MIN_TO_SHOW ? (
+            <>
+              <div className="flex h-2.5 overflow-hidden rounded-full bg-line" aria-hidden="true">
+                {rows.map(([label, v, color]) => (
+                  <div key={label} className={color} style={{ width: `${share(v, total)}%` }} />
+                ))}
+              </div>
+              <ul className="flex flex-wrap gap-x-4 text-sm">
+                {rows.map(([label, v]) => (
+                  <li key={label}>
+                    {label} <strong>{share(v, total)}%</strong>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-sm">{MIN_TO_SHOW}건이 넘으면 비율을 보여 드려요.</p>
+          )}
+        </div>
+      )}
+      {n > 0 && (
+        <p className="text-sm">
+          AI 상담 답 평가 {n.toLocaleString()}건
+          {n >= MIN_TO_SHOW ? (
+            <>
+              {" "}
+              중 <strong>{share(helpful, n)}%</strong>가 도움이 됐다고 했어요
+              {aiN > 0 && <span className="text-muted"> (AI가 답한 것만 보면 {share(aiHelpful, aiN)}%)</span>}.
+            </>
+          ) : (
+            <span className="text-muted"> · {MIN_TO_SHOW}건이 넘으면 비율을 보여 드려요</span>
+          )}
+        </p>
+      )}
+    </section>
+  );
+}
 
 export default async function AccuracyPage() {
   const stats = await getAccuracyStats();
@@ -92,6 +148,8 @@ export default async function AccuracyPage() {
           )}
         </>
       )}
+
+      {stats && <Reactions stats={stats} />}
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">기준을 다시 맞추는 방법</h2>

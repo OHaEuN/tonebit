@@ -1,5 +1,6 @@
 import { CALIBRATION_VERSION } from "@/features/analysis/constants";
 import { db, dbEnabled } from "@/lib/db";
+import type { AdvisorRating, ResultReaction } from "./reactions";
 import type { Feedback } from "./schema";
 
 /** 피드백 저장소: Postgres(feedback 테이블). DATABASE_URL이 있어야 켜진다 */
@@ -16,4 +17,15 @@ export async function appendFeedback(f: Feedback): Promise<void> {
 
 export async function readFeedback(): Promise<Record<string, unknown>[]> {
   return [...(await db()<Record<string, unknown>[]>`select * from feedback order by id`)];
+}
+
+export async function appendReaction(r: ResultReaction): Promise<void> {
+  await db()`
+    insert into result_reactions (verdict, predicted, reference, source, shots, calibration)
+    values (${r.verdict}, ${r.predicted}, ${r.reference}, ${r.source}, ${r.shots}, ${CALIBRATION_VERSION})
+  `;
+}
+
+export async function appendRating(r: AdvisorRating): Promise<void> {
+  await db()`insert into advisor_ratings (helpful, mode, products) values (${r.helpful}, ${r.mode}, ${r.products})`;
 }
