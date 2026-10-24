@@ -10,12 +10,14 @@ const OPTIONS: [Verdict, string][] = [
   ["disagree", "달라요"],
 ];
 
-/** 전문가 진단 입력 칸을 펼치고 그리로 내린다 */
+/** 전문가 진단 입력 칸을 펼치고 그리로 내린다. 넘어온 걸 알 수 있게 칸을 상자로 띄우고 첫 시즌 칩에 초점을 둔다 */
 export function openExpertFeedback() {
   const el = document.getElementById("expert-feedback") as HTMLDetailsElement | null;
   if (!el) return;
   el.open = true;
-  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  el.dataset.spotlight = "";
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.querySelector<HTMLElement>("input[type=radio]")?.focus({ preventScroll: true });
 }
 
 /**
