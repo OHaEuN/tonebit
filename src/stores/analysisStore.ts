@@ -3,6 +3,7 @@ import { track } from "@/features/analytics/track";
 import type { LightingIssue, LinearRgb, Season, ToneResult } from "@/types/analysis";
 import { combineShots, MAX_SHOTS, shotResult, type SeasonVotes, type Shot } from "@/features/analysis/shots";
 import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/lipTryOn/render";
+import type { ExpertDiagnosis } from "@/features/feedback/expert";
 
 export type Stage = "setup" | "live" | "measuring" | "done";
 export type Source = "camera" | "image";
@@ -40,6 +41,10 @@ interface AnalysisState {
   /** 실시간 카메라에서 화이트밸런스를 고정할 때 잰 흰 종이. 카메라를 끄면 사라진다 */
   lockedWhite: LinearRgb | null;
   resultTab: ResultTab;
+  /** 시작 화면에서 고른 전문가 진단. 결과에서 톤빛 판정과 견준다. 다시 찍어도 남는다 */
+  expert: ExpertDiagnosis | null;
+  /** 이번 방문에서 전문가 진단을 이미 보냈는지. 같은 사람이 두 번 세지 않게 */
+  expertSent: boolean;
 
   begin: (source: Source) => void;
   startMeasuring: () => void;
@@ -70,6 +75,8 @@ interface AnalysisState {
   setFps: (fps: number) => void;
   setLockedWhite: (white: LinearRgb | null) => void;
   setResultTab: (tab: ResultTab) => void;
+  setExpert: (expert: ExpertDiagnosis | null) => void;
+  markExpertSent: () => void;
   reset: () => void;
 }
 
@@ -100,9 +107,14 @@ const initial = {
 
 let shotSeq = 0;
 
+/** 처음부터 다시 해도 이용자가 알려 준 전문가 진단과 보냈는지는 남긴다 */
+const keepExpert = (s: AnalysisState) => ({ expert: s.expert, expertSent: s.expertSent });
+
 export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   ...initial,
-  begin: (source) => set({ ...initial, source, stage: "live" }),
+  expert: null,
+  expertSent: false,
+  begin: (source) => set({ ...initial, ...keepExpert(get()), source, stage: "live" }),
   startMeasuring: () => set({ stage: "measuring", progress: 0 }),
   setLighting: (lighting) => set({ lighting }),
   setFaceFound: (faceFound) => set({ faceFound }),
@@ -147,5 +159,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   setFps: (fps) => set({ fps }),
   setLockedWhite: (lockedWhite) => set({ lockedWhite }),
   setResultTab: (resultTab) => set({ resultTab }),
-  reset: () => set(initial),
+  setExpert: (expert) => set({ expert }),
+  markExpertSent: () => set({ expertSent: true }),
+  reset: () => set({ ...initial, ...keepExpert(get()) }),
 }));

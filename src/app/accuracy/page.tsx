@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { BUTTON } from "@/components/styles";
 import calibration from "@/features/analysis/calibration.json";
+import { MIN_TO_SHOW } from "@/features/feedback/progress";
 import { getAccuracyStats, type AccuracyStats, type Tally } from "@/features/feedback/stats";
 import { SEASON_INFO } from "@/features/recommend/palettes";
 
@@ -11,8 +12,6 @@ export const metadata: Metadata = {
   description: "톤빛 판정이 이용자가 받은 전문가 퍼스널 컬러 진단과 얼마나 맞는지, 모인 진단으로 기준을 어떻게 다시 맞췄는지 공개해요.",
 };
 
-/** 이보다 적으면 비율을 보여 주지 않는다(몇 건으로 낸 퍼센트는 오해를 부른다) */
-const MIN_TO_SHOW = 20;
 
 const pct = (t: Tally) => Math.round((t.matched / t.n) * 100);
 const share = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);

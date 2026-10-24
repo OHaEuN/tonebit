@@ -52,6 +52,27 @@ test("셀카를 올리면 결과와 립 팔레트가 나오고 결과 카드로 
   await expect(page).toHaveURL(/\/r\/(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/);
 });
 
+test("시작할 때 받은 진단을 고르면 결과에서 톤빛 판정과 나란히 보여 주고, 처음부터 해도 남는다", async ({ page }) => {
+  await waitForModel(page);
+  const picker = page.locator("#expert");
+  await picker.getByText("여름 쿨").click();
+  await picker.getByText("뮤트").click();
+  await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
+  await expect(page.getByText("전문가 진단", { exact: true })).toBeVisible({ timeout: MODEL_TIMEOUT });
+  await expect(page.getByText("여름 쿨 뮤트", { exact: true })).toBeVisible();
+  await expect(page.getByText(/^시즌(이|은)/)).toBeVisible();
+  await expect(page.getByText("이 결과, 내 생각과 비슷해요?")).toHaveCount(0);
+  await page.getByRole("button", { name: "처음부터" }).click();
+  await expect(picker.getByRole("radio", { name: "여름 쿨" })).toBeChecked();
+});
+
+test("공유 결과 페이지에서 받은 진단과 비교해 보기로 들어오면 고르는 칸을 띄워 둔다", async ({ page }) => {
+  await page.goto("/r/summer-soft");
+  await page.getByRole("link", { name: "받은 진단과 비교해 보기" }).click();
+  await expect(page).toHaveURL(/\/try#expert$/);
+  await expect(page.locator("#expert")).toHaveAttribute("data-spotlight", "");
+});
+
 test("결과에 시즌 가능성과 내 얼굴 기준 립 순위가 나오고, 고른 립의 어울림 점수를 보여 준다", async ({ page }) => {
   await waitForModel(page);
   await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
