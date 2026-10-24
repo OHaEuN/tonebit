@@ -50,7 +50,7 @@ export const TOOL_DECLARATIONS: FunctionDeclaration[] = [
   {
     name: "search_products",
     description:
-      "톤픽 제품 DB에서 립·블러셔를 찾는다. 질문과 의미가 가까운 제품을 찾고, 이용자 퍼스널 컬러 팔레트와 색이 가까울수록 위로 올린다. 제품을 추천하기 전에 반드시 부른다.",
+      "톤빛 제품 DB에서 립·블러셔를 찾는다. 질문과 의미가 가까운 제품을 찾고, 이용자 퍼스널 컬러 팔레트와 색이 가까울수록 위로 올린다. 제품을 추천하기 전에 반드시 부른다.",
     parameters: {
       type: "object",
       properties: {

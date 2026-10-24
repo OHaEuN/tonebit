@@ -10,7 +10,7 @@ export function SiteFooter() {
         <Link href="/privacy" className="hover:text-fg">
           개인정보처리방침
         </Link>
-        <a href="https://github.com/OHaEuN/tonepick" target="_blank" rel="noopener" className="hover:text-fg">
+        <a href="https://github.com/OHaEuN/tonebit" target="_blank" rel="noopener" className="hover:text-fg">
           GitHub
         </a>
       </nav>

@@ -24,6 +24,8 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ error: "store failed" }, { status: 502 });
   }
-  revalidateTag(ACCURACY_TAG, "max");
+  // "max"(옛 값을 주며 뒤에서 다시 계산)는 그 계산이 도는 동안 들어온 전문가 진단을 옛 숫자로 덮어 몇 시간 남길 수 있다.
+  // 집계는 SQL 한 번이라 바로 비운다
+  revalidateTag(ACCURACY_TAG, { expire: 0 });
   return Response.json({ ok: true });
 }
