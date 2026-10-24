@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { parseTone, SEASON_INFO, SEASONS, sortSwatches, TONE_INFO, TONE_SLUGS, toneLabel } from "@/features/recommend/palettes";
 
-export const alt = "톤픽 컬러 테스트 결과";
+export const alt = "톤빛 컬러 테스트 결과";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -11,7 +11,7 @@ export function generateStaticParams() {
   return [...TONE_SLUGS, ...SEASONS].map((tone) => ({ tone }));
 }
 
-const FOOTER = "톤픽 tonepick · 사진은 기기 밖으로 나가지 않아요";
+const FOOTER = "톤빛 ToneBit · 사진은 기기 밖으로 나가지 않아요";
 
 /** 한글 서브셋 폰트. 카드에 쓰이는 글자만 담았다. 문구를 바꾸면 README의 명령으로 다시 만든다 */
 const fontData = await readFile(join(process.cwd(), "src/app/NotoSansKR-700-subset.ttf"));
@@ -44,7 +44,7 @@ export default async function Image({ params }: { params: Promise<{ tone: string
               <div key={s} style={{ width: 15, height: 15, borderRadius: 999, background: SEASON_INFO[s].accent }} />
             ))}
           </div>
-          <div style={{ fontSize: 28, color: "#6f676a" }}>톤픽 · 재미로 보는 퍼스널 컬러 테스트</div>
+          <div style={{ fontSize: 28, color: "#6f676a" }}>톤빛 · 재미로 보는 퍼스널 컬러 테스트</div>
         </div>
         <div style={{ fontSize: labelSize, fontWeight: 700, lineHeight: 1.1, marginTop: 40 }}>{label}</div>
         <div style={{ fontSize: 36, marginTop: 18 }}>{seasonInfo.tagline}</div>

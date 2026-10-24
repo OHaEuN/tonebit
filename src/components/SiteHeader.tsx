@@ -9,14 +9,14 @@ interface SiteHeaderProps {
 const NAV = "font-mono text-[12px] font-medium uppercase tracking-[0.06em] hover:underline underline-offset-4";
 
 export function Wordmark() {
-  return <span className="text-[22px] font-extrabold tracking-[-0.06em]">톤픽</span>;
+  return <span className="text-[22px] font-extrabold tracking-[-0.06em]">톤빛</span>;
 }
 
 export function SiteHeader({ action }: SiteHeaderProps) {
   return (
     <header className="border-b border-line">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 md:h-16 md:px-8">
-        <Link href="/" aria-label="톤픽 홈" className="focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-fg">
+        <Link href="/" aria-label="톤빛 홈" className="focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-fg">
           <Wordmark />
         </Link>
         {action ?? (

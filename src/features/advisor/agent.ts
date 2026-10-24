@@ -73,7 +73,7 @@ export function systemPrompt(ctx: ToolContext): string {
   const { season, subtype, hue, ita, chroma } = ctx.profile;
   const info = SEASON_INFO[season];
   return [
-    "너는 퍼스널 컬러 테스트 앱 '톤픽'의 뷰티 상담 도우미야.",
+    "너는 퍼스널 컬러 테스트 앱 '톤빛'의 뷰티 상담 도우미야.",
     `이용자 진단: ${info.label} ${info.tone} ${SUBTYPE_LABEL[subtype]} (피부 색상각 ${hue.toFixed(1)}°, 밝기 ITA ${ita.toFixed(1)}°, 채도 ${chroma.toFixed(1)}). 카메라로 재미로 본 결과라 확정 진단처럼 말하지 않는다.`,
     "규칙:",
     "- 한국어 해요체로, 3~5문장 안에서 짧고 구체적으로 답한다. 마크다운 제목·표는 쓰지 않는다.",

@@ -18,7 +18,7 @@ export function ShareButtons({ tone, title }: ShareButtonsProps) {
     const url = `${process.env.NEXT_PUBLIC_SITE_ORIGIN || window.location.origin}${resultPath(tone)}`;
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: `${title} · 톤픽 컬러 테스트`, url });
+        await navigator.share({ title, text: `${title} · 톤빛 컬러 테스트`, url });
       } catch {
         // 사용자가 공유 시트를 닫은 경우. 아무것도 안 한다
       }
@@ -40,7 +40,7 @@ export function ShareButtons({ tone, title }: ShareButtonsProps) {
       </button>
       <a
         href={cardImagePath(tone)}
-        download={`tonepick-${tone}.png`}
+        download={`tonebit-${tone}.png`}
         data-umami-event="card-download"
         className={BUTTON.secondary}
       >
