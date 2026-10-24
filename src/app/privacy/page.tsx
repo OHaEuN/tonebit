@@ -49,6 +49,12 @@ export default function PrivacyPage() {
             다듬는 데에만 쓰고, 데이터베이스(Supabase Postgres)에 보관합니다.
             시즌별 일치 건수는 정확도 페이지에 집계로만 공개합니다.
           </p>
+          <p>
+            결과 화면의 &ldquo;이 결과, 내 생각과 비슷해요?&rdquo;와 AI 상담 답의
+            &ldquo;도움이 됐어요 / 아쉬워요&rdquo;를 누르면, 누른 답과 톤픽의
+            판정·조명 보정 기준(또는 답에 붙은 제품 이름)만 익명으로 저장합니다.
+            질문과 답의 글, 사진은 저장하지 않습니다.
+          </p>
         </section>
 
         <section className="space-y-2">

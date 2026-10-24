@@ -15,6 +15,10 @@ export interface AccuracyStats {
   /** 흰색·흰 종이 고정·치아·흰자로 조명을 완전히 되돌린 진단과, 배경으로 절반만 되돌렸거나 못 한 진단 */
   fullyCorrected: Tally;
   partial: Tally;
+  /** 결과 화면 한 번 누르는 반응 */
+  reactions: { agree: number; unsure: number; disagree: number };
+  /** AI 상담 답 평가. ai: 모델이 답한 것만 */
+  advisor: { n: number; helpful: number; aiN: number; aiHelpful: number };
   /** 기준값을 실제로 바꾼 재보정 기록(최근 순) */
   runs: { date: string; n: number; cvAccuracy: number; previousAccuracy: number }[];
 }
@@ -69,6 +73,19 @@ export async function queryAccuracyStats(sql: Sql): Promise<AccuracyStats> {
       ),
       'fullyCorrected', (select json_build_object('n', count(*), 'matched', count(*) filter (where hit)) from f where full_ref),
       'partial', (select json_build_object('n', count(*), 'matched', count(*) filter (where hit)) from f where not full_ref),
+      'reactions', (
+        select json_build_object(
+          'agree', count(*) filter (where verdict = 'agree'),
+          'unsure', count(*) filter (where verdict = 'unsure'),
+          'disagree', count(*) filter (where verdict = 'disagree')
+        ) from result_reactions
+      ),
+      'advisor', (
+        select json_build_object(
+          'n', count(*), 'helpful', count(*) filter (where helpful),
+          'aiN', count(*) filter (where mode = 'ai'), 'aiHelpful', count(*) filter (where mode = 'ai' and helpful)
+        ) from advisor_ratings
+      ),
       'runs', (
         select coalesce(json_agg(r), '[]')
         from (

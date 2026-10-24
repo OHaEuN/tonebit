@@ -47,10 +47,24 @@ describe.skipIf(!TEST_DB)("피드백 저장과 일치율 집계 (Postgres)", () 
     expect(row.calibration).toMatch(/fairface|expert/);
   });
 
+  it("결과 반응과 AI 상담 평가를 세고, 반응은 판정 기준 버전과 함께 남는다", async () => {
+    const { appendReaction, appendRating } = await import("./store");
+    await appendReaction({ verdict: "agree", predicted: "summer-soft", reference: "teeth", source: "image", shots: 1 });
+    await appendReaction({ verdict: "disagree", predicted: "winter-deep", reference: "scene", source: "camera", shots: 2 });
+    await appendRating({ helpful: true, mode: "ai", products: ["lip-mac-rubywoo"] });
+    await appendRating({ helpful: false, mode: "search", products: [] });
+    const s = await queryAccuracyStats(sql);
+    expect(s.reactions).toEqual({ agree: 1, unsure: 0, disagree: 1 });
+    expect(s.advisor).toEqual({ n: 2, helpful: 1, aiN: 1, aiHelpful: 1 });
+    const [row] = await sql`select calibration from result_reactions limit 1`;
+    expect(row.calibration).toBeTruthy();
+  });
+
   it("데이터가 없으면 0건", async () => {
-    await sql`truncate feedback, calibration_runs`;
+    await sql`truncate feedback, calibration_runs, result_reactions, advisor_ratings`;
     const s = await queryAccuracyStats(sql);
     expect(s.total).toEqual({ n: 0, matched: 0 });
     expect(s.bySeason).toEqual([]);
+    expect(s.reactions).toEqual({ agree: 0, unsure: 0, disagree: 0 });
   });
 });
