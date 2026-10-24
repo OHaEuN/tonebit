@@ -58,8 +58,21 @@ test("진단 피드백을 보내면 정확도 페이지에 집계된다", async 
   const form = page.locator("details", { hasText: "전문가에게 퍼스널 컬러 진단을 받아 봤나요?" });
   await form.locator("summary").click();
   await form.locator("label", { hasText: "여름 쿨" }).first().click();
-  await form.getByRole("checkbox").check();
-  await form.getByRole("button", { name: "진단 결과 보내기" }).click();
+  await form.getByRole("button", { name: "동의하고 보내기" }).click();
+  await expect(page.getByText("보내 주셔서 고마워요")).toBeVisible();
+  await expect.poll(count).toBe(before + 1);
+});
+
+test("시작할 때 고른 진단은 결과 위 비교 카드에서 버튼 하나로 보내고, 아래 입력 칸은 숨긴다", async ({ page }) => {
+  const count = async () => ((await (await page.request.get("/api/feedback/count")).json()) as { n: number }).n;
+  const before = await count();
+  await page.getByRole("button", { name: "처음부터" }).click();
+  await page.locator("#expert").getByText("가을 웜").click();
+  await page.getByLabel(/사진 올리기|사진으로 시작하기/).first().setInputFiles("e2e/fixtures/face.jpg");
+  await expect(page.getByText("전문가 진단", { exact: true })).toBeVisible({ timeout: MODEL_TIMEOUT });
+  await expect(page.getByText(/명이 모이면|명이 알려 줬어요/)).toBeVisible();
+  await expect(page.locator("details#expert-feedback")).toHaveCount(0);
+  await page.getByRole("button", { name: "동의하고 보내기" }).click();
   await expect(page.getByText("보내 주셔서 고마워요")).toBeVisible();
   await expect.poll(count).toBe(before + 1);
 });

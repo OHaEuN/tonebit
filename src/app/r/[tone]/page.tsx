@@ -87,6 +87,14 @@ export default async function ResultPage({ params }: PageProps<"/r/[tone]">) {
               <div className="mt-7">
                 <ShareButtons tone={tone} title={title} />
               </div>
+              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+                <Link href="/try" className={BUTTON.text}>
+                  나도 해 보기
+                </Link>
+                <Link href="/try#expert" className={BUTTON.text}>
+                  전문가 진단 받아 봤다면 비교해 보기
+                </Link>
+              </div>
               <p className="mt-4 text-[13px] text-muted">
                 재미로 보는 테스트라 조명과 카메라에 따라 달라질 수 있어요.
               </p>
@@ -246,11 +254,17 @@ export default async function ResultPage({ params }: PageProps<"/r/[tone]">) {
               </p>
               <p className="mt-1 text-[15px] text-muted">
                 셀카 한 장이면 돼요. 사진은 기기 밖으로 나가지 않아요.
+                전문가 진단을 받아 봤다면 톤빛 판정과 나란히 비교해 드려요.
               </p>
             </div>
-            <Link href="/try" className={BUTTON.primary}>
-              내 컬러 테스트하기
-            </Link>
+            <div className="flex flex-wrap gap-2.5">
+              <Link href="/try" className={BUTTON.primary}>
+                내 컬러 테스트하기
+              </Link>
+              <Link href="/try#expert" className={BUTTON.secondary}>
+                받은 진단과 비교해 보기
+              </Link>
+            </div>
           </section>
 
           <div className="mt-12 max-w-2xl space-y-4">

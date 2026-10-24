@@ -100,7 +100,7 @@ h3 {
 }
 
 /* 결과 반응에서 "전문가 진단 알려 주기"로 넘어왔을 때 그 칸을 상자로 띄우고 한 번 반짝인다 */
-details[data-spotlight] {
+[data-spotlight] {
   border: 1.5px solid var(--color-fg);
   border-radius: 12px;
   background: var(--color-accent-soft);
@@ -121,7 +121,7 @@ details[data-spotlight] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  details[data-spotlight],
+  [data-spotlight],
   .drape,
   .swatch-wave,
   .bar-shimmer,

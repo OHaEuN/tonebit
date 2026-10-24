@@ -13,7 +13,9 @@ export type AnalyticsEvent =
   | { name: "drape-done"; season: string; same: boolean }
   | { name: "shade-saved"; kind: "lip" | "blush" }
   | { name: "advisor-ask" }
-  | { name: "advisor-try-on" };
+  | { name: "advisor-try-on" }
+  | { name: "expert-preset"; season: string }
+  | { name: "expert-sent"; via: "compare" | "form"; same: boolean };
 
 interface Umami {
   track: (name: string, data?: Record<string, string | number | boolean>) => void;

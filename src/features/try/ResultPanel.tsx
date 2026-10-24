@@ -8,6 +8,7 @@ import { BUTTON } from "@/components/styles";
 import { explainTone } from "@/features/analysis/explain";
 import { REFERENCE_LABEL } from "@/features/analysis/reference";
 import { seasonOdds } from "@/features/analysis/tone";
+import { ExpertCompare } from "@/features/feedback/ExpertCompare";
 import { FeedbackForm } from "@/features/feedback/FeedbackForm";
 import { ResultReaction } from "@/features/feedback/ResultReaction";
 import { HarmonyPicks } from "@/features/recommend/HarmonyPicks";
@@ -44,6 +45,7 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix, whit
   const remeasure = useAnalysisStore((s) => s.remeasure);
   const source = useAnalysisStore((s) => s.source);
   const selectLip = useAnalysisStore((s) => s.selectLip);
+  const expert = useAnalysisStore((s) => s.expert);
   if (!result) return null;
 
   const { season, subtype, tone } = result;
@@ -60,7 +62,8 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix, whit
           확신도 {CONFIDENCE_LABEL[result.confidence]} · {REFERENCE_LABEL[result.reference ?? "none"]}
         </p>
       </div>
-      <ResultReaction key={`${tone}-${result.reference}`} />
+      {/* 시작할 때 전문가 진단을 골랐다면 "내 생각과 비슷해요?" 대신 그 진단과 견준다 */}
+      {expert ? <ExpertCompare /> : <ResultReaction key={`${tone}-${result.reference}`} />}
 
       <div role="tablist" aria-label="결과 보기" className="mt-7 flex gap-6 border-b border-line">
         {TABS.map(([key, label]) => (

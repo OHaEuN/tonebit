@@ -3,6 +3,7 @@
 import type { CameraStatus } from "@/features/camera/useCameraStream";
 import type { LoadProgress } from "@/features/landmark/useFaceLandmarker";
 import { BUTTON } from "@/components/styles";
+import { ExpertPicker } from "@/features/feedback/ExpertPicker";
 import { ModelLoading } from "./ModelLoading";
 import { UploadButton } from "./UploadButton";
 
@@ -78,6 +79,8 @@ export function SetupPanel({ modelStatus, modelError, modelProgress, cameraStatu
           </div>
         )}
       </div>
+
+      <ExpertPicker />
 
       {/* 모바일은 파일 선택창이 곧 카메라·앨범 선택이라 그걸 앞에 둔다 */}
       <div className="mt-6 flex flex-wrap gap-2.5">
