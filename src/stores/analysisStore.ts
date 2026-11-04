@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { track } from "@/features/analytics/track";
-import type { LightingIssue, LinearRgb, Season, ToneResult } from "@/types/analysis";
+import type { FaceSnapshot, LightingIssue, LinearRgb, Season, ToneResult } from "@/types/analysis";
 import { combineShots, MAX_SHOTS, shotResult, type SeasonVotes, type Shot } from "@/features/analysis/shots";
 import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/lipTryOn/render";
 
@@ -40,6 +40,8 @@ interface AnalysisState {
   /** 실시간 카메라에서 화이트밸런스를 고정할 때 잰 흰 종이. 카메라를 끄면 사라진다 */
   lockedWhite: LinearRgb | null;
   resultTab: ResultTab;
+  /** 결과 화면의 비교·순위에 립을 얹어 볼 얼굴 */
+  snapshot: FaceSnapshot | null;
 
   begin: (source: Source) => void;
   startMeasuring: () => void;
@@ -70,6 +72,7 @@ interface AnalysisState {
   setFps: (fps: number) => void;
   setLockedWhite: (white: LinearRgb | null) => void;
   setResultTab: (tab: ResultTab) => void;
+  setSnapshot: (snapshot: FaceSnapshot | null) => void;
   reset: () => void;
 }
 
@@ -96,6 +99,7 @@ const initial = {
   fps: 0,
   lockedWhite: null,
   resultTab: "result" as ResultTab,
+  snapshot: null,
 };
 
 let shotSeq = 0;
@@ -147,5 +151,6 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   setFps: (fps) => set({ fps }),
   setLockedWhite: (lockedWhite) => set({ lockedWhite }),
   setResultTab: (resultTab) => set({ resultTab }),
+  setSnapshot: (snapshot) => set({ snapshot }),
   reset: () => set(initial),
 }));

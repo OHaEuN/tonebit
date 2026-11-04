@@ -80,6 +80,17 @@ export type LightingIssue =
   | "sideLight"
   | "faceSmall";
 
+/** 결과 화면에서 립을 얹어 볼 얼굴 한 장. 카메라는 측정이 끝난 프레임, 사진은 지금 보고 있는 사진 */
+export interface FaceSnapshot {
+  image: CanvasImageSource;
+  /** 그릴 크기(px). 랜드마크는 이 크기 기준 정규화 좌표 */
+  width: number;
+  height: number;
+  landmarks: Point[];
+  /** 이 사진에서 완전한 흰색이 찍혔을 선형 RGB */
+  cameraWhite: LinearRgb;
+}
+
 export interface LightingInput {
   /** 얼굴 패치 평균 휘도(0~255) */
   faceLuma: number;

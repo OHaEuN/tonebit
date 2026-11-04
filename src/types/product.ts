@@ -28,6 +28,8 @@ export interface ProductSource {
   priceTier: PriceTier;
   /** 제형·마무리감 한 줄. AI 상담이 설명과 검색에 쓴다 */
   note: string;
+  /** 왜 인기 제품인지 한 줄 (예: 2025 올리브영 어워즈 립 1위). 목록 순서가 인기 순이다 */
+  best?: string;
 }
 
 export type PriceTier = "under20k" | "20k-40k" | "over40k";
