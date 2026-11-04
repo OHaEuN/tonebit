@@ -69,6 +69,8 @@ export interface ToneResult {
   reference?: ReferenceSource;
   /** 같은 보정을 거친 입술 색. 립 어울림 점수에 쓴다. 입을 못 읽었으면 없다 */
   lip?: Lab;
+  /** 같은 보정을 거친 눈썹 색. 피부와의 밝기 차(자연 대비)로 립 밝기의 최적점을 옮긴다 */
+  brow?: Lab;
 }
 
 export type LightingIssue =

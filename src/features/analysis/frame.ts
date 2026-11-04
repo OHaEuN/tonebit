@@ -3,9 +3,9 @@
  * 여기엔 판정 로직을 두지 않는다.
  */
 import type { Lab, LightingIssue, LinearRgb, Point, ReferenceSource } from "@/types/analysis";
-import { cheekPatches, faceBounds, faceWidthRatio, inPolygon, lipOuterPolygon, mouthInnerPolygon, scleraRegions, skinPatches } from "@/features/landmark/geometry";
+import { browPolygons, cheekPatches, faceBounds, faceWidthRatio, inPolygon, lipOuterPolygon, mouthInnerPolygon, scleraRegions, skinPatches } from "@/features/landmark/geometry";
 import { labToY, linearRgbToLab, luma } from "./color";
-import { SCENE_THUMB, SCLERA_KEEP_BRIGHTEST, TEETH_MAX_SATURATION, TEETH_MIN_LUMA, WHITE_SEARCH_THUMB } from "./constants";
+import { BROW_MAX_LUMA_RATIO, SCENE_THUMB, SCLERA_KEEP_BRIGHTEST, TEETH_MAX_SATURATION, TEETH_MIN_LUMA, WHITE_SEARCH_THUMB } from "./constants";
 import { checkLighting } from "./lighting";
 import { cameraWhite, pickGains } from "./reference";
 import { lumaStats, meanRgb, medianLab, meanLinearRgbMasked, regionStat, representativeLab, type RegionStat } from "./sample";
@@ -79,6 +79,8 @@ export interface SkinSample {
   reference: ReferenceSource;
   /** 입술(바깥 윤곽 − 입 안쪽) 색. 못 읽으면 null */
   lip: Lab | null;
+  /** 눈썹 털 색(양쪽 평균). 피부와의 밝기 차가 그 사람의 자연 대비다. 못 읽으면 null */
+  brow: Lab | null;
   /** 이 사진에서 완전한 흰색이 찍혔을 선형 RGB. 립·블러셔를 이 조명 아래 색으로 칠할 때 쓴다 */
   cameraWhite: LinearRgb;
 }
@@ -114,11 +116,18 @@ export function sampleSkin(
   const inner = mouthInnerPolygon(lm, w, h);
   const lipStat = polygonStat(ctx, lipOuterPolygon(lm, w, h), 1, (x, y) => inPolygon(x, y, inner));
   const g = gains ?? { r: 1, g: 1, b: 1 };
+  // 눈썹 폴리곤에서 피부보다 충분히 어두운 픽셀만 털로 본다. 인코딩 휘도 기준이라 피부 Y를 감마 역변환으로 올린다
+  const browMax = 255 * skinY ** (1 / 2.2) * BROW_MAX_LUMA_RATIO;
+  const brows = browPolygons(lm, w, h)
+    .map((poly) => polygonStat(ctx, poly, 1, undefined, (r, gg, b) => luma(r, gg, b) < browMax))
+    .filter((s): s is RegionStat => s !== null);
+  const brow = brows.length ? brows.reduce((a, b) => ({ r: a.r + b.r / brows.length, g: a.g + b.g / brows.length, b: a.b + b.b / brows.length }), { r: 0, g: 0, b: 0 }) : null;
   return {
     lab: medianLab(labs.length ? labs : raw),
     corrected: reference !== "none",
     reference,
     lip: lipStat ? linearRgbToLab(lipStat.r * g.r, lipStat.g * g.g, lipStat.b * g.b) : null,
+    brow: brow ? linearRgbToLab(brow.r * g.r, brow.g * g.g, brow.b * g.b) : null,
     cameraWhite: cameraWhite(gains),
   };
 }

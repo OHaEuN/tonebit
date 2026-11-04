@@ -75,6 +75,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
             const corrected = samples.filter((s) => s.corrected).length * 2 >= samples.length;
             const kept = samples.filter((s) => s.corrected === corrected);
             const lips = kept.map((s) => s.lip).filter((l): l is Lab => l !== null);
+            const brows = kept.map((s) => s.brow).filter((l): l is Lab => l !== null);
             const white = {
               r: median(kept.map((s) => s.cameraWhite.r)),
               g: median(kept.map((s) => s.cameraWhite.g)),
@@ -89,6 +90,7 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
               corrected,
               reference: kept.map((s) => s.reference).reduce(weakerReference),
               lip: lips.length ? medianLab(lips) : null,
+              brow: brows.length ? medianLab(brows) : null,
               cameraWhite: white,
             });
             samples = [];

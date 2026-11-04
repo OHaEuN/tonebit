@@ -19,6 +19,12 @@ export const EYE_CORNERS = [
  */
 export const SKIN_CENTERS = [50, 280, 101, 330, 123, 352, 151, 108, 337, 9] as const;
 
+/** 눈썹(털) 윤곽, 닫힌 링. [오른눈썹, 왼눈썹]. 위 5점 → 아래 5점. 자연 대비(피부 대 눈썹 밝기)를 재는 데 쓴다 */
+export const BROW_RINGS = [
+  [70, 63, 105, 66, 107, 55, 65, 52, 53, 46],
+  [300, 293, 334, 296, 336, 285, 295, 282, 283, 276],
+] as const;
+
 /** 측면 조명 판정용 양 볼 사과 부위 */
 export const CHEEK_PAIR = [50, 280] as const;
 

@@ -52,6 +52,6 @@ export function useLipRanking(): LipRanking | null {
   return useMemo(() => {
     if (!result) return null;
     const odds = seasonOdds(result.lab, result.reference ?? "none");
-    return { odds, ranked: rankLips(result.lab, result.lip, odds, lipCandidates(mine)) };
+    return { odds, ranked: rankLips(result.lab, result.lip, odds, lipCandidates(mine), { brow: result.brow }) };
   }, [result, mine]);
 }

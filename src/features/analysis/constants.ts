@@ -65,6 +65,8 @@ export const SCLERA_KEEP_BRIGHTEST = 0.25;
 export const SCLERA_MIN_PIXELS = 10;
 /** 치아: 입 안쪽 링 안에서 인코딩 휘도 하한·채도 상한을 넘는 픽셀. 이만큼은 있어야 쓴다 */
 export const TEETH_MIN_PIXELS = 20;
+/** 눈썹 영역에서 털로 보는 픽셀: 인코딩 휘도가 피부의 이 비율보다 어두울 때 */
+export const BROW_MAX_LUMA_RATIO = 0.6;
 export const TEETH_MIN_LUMA = 110;
 export const TEETH_MAX_SATURATION = 0.3;
 
