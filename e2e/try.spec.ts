@@ -56,11 +56,27 @@ test("결과에 시즌 가능성과 내 얼굴 기준 립 순위가 나오고, �
   await waitForModel(page);
   await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
   await expect(page.getByText(/가능성 \d+% · 다음 후보/)).toBeVisible({ timeout: MODEL_TIMEOUT });
-  const picks = page.getByRole("region", { name: "내 얼굴 기준 어울리는 립" });
-  await expect(picks.getByRole("listitem")).toHaveCount(3);
+  const picks = page.getByRole("region", { name: "내 얼굴 기준 립 순위" });
+  await expect(picks.getByRole("listitem")).toHaveCount(5);
   await picks.getByRole("button", { name: "발라 보기" }).first().click();
   await expect(page.getByRole("tab", { name: "발라 보기", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByText(/어울림 \d+점 · 전체 \d+개 중 \d+위/)).toBeVisible();
+});
+
+test("결과에 안 어울리는 립과 어울리는 립을 내 입술에 얹어 나란히 보여 주고, 순위에서 바로 살 수 있다", async ({ page }) => {
+  await waitForModel(page);
+  await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
+  const faceOff = page.getByRole("region", { name: "안 어울리는 립 vs 어울리는 립" });
+  await expect(faceOff).toBeVisible({ timeout: MODEL_TIMEOUT });
+  const crops = faceOff.getByRole("img", { name: /바른 입술$/ });
+  await expect(crops).toHaveCount(2);
+  for (const crop of await crops.all()) expect(await crop.getAttribute("src")).toMatch(/^data:image\/jpeg/);
+  await expect(faceOff.getByText("Worst")).toBeVisible();
+  await expect(faceOff.getByText("Best")).toBeVisible();
+  const ranking = page.getByRole("region", { name: "내 얼굴 기준 립 순위" });
+  const buy = ranking.getByRole("link", { name: "구매" }).first();
+  await expect(buy).toHaveAttribute("href", /link\.coupang\.com/);
+  await expect(buy).toHaveAttribute("rel", /sponsored/);
 });
 
 test("두 색 중 고르기를 여섯 번 하면 직접 고른 톤을 알려 준다", async ({ page }) => {

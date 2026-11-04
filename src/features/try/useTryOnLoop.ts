@@ -75,16 +75,21 @@ export function useTryOnLoop({ videoRef, canvasRef, landmarkerRef, active }: Par
             const corrected = samples.filter((s) => s.corrected).length * 2 >= samples.length;
             const kept = samples.filter((s) => s.corrected === corrected);
             const lips = kept.map((s) => s.lip).filter((l): l is Lab => l !== null);
+            const white = {
+              r: median(kept.map((s) => s.cameraWhite.r)),
+              g: median(kept.map((s) => s.cameraWhite.g)),
+              b: median(kept.map((s) => s.cameraWhite.b)),
+            };
+            // 이 프레임은 아직 립을 얹기 전이라 그대로 복사해 결과 화면의 비교에 쓴다
+            const still = createOffscreen(w, h);
+            still.drawImage(ctx.canvas, 0, 0);
+            store.setSnapshot({ image: still.canvas, width: w, height: h, landmarks, cameraWhite: white });
             store.addShot({
               lab: medianLab(kept.map((s) => s.lab)),
               corrected,
               reference: kept.map((s) => s.reference).reduce(weakerReference),
               lip: lips.length ? medianLab(lips) : null,
-              cameraWhite: {
-                r: median(kept.map((s) => s.cameraWhite.r)),
-                g: median(kept.map((s) => s.cameraWhite.g)),
-                b: median(kept.map((s) => s.cameraWhite.b)),
-              },
+              cameraWhite: white,
             });
             samples = [];
           }

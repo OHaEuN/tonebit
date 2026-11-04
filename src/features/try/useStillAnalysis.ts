@@ -175,6 +175,13 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
   /** 고른 사진, 합친 결과를 볼 땐 마지막에 올린 사진 */
   const shown = (view !== null ? photos.find((p) => p.id === view) : undefined) ?? photos.at(-1);
   const camera = shots.find((s) => s.id === shown?.id)?.cameraWhite;
+  const setSnapshot = useAnalysisStore((s) => s.setSnapshot);
+
+  useEffect(() => {
+    if (!shown) return;
+    const { w, h } = fitSize(shown.img.naturalWidth, shown.img.naturalHeight);
+    setSnapshot({ image: shown.img, width: w, height: h, landmarks: shown.landmarks, cameraWhite: camera ?? cameraWhite(null) });
+  }, [shown, camera, setSnapshot]);
 
   /**
    * 고른 사진을 지금 설정(색·바르는 방법·비교 중)으로 canvas에 그린다. maxWidth를 주면 그만큼 원본 해상도를 살린다.

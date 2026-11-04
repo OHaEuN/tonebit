@@ -11,6 +11,7 @@ import { seasonOdds } from "@/features/analysis/tone";
 import { FeedbackForm } from "@/features/feedback/FeedbackForm";
 import { ResultReaction } from "@/features/feedback/ResultReaction";
 import { HarmonyPicks } from "@/features/recommend/HarmonyPicks";
+import { LipFaceOff } from "@/features/recommend/LipFaceOff";
 import { PaletteBand } from "@/features/recommend/PaletteBand";
 import { CONFIDENCE_LABEL, SEASON_INFO, sortSwatches, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
 import { resultPath } from "@/features/share/resultUrl";
@@ -91,6 +92,13 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix, whit
                 어울리는 색 얼굴에 발라 보기
               </button>
             </div>
+
+            <LipFaceOff
+              onTry={(id) => {
+                selectLip(id);
+                setTab("tryon");
+              }}
+            />
 
             <HarmonyPicks
               onTry={(id) => {

@@ -42,6 +42,9 @@ export async function generateMetadata({
   };
 }
 
+/** 결과 카드에 보여 줄 제품 수 */
+const CARD_PRODUCTS = 8;
+
 /** "피부: 밝은 아이보리…"처럼 적힌 특징을 항목과 설명으로 나눈다 */
 function splitTrait(trait: string): [string, string] {
   const i = trait.indexOf(":");
@@ -59,8 +62,9 @@ export default async function ResultPage({ params }: PageProps<"/r/[tone]">) {
   const title = toneLabel(season, subtype);
   const lips = sortSwatches(seasonInfo.lips, subtype);
   const blushes = sortSwatches(seasonInfo.blushes, subtype);
-  const lipProducts = getProducts(season, "lip");
-  const blushProducts = getProducts(season, "blush");
+  // 목록 순서가 인기 순이라 앞에서 자른다. 전체 순위는 체험 결과에서 얼굴 기준으로 보여 준다
+  const lipProducts = getProducts(season, "lip").slice(0, CARD_PRODUCTS);
+  const blushProducts = getProducts(season, "blush").slice(0, CARD_PRODUCTS);
 
   return (
     <>

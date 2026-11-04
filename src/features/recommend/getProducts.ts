@@ -32,6 +32,14 @@ export function nearestProduct(hex: string, category: ProductCategory): Product 
   return pool.length ? withUrl(pool.reduce((a, b) => (dist(b) < dist(a) ? b : a))) : null;
 }
 
+/** 인기 근거를 짧은 꼬리표로. 어워즈 수상이나 1위만 보여 주고 나머지는 생략한다 */
+export function bestTag(best?: string): string | null {
+  if (!best) return null;
+  if (best.includes("어워즈")) return "올영 어워즈";
+  if (/1위/.test(best)) return "올영 1위";
+  return null;
+}
+
 /** 가상 체험용 색상 칩. 제품 id를 그대로 써서 팔레트 칩과 같은 선택 상태를 공유한다 */
 export function productSwatches(season: Season, category: ProductCategory): Swatch[] {
   return getProducts(season, category).map((p) => ({ id: p.id, name: `${p.brand} ${p.name} ${p.shade}`, hex: p.hex, finish: p.finish }));
