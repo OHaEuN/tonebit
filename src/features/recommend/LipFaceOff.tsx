@@ -19,7 +19,7 @@ function Side({ side, label, onTry }: SideProps) {
   return (
     <figure className="min-w-0">
       {/* eslint-disable-next-line @next/next/no-img-element -- 기기 안에서 만든 data URL이라 next/image가 필요 없다 */}
-      <img src={side.crop} alt={`${item.name}을 바른 입술`} className="block w-full rounded-[12px] bg-card object-cover" />
+      <img src={side.crop} alt={`${item.name}을 바른 얼굴`} className="block aspect-[4/5] w-full rounded-[12px] bg-card object-cover" />
       <figcaption className="mt-3">
         <span className={TAG}>{label}</span>
         <p className="mt-2 text-[12px] text-muted">{item.brand}</p>
@@ -53,7 +53,7 @@ export function LipFaceOff({ onTry }: LipFaceOffProps) {
       <h3 id="faceoff-heading" className="text-[20px] font-semibold">
         안 어울리는 립 vs 어울리는 립
       </h3>
-      <p className="mt-1 text-[13px] text-muted">인기 제품 {faceOff.total}개를 내 얼굴에 얹어 AI가 재미로 매긴 점수예요. 꼴찌와 1등을 나란히 봐요.</p>
+      <p className="mt-1 text-[13px] text-muted">인기 제품 {faceOff.total}개를 내 얼굴에 얹어 AI가 재미로 매긴 점수예요. 꼴찌와 1등을 바른 얼굴을 나란히 봐요.</p>
       <div className="mt-4 grid grid-cols-2 gap-3 md:gap-5">
         <Side side={faceOff.worst} label="Worst" onTry={onTry} />
         <Side side={faceOff.best} label="Best" onTry={onTry} />

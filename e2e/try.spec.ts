@@ -63,12 +63,12 @@ test("결과에 시즌 가능성과 내 얼굴 기준 립 순위가 나오고, �
   await expect(page.getByText(/어울림 \d+점 · 전체 \d+개 중 \d+위/)).toBeVisible();
 });
 
-test("결과에 안 어울리는 립과 어울리는 립을 내 입술에 얹어 나란히 보여 주고, 순위에서 바로 살 수 있다", async ({ page }) => {
+test("결과에 안 어울리는 립과 어울리는 립을 내 얼굴에 얹어 나란히 보여 주고, 순위에서 바로 살 수 있다", async ({ page }) => {
   await waitForModel(page);
   await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
   const faceOff = page.getByRole("region", { name: "안 어울리는 립 vs 어울리는 립" });
   await expect(faceOff).toBeVisible({ timeout: MODEL_TIMEOUT });
-  const crops = faceOff.getByRole("img", { name: /바른 입술$/ });
+  const crops = faceOff.getByRole("img", { name: /바른 얼굴$/ });
   await expect(crops).toHaveCount(2);
   for (const crop of await crops.all()) expect(await crop.getAttribute("src")).toMatch(/^data:image\/jpeg/);
   await expect(faceOff.getByText("Worst")).toBeVisible();

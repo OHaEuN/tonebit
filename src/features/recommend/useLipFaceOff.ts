@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { chroma, hexToLab } from "@/features/analysis/color";
-import { renderMouthCrop } from "@/features/lipTryOn/mouthCrop";
+import { renderFaceCrop } from "@/features/lipTryOn/faceCrop";
 import { productById } from "@/features/recommend/getProducts";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { useLipRanking, type LipCandidate } from "./useLipRanking";
@@ -12,7 +12,7 @@ export interface FaceOffSide {
   ranked: RankedItem<LipCandidate>;
   /** 전체 순위(1부터) */
   rank: number;
-  /** 입 주변을 잘라 립을 얹은 그림(data URL). 기기 안에서만 만든다 */
+  /** 립을 얹은 얼굴 그림(data URL). 기기 안에서만 만든다 */
   crop: string;
   /** 쿠팡 링크. 제품일 때만 */
   url?: string;
@@ -21,8 +21,6 @@ export interface FaceOffSide {
 export interface LipFaceOff {
   worst: FaceOffSide;
   best: FaceOffSide;
-  /** 바르기 전 */
-  bare: string;
   total: number;
 }
 
@@ -52,13 +50,12 @@ export function useLipFaceOff(): LipFaceOff | null {
     const side = ({ r, rank }: (typeof products)[number]): FaceOffSide => ({
       ranked: r,
       rank,
-      crop: renderMouthCrop(snapshot, r.item.hex, r.item.finish, CROP_WIDTH).toDataURL("image/jpeg", 0.9),
+      crop: renderFaceCrop(snapshot, r.item.hex, r.item.finish, CROP_WIDTH).toDataURL("image/jpeg", 0.9),
       url: productById(r.item.id)?.url,
     });
     return {
       best: side(products[0]),
       worst: side(worst),
-      bare: renderMouthCrop(snapshot, null, undefined, CROP_WIDTH).toDataURL("image/jpeg", 0.9),
       total: products.length,
     };
   }, [snapshot, ranking]);
