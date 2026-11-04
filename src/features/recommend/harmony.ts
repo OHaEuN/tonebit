@@ -187,16 +187,19 @@ const PRAISE: Record<Exclude<HarmonyAxis["key"], "fit">, string> = {
   chroma: "피부의 선명도와 잘 맞아요",
 };
 
-/** 점수를 만든 이유 중 가장 도드라진 것 하나를 말로. 깎인 항이 있으면 그것부터, 없으면 가장 잘 맞는 항을 */
+/** 이보다 많이 깎인 항만 경고로 말한다. 살짝 모자란 정도는 다른 항이 메우니 굳이 흠을 잡지 않는다 */
+const WARN_BELOW = -0.3;
+
+/** 점수를 만든 이유 중 가장 도드라진 것 하나를 말로. 분명히 깎인 항이 있으면 그것부터, 없으면 가장 잘 맞는 항을 */
 export function harmonyNote(h: Harmony): string {
-  if (h.lightness < 0 && h.lightnessGap < h.lightnessOptimum) return "피부와 밝기가 비슷하거나 더 밝아서 입술이 묻혀 보일 수 있어요";
-  if (h.lightness < 0) return "피부보다 많이 어두워서 얼굴이 가라앉아 보일 수 있어요";
-  if (h.hue < 0 && h.hueGap < HUE_OPTIMUM) return "피부와 색감이 가까워 얼굴과 섞여 보일 수 있어요";
-  if (h.hue < 0) return "피부보다 지나치게 보랏빛이라 얼굴과 따로 놀 수 있어요";
-  if (h.chroma < 0 && h.chromaGap > 0) return "피부에 비해 너무 선명해서 립만 튀어 보일 수 있어요";
-  if (h.chroma < 0) return "피부에 비해 흐려서 밋밋해 보일 수 있어요";
-  if (h.redness < 0.2) return "붉은기가 약해서 혈색이 덜 살아 보여요";
-  if (h.score < 80) return "무난하게 어울려요";
+  if (h.lightness < WARN_BELOW && h.lightnessGap < h.lightnessOptimum) return "피부와 밝기가 비슷하거나 더 밝아서 입술이 묻혀 보일 수 있어요";
+  if (h.lightness < WARN_BELOW) return "피부보다 많이 어두워서 얼굴이 가라앉아 보일 수 있어요";
+  if (h.hue < WARN_BELOW && h.hueGap < HUE_OPTIMUM) return "피부와 색감이 가까워 얼굴과 섞여 보일 수 있어요";
+  if (h.hue < WARN_BELOW) return "피부보다 지나치게 보랏빛이라 얼굴과 따로 놀 수 있어요";
+  if (h.chroma < WARN_BELOW && h.chromaGap > 0) return "피부에 비해 너무 선명해서 립만 튀어 보일 수 있어요";
+  if (h.chroma < WARN_BELOW) return "피부에 비해 흐려서 밋밋해 보일 수 있어요";
+  if (h.redness < 0) return "붉은기가 약해서 혈색이 덜 살아 보여요";
+  if (h.score < 70) return "무난하게 어울려요";
   const best = (["lightness", "hue", "redness", "chroma"] as const).reduce((a, b) => (h[b] > h[a] ? b : a));
   return PRAISE[best];
 }
