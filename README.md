@@ -2,9 +2,9 @@
 
 **https://tonebit.vercel.app**
 
-<img src="docs/tryon.gif" width="220" align="right" alt="같은 얼굴에 립 다섯 가지를 차례로 발라 본 모습">
-
 셀카 한 장으로 웜·쿨과 시즌 톤을 가늠하고, 올리브영 베스트 립 100여 색을 내 얼굴에 발라 보고 고르는 웹 서비스입니다. 얼굴 사진은 기기 밖으로 나가지 않습니다.
+
+<img src="docs/tryon.gif" width="240" alt="같은 얼굴에 립 다섯 가지를 차례로 발라 본 모습">
 
 ## 무엇을 하나
 
