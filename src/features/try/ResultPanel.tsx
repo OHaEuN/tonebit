@@ -12,6 +12,7 @@ import { FeedbackForm } from "@/features/feedback/FeedbackForm";
 import { ResultReaction } from "@/features/feedback/ResultReaction";
 import { HarmonyPicks } from "@/features/recommend/HarmonyPicks";
 import { LipFaceOff } from "@/features/recommend/LipFaceOff";
+import { LipWorldCup } from "@/features/recommend/LipWorldCup";
 import { PaletteBand } from "@/features/recommend/PaletteBand";
 import { CONFIDENCE_LABEL, SEASON_INFO, sortSwatches, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
 import { resultPath } from "@/features/share/resultUrl";
@@ -23,6 +24,7 @@ import { TryOnControls } from "./TryOnControls";
 const TABS: [ResultTab, string][] = [
   ["result", "결과"],
   ["tryon", "발라 보기"],
+  ["worldcup", "립 월드컵"],
 ];
 
 interface ResultPanelProps {
@@ -99,6 +101,9 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix, whit
                 setTab("tryon");
               }}
             />
+            <button type="button" onClick={() => setTab("worldcup")} className={`${BUTTON.secondary} w-full`}>
+              내 눈으로 고르기 · 립 월드컵 16강
+            </button>
 
             <HarmonyPicks
               onTry={(id) => {
@@ -143,6 +148,13 @@ export function ResultPanel({ onAddPhotos, onMeasureMore, photos, whiteFix, whit
               )}
             </div>
           </div>
+        ) : tab === "worldcup" ? (
+          <LipWorldCup
+            onTry={(id) => {
+              selectLip(id);
+              setTab("tryon");
+            }}
+          />
         ) : (
           <TryOnControls onShowResult={() => setTab("result")} />
         )}

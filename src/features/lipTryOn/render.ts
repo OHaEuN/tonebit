@@ -12,6 +12,8 @@ interface LipStyleSpec {
   label: string;
   coverage: number;
   texture: number;
+  /** 입술이 원래 갖고 있던 반짝임을 얼마나 더 띄울지 */
+  gloss: number;
 }
 
 /**
@@ -19,13 +21,13 @@ interface LipStyleSpec {
  * 같은 제품의 바르기 전·후 사진으로 다시 맞춰야 한다
  */
 export const LIP_STYLES: Record<LipStyle, LipStyleSpec> = {
-  full: { label: "풀립", coverage: 0.8, texture: 0.85 },
+  full: { label: "풀립", coverage: 0.85, texture: 0.85, gloss: 0.25 },
   /** 안쪽은 진하고 바깥으로 갈수록 풀리는 그라데이션 립 */
-  gradient: { label: "그라데이션", coverage: 0.85, texture: 0.85 },
+  gradient: { label: "그라데이션", coverage: 0.85, texture: 0.85, gloss: 0.25 },
   /** 얇게 비치고 입술 결과 광이 그대로 남는다. 아랫입술에 광을 더 올린다 */
-  gloss: { label: "글로시", coverage: 0.5, texture: 1 },
+  gloss: { label: "글로시", coverage: 0.55, texture: 1, gloss: 1 },
   /** 거의 다 덮고 결을 눌러 보송하게 */
-  matte: { label: "매트", coverage: 0.95, texture: 0.6 },
+  matte: { label: "매트", coverage: 0.95, texture: 0.65, gloss: 0 },
 };
 
 /**
@@ -43,8 +45,8 @@ export const BLUSH_STYLES: Record<BlushStyle, { label: string; rx: number; ry: n
 const BLUSH_COVERAGE = 0.45;
 const BLUSH_TEXTURE = 1;
 
-/** 진하기 기본값. 틴트 한 번 바른 정도 */
-export const DEFAULT_INTENSITY = 0.6;
+/** 진하기 기본값. 제품을 한 번 제대로 바른 정도. 1이면 제형이 정한 덮임 그대로 */
+export const DEFAULT_INTENSITY = 0.8;
 
 export interface OverlayOptions {
   /** 이 사진에서 완전한 흰색이 찍혔을 선형 RGB(측정 결과). 제품 색을 사진 조명에 맞춘다 */
@@ -59,16 +61,23 @@ export interface OverlayOptions {
   debug: boolean;
 }
 
-/** 페더링 반경은 얼굴 크기에 비례. 눈 거리 150px이면 약 2px */
-const FEATHER_RATIO = 0.015;
+/** 페더링 반경은 얼굴 크기에 비례. 눈 거리 150px이면 약 3px */
+const FEATHER_RATIO = 0.02;
 
+/**
+ * 랜드마크 링을 닫힌 곡선으로 그린다. 점을 직선으로 이으면 큰 얼굴에서 입술 윤곽이 각지게 꺾여 보여서,
+ * 이웃 점의 중간점을 지나는 2차 곡선으로 잇는다(각 랜드마크가 제어점)
+ */
 function tracePath(ctx: CanvasRenderingContext2D, lm: Point[], ring: readonly number[], w: number, h: number) {
-  ring.forEach((i, k) => {
-    const x = lm[i].x * w;
-    const y = lm[i].y * h;
-    if (k === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
+  const pts = ring.map((i) => ({ x: lm[i].x * w, y: lm[i].y * h }));
+  const n = pts.length;
+  const mid = (a: Point, b: Point): Point => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const start = mid(pts[n - 1], pts[0]);
+  ctx.moveTo(start.x, start.y);
+  for (let k = 0; k < n; k++) {
+    const m = mid(pts[k], pts[(k + 1) % n]);
+    ctx.quadraticCurveTo(pts[k].x, pts[k].y, m.x, m.y);
+  }
   ctx.closePath();
 }
 
@@ -194,7 +203,7 @@ function fadeLipEdges(mask: CanvasRenderingContext2D, lm: Point[], w: number, h:
   mask.restore();
 }
 
-/** 글로시: 아랫입술 가운데에 흰 광을 얹는다. 입술 모양 밖으로는 안 나가게 자른다 */
+/** 글로시: 아랫입술 가운데에 옅은 광을 넓게 얹는다. 픽셀 단위 반짝임 보강이 주력이고 이건 거들 뿐이라 약하게 */
 function drawGloss(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: number, intensity: number) {
   const m = mouthFrame(lm, w, h);
   const at = { x: m.center.x + Math.sin(-m.angle) * m.height * 0.22, y: m.center.y + Math.cos(m.angle) * m.height * 0.22 };
@@ -204,8 +213,8 @@ function drawGloss(ctx: CanvasRenderingContext2D, lm: Point[], w: number, h: num
   tracePath(ctx, lm, LIP_INNER, w, h);
   ctx.clip("evenodd");
   ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = 0.55 * Math.min(1, intensity + 0.2);
-  softEllipse(ctx, at, m.angle, m.width * 0.16, m.height * 0.09, "#ffffff", [[0, 1], [0.5, 0.5], [1, 0]]);
+  ctx.globalAlpha = 0.28 * Math.min(1, intensity + 0.2);
+  softEllipse(ctx, at, m.angle, m.width * 0.2, m.height * 0.08, "#ffffff", [[0, 1], [0.5, 0.45], [1, 0]]);
   ctx.restore();
 }
 
@@ -235,15 +244,16 @@ export function drawOverlays(
   const unit = interocular(lm, w, h);
   if (opts.blush) drawBlush(ctx, mask, lm, w, h, opts.blush, opts.blushStyle, unit, opts.blushIntensity, opts.camera);
   if (opts.lip) {
-    const feather = Math.max(1, unit * FEATHER_RATIO);
+    const feather = Math.max(1.5, unit * FEATHER_RATIO);
     drawLipMask(mask, lm, w, h, feather);
     if (opts.lipStyle === "gradient") fadeLipEdges(mask, lm, w, h);
-    const { coverage, texture } = LIP_STYLES[opts.lipStyle];
+    const { coverage, texture, gloss } = LIP_STYLES[opts.lipStyle];
     tintRegion(ctx, mask, boundingBox(lipOuterPolygon(lm, w, h), feather * 3, w, h), {
       color: hexToLinear(opts.lip),
       camera: opts.camera,
       coverage,
       texture,
+      gloss,
       strength: opts.lipIntensity,
     });
     if (opts.lipStyle === "gloss") drawGloss(ctx, lm, w, h, opts.lipIntensity);

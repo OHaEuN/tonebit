@@ -43,3 +43,6 @@ next-env.d.ts
 playwright-report/
 test-results/
 calibration-report.md
+
+# Playwright MCP 세션 로그
+.playwright-mcp/
