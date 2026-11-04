@@ -41,12 +41,30 @@ describe("tintPixels", () => {
     expect(labOf(dark).L).toBeLessThan(labOf(bright).L);
   });
 
-  it("입술 원래 명암은 texture만큼 남는다", () => {
-    const px = new Uint8ClampedArray([170, 95, 95, 255, 120, 60, 60, 255]);
-    const before = srgbToLab(170, 95, 95).L - srgbToLab(120, 60, 60).L;
-    tintPixels(px, maskOf(255, 2), { color: hexToLinear("#C8283E"), camera: WHITE, coverage: 0.8, texture: 1, strength: 1 });
-    const after = srgbToLab(px[0], px[1], px[2]).L - srgbToLab(px[4], px[5], px[6]).L;
-    expect(after).toBeCloseTo(before, 0);
+  it("입술 원래 명암은 texture만큼 남고, 밝은 제품으로 띄우면 명암 폭도 같이 커진다", () => {
+    const pair = () => new Uint8ClampedArray([170, 95, 95, 255, 120, 60, 60, 255]);
+    const contrast = (px: Uint8ClampedArray) => srgbToLab(px[0], px[1], px[2]).L - srgbToLab(px[4], px[5], px[6]).L;
+    const before = contrast(pair());
+    const dark = pair();
+    tintPixels(dark, maskOf(255, 2), { color: hexToLinear("#6B1E2A"), camera: WHITE, coverage: 0.8, texture: 1, strength: 1 });
+    expect(contrast(dark)).toBeCloseTo(before, 0);
+    const bright = pair();
+    tintPixels(bright, maskOf(255, 2), { color: hexToLinear("#F0A090"), camera: WHITE, coverage: 0.8, texture: 1, strength: 1 });
+    expect(contrast(bright)).toBeGreaterThan(before);
+    expect(contrast(bright)).toBeLessThan(before * 1.6);
+  });
+
+  it("반짝이는 자리는 색이 덜 묻고, 글로시는 더 띄운다", () => {
+    // 평균보다 훨씬 밝은 픽셀 하나와 평범한 픽셀 셋
+    const px = () => new Uint8ClampedArray([240, 200, 200, 255, 150, 80, 80, 255, 150, 80, 80, 255, 150, 80, 80, 255]);
+    const spec = { color: hexToLinear("#C73A7F"), camera: WHITE, coverage: 0.9, texture: 1, strength: 1 };
+    const plain = px();
+    tintPixels(plain, maskOf(255, 4), spec);
+    const shift = (p: Uint8ClampedArray, i: number) => Math.abs(srgbToLab(p[i], p[i + 1], p[i + 2]).b - srgbToLab(px()[i], px()[i + 1], px()[i + 2]).b);
+    expect(shift(plain, 0)).toBeLessThan(shift(plain, 4));
+    const glossy = px();
+    tintPixels(glossy, maskOf(255, 4), { ...spec, gloss: 1 });
+    expect(srgbToLab(glossy[0], glossy[1], glossy[2]).L).toBeGreaterThan(srgbToLab(plain[0], plain[1], plain[2]).L);
   });
 
   it("마스크 밖과 진하기 0은 그대로", () => {

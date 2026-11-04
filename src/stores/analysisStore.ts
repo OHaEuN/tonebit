@@ -7,7 +7,7 @@ import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/li
 export type Stage = "setup" | "live" | "measuring" | "done";
 export type Source = "camera" | "image";
 /** 결과 화면 탭. 발라 보기에서만 사진을 화면 위에 고정한다 */
-export type ResultTab = "result" | "tryon";
+export type ResultTab = "result" | "tryon" | "worldcup";
 
 interface AnalysisState {
   stage: Stage;

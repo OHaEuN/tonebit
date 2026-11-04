@@ -79,6 +79,25 @@ test("결과에 안 어울리는 립과 어울리는 립을 내 얼굴에 얹어
   await expect(buy).toHaveAttribute("rel", /sponsored/);
 });
 
+test("립 월드컵에서 열다섯 번 고르면 내가 고른 1등과 AI 1등을 나란히 보여 준다", async ({ page }) => {
+  await waitForModel(page);
+  await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
+  await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
+  await page.getByRole("button", { name: "내 눈으로 고르기 · 립 월드컵 16강" }).click();
+  await page.getByRole("button", { name: "시작하기" }).click();
+  await expect(page.getByRole("heading", { name: "16강 1/8" })).toBeVisible();
+  for (let i = 0; i < 15; i++) {
+    const picks = page.getByRole("button", { name: /바른 얼굴 고르기$/ });
+    await expect(picks).toHaveCount(2);
+    expect(await picks.first().locator("img").getAttribute("src")).toMatch(/^data:image\/jpeg/);
+    await picks.first().click();
+  }
+  await expect(page.getByText(/내 눈과 AI가 (같은|다른) 립을 골랐어요/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "내 1등 사진 저장" })).toHaveAttribute("download", "tonebit-my-pick.jpg");
+  await page.getByRole("button", { name: "발라 보기" }).first().click();
+  await expect(page.getByRole("tab", { name: "발라 보기", exact: true })).toHaveAttribute("aria-selected", "true");
+});
+
 test("두 색 중 고르기를 여섯 번 하면 직접 고른 톤을 알려 준다", async ({ page }) => {
   await waitForModel(page);
   await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
