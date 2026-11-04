@@ -28,8 +28,9 @@ export interface LipFaceOff {
 
 /** 비교 그림 한 장의 가로 픽셀 */
 const CROP_WIDTH = 480;
-/** 꼴찌 후보는 이 채도(C*)는 돼야 한다. 거의 투명한 밤은 차이가 안 보여 비교가 싱겁다 */
+/** 꼴찌 후보는 이 채도(C*)는 되고 이 밝기(L*)보다는 어두워야 한다. 거의 투명한 연한 밤은 발라도 차이가 안 보여 비교가 싱겁다 */
 const WORST_MIN_CHROMA = 18;
+const WORST_MAX_LIGHTNESS = 68;
 
 /**
  * 실제 제품 중 가장 안 어울리는 립과 가장 어울리는 립을 내 얼굴에 얹어 나란히 놓는다.
@@ -42,7 +43,10 @@ export function useLipFaceOff(): LipFaceOff | null {
   return useMemo(() => {
     if (!snapshot || !ranking) return null;
     const products = ranking.ranked.map((r, i) => ({ r, rank: i + 1 })).filter(({ r }) => r.item.kind === "product");
-    const vivid = products.filter(({ r }) => chroma(hexToLab(r.item.hex)) >= WORST_MIN_CHROMA);
+    const vivid = products.filter(({ r }) => {
+      const lab = hexToLab(r.item.hex);
+      return chroma(lab) >= WORST_MIN_CHROMA && lab.L <= WORST_MAX_LIGHTNESS;
+    });
     const worst = vivid.at(-1) ?? products.at(-1);
     if (products.length < 2 || !worst || worst === products[0]) return null;
     const side = ({ r, rank }: (typeof products)[number]): FaceOffSide => ({
