@@ -6,6 +6,7 @@ import { bestTag, productById } from "@/features/recommend/getProducts";
 import { SwatchSmear } from "@/features/swatch/SwatchSmear";
 import { seedOf, smearFinish } from "@/features/swatch/smear";
 import { harmonyNote } from "./harmony";
+import { HarmonyBars } from "./HarmonyBars";
 import { useLipRanking } from "./useLipRanking";
 
 interface HarmonyPicksProps {
@@ -31,9 +32,9 @@ export function HarmonyPicks({ onTry }: HarmonyPicksProps) {
       <h3 id="harmony-heading" className="text-[20px] font-semibold">
         내 얼굴 기준 립 순위
       </h3>
-      <p className="mt-1 text-[13px] text-muted">피부·입술과의 밝기·색 차이(화장품 연구 기준) 60%와 내 톤일 가능성 40%로 매긴 점수예요.</p>
+      <p className="mt-1 text-[13px] text-muted">피부·입술과의 밝기 대비, 색 방향, 혈색, 선명도(화장품·심리학 연구 기준) 60%와 내 톤 팔레트와의 색 거리 40%로 매긴 점수예요.</p>
       <ol className="mt-4 divide-y divide-line border-y border-line">
-        {products.slice(0, shown).map(({ item, harmony, score }, i) => {
+        {products.slice(0, shown).map(({ item, harmony, fit, score }, i) => {
           const product = productById(item.id);
           return (
             <li key={item.id} className="flex items-center gap-3.5 py-3.5">
@@ -47,6 +48,7 @@ export function HarmonyPicks({ onTry }: HarmonyPicksProps) {
                 </p>
                 <p className="line-clamp-2 text-[15px] font-medium leading-snug">{item.shade ?? item.name}</p>
                 <p className="mt-0.5 text-[12px] leading-snug text-muted">{harmonyNote(harmony)}</p>
+                <HarmonyBars ranked={{ harmony, fit }} className="mt-1.5" />
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <p className="text-[17px] font-semibold tabular-nums">

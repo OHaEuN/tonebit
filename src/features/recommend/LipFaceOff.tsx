@@ -2,6 +2,7 @@
 
 import { BUTTON, TAG } from "@/components/styles";
 import { harmonyNote } from "./harmony";
+import { HarmonyBars } from "./HarmonyBars";
 import { useLipFaceOff, type FaceOffSide } from "./useLipFaceOff";
 
 interface LipFaceOffProps {
@@ -15,7 +16,7 @@ interface SideProps {
 }
 
 function Side({ side, label, onTry }: SideProps) {
-  const { item, harmony, score } = side.ranked;
+  const { item, harmony, fit, score } = side.ranked;
   return (
     <figure className="min-w-0">
       {/* eslint-disable-next-line @next/next/no-img-element -- 기기 안에서 만든 data URL이라 next/image가 필요 없다 */}
@@ -29,6 +30,7 @@ function Side({ side, label, onTry }: SideProps) {
           <span className="ml-0.5 text-[12px] font-normal text-muted">점 · {side.rank}위</span>
         </p>
         <p className="mt-1 text-[12px] leading-snug text-muted">{harmonyNote(harmony)}</p>
+        <HarmonyBars ranked={{ harmony, fit }} className="mt-2" />
         <div className="mt-3 flex flex-wrap gap-1.5">
           <button type="button" onClick={() => onTry(item.id)} className={BUTTON.small}>
             발라 보기

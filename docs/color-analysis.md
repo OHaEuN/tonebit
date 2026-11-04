@@ -104,6 +104,8 @@
 - Hirayama, Yamamoto, Yamazaki, Kimura (POLA), 肌色と似合うリップカラーの色彩調和に関する研究, 粧技誌 32(2), 1998. 립 17색 × 피부 5색, 평가자 137명. 어울림은 피부색 자체보다 립과 피부의 차이가 결정하고(수량화 I류 R=0.84), 영향은 명도차 > 색상차 > 채도차. 립이 피부보다 밝거나 같으면 나쁘고, 색상차는 먼셀 100분할 9~19단계가 가장 좋았다.
 - Stephen & McKeegan, Perception 39, 2010; Porcheron et al., PLoS ONE 2013. 입술 a* 대비가 클수록 매력·여성성이 높고 젊어 보인다.
 - Kobayashi, Matsushita, Morikawa, i-Perception 8(4), 2017. 어두운 입술은 피부를 더 어두워 보이게 했다(d=0.58).
+- Russell, A sex difference in facial contrast and its exaggeration by cosmetics, Perception 38(8), 2009; Jones, Russell, Ward, Cosmetics alter biologically-based factors of beauty: evidence from facial contrast, Evolutionary Psychology 13(1), 2015. 입술·눈과 피부의 명도 대비는 여성성·건강의 단서이고 화장은 이 대비를 키운다. 밝기 대비 항에 최적점을 두는 근거.
+- Maki & Yamamoto 1998(위)에서 어울림의 개인차를 가장 잘 설명한 변수가 머리색이었다. 눈썹 밝기로 그 사람의 자연 대비를 재서 밝기 최적점을 옮기는 근거.
 - 민혜조, 원광대 석사논문 2011. 한국 20대 여성 500명 맨입술 평균 L* 47.6, a* 20.2, b* 13.6. 입술을 못 읽었을 때 쓰는 입술-피부 차이의 근거.
 
 **발색과 제품 색**

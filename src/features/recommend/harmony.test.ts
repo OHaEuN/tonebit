@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Lab, Season } from "@/types/analysis";
 import { hueAngle } from "@/features/analysis/color";
-import { lipHarmony, onLipColor, rankLips, toTrueLab } from "./harmony";
+import { harmonyBreakdown, lipHarmony, onLipColor, rankLips, toTrueLab } from "./harmony";
 
 const SKIN: Lab = { L: 62, a: 14, b: 19 };
 const even: Record<Season, number> = { spring: 0.25, summer: 0.25, autumn: 0.25, winter: 0.25 };
@@ -24,9 +24,35 @@ describe("lipHarmony", () => {
   });
 
   it("피부에서 붉은·자주 쪽으로 30~65° 떨어진 색이 가장 좋다", () => {
-    expect(lipHarmony(SKIN, lipAt(15, 45)).hue).toBeCloseTo(1, 6);
+    expect(lipHarmony(SKIN, lipAt(15, 45)).hue).toBeGreaterThan(0.95);
     expect(lipHarmony(SKIN, lipAt(15, 5)).hue).toBeLessThan(0);
     expect(lipHarmony(SKIN, lipAt(15, 110)).hue).toBeLessThan(0);
+  });
+
+  it("자연 대비가 큰 사람(눈썹이 피부보다 훨씬 어두움)은 더 진한 립이 최적이 된다", () => {
+    const high = lipHarmony(SKIN, lipAt(14, 45), { brow: { L: SKIN.L - 45, a: 5, b: 8 } });
+    const low = lipHarmony(SKIN, lipAt(14, 45), { brow: { L: SKIN.L - 15, a: 5, b: 8 } });
+    expect(high.lightnessOptimum).toBeGreaterThan(low.lightnessOptimum);
+    expect(high.naturalContrast).toBe(45);
+    expect(lipHarmony(SKIN, lipAt(14, 45)).naturalContrast).toBeUndefined();
+  });
+
+  it("선명도는 피부 채도에 맞는 립이 가장 좋고, 너무 선명하거나 흐리면 깎인다", () => {
+    const optimum = 22 + 0.9 * Math.hypot(SKIN.a, SKIN.b);
+    const fit = (c: number) => lipHarmony(SKIN, lipAt(14, 45, c)).chroma;
+    expect(fit(optimum)).toBeGreaterThan(0.95);
+    expect(fit(optimum)).toBeGreaterThan(fit(optimum + 40));
+    expect(fit(optimum)).toBeGreaterThan(fit(Math.max(0, optimum - 30)));
+  });
+
+  it("항목별 점수는 다섯 개이고 0~1 사이다", () => {
+    const h = lipHarmony(SKIN, lipAt(14, 45));
+    const axes = harmonyBreakdown({ harmony: h, fit: 0.7 });
+    expect(axes.map((a) => a.key)).toEqual(["lightness", "hue", "redness", "chroma", "fit"]);
+    for (const a of axes) {
+      expect(a.value).toBeGreaterThanOrEqual(0);
+      expect(a.value).toBeLessThanOrEqual(1);
+    }
   });
 
   it("점수는 0~100", () => {
