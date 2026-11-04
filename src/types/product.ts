@@ -18,8 +18,10 @@ export interface ProductSource {
   brand: string;
   name: string;
   shade: string;
-  /** 공식 색상명 기준 근사치. 실제 발색과 다를 수 있다 */
+  /** 브랜드 공식 색상 칩·스와치에서 잰 값(hexSource가 있을 때). 없으면 공식 색상 설명을 보고 적은 근사치 */
   hex: string;
+  /** hex를 어디서 어떻게 쟀는지. 없으면 근사치 */
+  hexSource?: HexSource;
   finish: Finish;
   seasons: Season[];
   keyword?: string;
@@ -33,6 +35,13 @@ export interface ProductSource {
 }
 
 export type PriceTier = "under20k" | "20k-40k" | "over40k";
+
+export interface HexSource {
+  /** official-chip: 브랜드 공식 색상 칩 이미지 평균, official-swatch: 공식 발색 사진, blog-swatch: 리뷰 발색 사진 */
+  method: "official-chip" | "official-swatch" | "blog-swatch";
+  url: string;
+  confidence: "high" | "medium" | "low";
+}
 
 export interface Product extends ProductSource {
   url: string;

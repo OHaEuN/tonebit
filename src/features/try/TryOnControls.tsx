@@ -89,7 +89,7 @@ export function TryOnControls({ onShowResult }: TryOnControlsProps) {
       </div>
 
       <p className="text-xs leading-relaxed text-muted">
-        사진 오른쪽 아래 전후 버튼이나 사진을 꾹 누르고 있으면 바르기 전 모습이 보여요. 제품 색은 공식 색상명 기준 근사치이고, 내 제품은 흰 종이로 잰 색이에요.
+        사진 오른쪽 아래 전후 버튼이나 사진을 꾹 누르고 있으면 바르기 전 모습이 보여요. 제품 색은 브랜드 공식 색상 칩에서 잰 값이고(일부는 색상 설명 기준 근사치), 내 제품은 흰 종이로 잰 색이에요.
       </p>
       <button type="button" onClick={onShowResult} className={BUTTON.text}>
         결과로 돌아가기
