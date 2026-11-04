@@ -237,7 +237,7 @@ export default async function ResultPage({ params }: PageProps<"/r/[tone]">) {
               </div>
             </div>
             <p className="mt-5 text-xs leading-relaxed text-muted">
-              색상 칩은 공식 색상명 기준 근사치라 실제 발색과 다를 수 있어요. 이
+              색상 칩은 브랜드 공식 색상 칩에서 잰 값(일부는 근사치)이라 실제 발색과 다를 수 있어요. 이
               페이지의 제품 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른
               일정액의 수수료를 제공받습니다.
             </p>
