@@ -16,6 +16,7 @@ import { SwatchSmear } from "@/features/swatch/SwatchSmear";
 import { seedOf, smearFinish } from "@/features/swatch/smear";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { StepFrame } from "./StepFrame";
+import { useToneLabel } from "./useToneLabel";
 
 const FIRST = 5;
 const MORE = 5;
@@ -26,6 +27,7 @@ const TREND_TAG_MIN = 0.8;
 
 /** 5단계 내 립. 연구 기준 점수에 취향과 선택을 더한 순위를 내 얼굴에 바른 그림과 함께 */
 export function MatchStep() {
+  const tone = useToneLabel();
   const result = useAnalysisStore((s) => s.result)!;
   const snapshot = useAnalysisStore((s) => s.snapshot);
   const selectLip = useAnalysisStore((s) => s.selectLip);
@@ -54,6 +56,7 @@ export function MatchStep() {
 
   return (
     <StepFrame
+      context={tone}
       index={5}
       title="내 얼굴에 어울리는 립"
       body={picks > 0 ? "밝기 대비·색 방향·혈색·선명도·색 조화·톤 팔레트·유행에 방금 고른 취향을 더한 순위예요." : "밝기 대비·색 방향·혈색·선명도·색 조화·톤 팔레트·유행으로 매긴 순위예요."}

@@ -8,6 +8,7 @@ import { useTasteStore } from "@/features/recommend/tasteStore";
 import { useLipWorldCup } from "@/features/recommend/useLipWorldCup";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { StepFrame } from "./StepFrame";
+import { useToneLabel } from "./useToneLabel";
 
 /** 토너먼트 인원. 8강이면 일곱 번 고른다 */
 export const PICK_SIZE = 8;
@@ -17,6 +18,7 @@ export const PICK_SIZE = 8;
  * 판정 주체가 이용자라 측정 정확도와 무관한 유일한 입력이다
  */
 export function PickStep() {
+  const tone = useToneLabel();
   const setStep = useAnalysisStore((s) => s.setStep);
   const addPick = useTasteStore((s) => s.addPick);
   const setChampion = useTasteStore((s) => s.setChampion);
@@ -45,13 +47,14 @@ export function PickStep() {
 
   if (!ready) {
     return (
-      <StepFrame index={4} title="얼굴 사진이 없어요" body="측정을 다시 하면 둘 중 고르기를 할 수 있어요." onBack={() => window.history.back()} cta={{ label: "건너뛰기", onClick: skip }} />
+      <StepFrame context={tone} index={4} title="얼굴 사진이 없어요" body="측정을 다시 하면 둘 중 고르기를 할 수 있어요." onBack={() => window.history.back()} cta={{ label: "건너뛰기", onClick: skip }} />
     );
   }
 
   const [a, b] = cup.match ?? [];
   return (
     <StepFrame
+      context={tone}
       index={4}
       title="둘 중 더 마음에 드는 쪽을 골라 주세요"
       body={`내 얼굴에 바른 모습이에요. ${PICK_SIZE - 1}번 고르면 내 취향이 점수에 들어가요.`}

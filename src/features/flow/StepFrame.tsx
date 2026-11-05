@@ -7,6 +7,10 @@ export const MAIN_STEPS = 5;
 interface StepFrameProps {
   /** 본 흐름에서 몇 번째인지(1부터). 곁가지 화면은 없음 */
   index?: number;
+  /** 제목 위 작은 머리말(예: 내 퍼스널 컬러) */
+  kicker?: string;
+  /** 오른쪽 위 작은 알약. 진단된 톤을 모든 단계에서 보이게 할 때 */
+  context?: string;
   title: ReactNode;
   body?: ReactNode;
   /** 제목 위 뒤로 가기. 브라우저 뒤로와 같다 */
@@ -23,7 +27,7 @@ interface StepFrameProps {
  * 측정 뒤 화면의 틀. 한 화면에 질문(제목) 하나와 주 행동 하나만 둔다.
  * 위에 진행 막대와 뒤로, 아래에 주 행동. 가운데는 그 화면의 한 가지 일
  */
-export function StepFrame({ index, title, body, onBack, children, cta, aside, headingId = "step-heading" }: StepFrameProps) {
+export function StepFrame({ index, kicker, context, title, body, onBack, children, cta, aside, headingId = "step-heading" }: StepFrameProps) {
   return (
     <section aria-labelledby={headingId} className="flex min-h-[60svh] flex-col">
       <div className="flex h-8 items-center gap-3">
@@ -46,8 +50,14 @@ export function StepFrame({ index, title, body, onBack, children, cta, aside, he
             ))}
           </ol>
         )}
+        {context && (
+          <span className="ml-auto inline-flex h-7 shrink-0 items-center rounded-full border border-fg/25 px-2.5 text-[12px] font-medium tracking-tight" aria-label={`내 톤 ${context}`}>
+            {context}
+          </span>
+        )}
       </div>
-      <h2 id={headingId} className="mt-4 break-keep text-[26px] font-semibold leading-[1.2] md:text-[32px]">
+      {kicker && <p className="mt-5 text-[13px] font-medium text-muted">{kicker}</p>}
+      <h2 id={headingId} className={`${kicker ? "mt-1" : "mt-4"} break-keep text-[26px] font-semibold leading-[1.2] md:text-[32px]`}>
         {title}
       </h2>
       {body && <p className="mt-2 break-keep text-[15px] leading-relaxed text-muted">{body}</p>}

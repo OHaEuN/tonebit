@@ -6,6 +6,7 @@ import { SwatchSmear } from "@/features/swatch/SwatchSmear";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { OptionList } from "./OptionList";
 import { StepFrame } from "./StepFrame";
+import { useToneLabel } from "./useToneLabel";
 
 /** 느낌별 보기 색. 점수와 무관한 그림 */
 const SAMPLE: Record<Feel, string[]> = {
@@ -17,10 +18,11 @@ const FEELS: Feel[] = ["natural", "vivid", "bold"];
 
 /** 2단계 원하는 느낌. 답 하나가 밝기·채도 최적점과 인상 항을 바꾼다 */
 export function FeelStep() {
+  const tone = useToneLabel();
   const setStep = useAnalysisStore((s) => s.setStep);
   const setTaste = useTasteStore((s) => s.setTaste);
   return (
-    <StepFrame index={2} title="어떤 느낌의 립을 원해요?" body="평소 손이 가는 쪽이면 돼요. 답에 따라 점수의 기준이 조금 움직여요." onBack={() => window.history.back()}>
+    <StepFrame context={tone} index={2} title="어떤 느낌의 립을 원해요?" body="평소 손이 가는 쪽이면 돼요. 답에 따라 점수의 기준이 조금 움직여요." onBack={() => window.history.back()}>
       <OptionList
         label="원하는 느낌"
         options={FEELS.map((key) => ({

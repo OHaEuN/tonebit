@@ -9,6 +9,7 @@ import { ResultReaction } from "@/features/feedback/ResultReaction";
 import { ShotsPanel } from "@/features/try/ShotsPanel";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { StepFrame } from "./StepFrame";
+import { useToneLabel } from "./useToneLabel";
 
 export interface TuneStepProps {
   onAddPhotos: (files: File[]) => void;
@@ -22,11 +23,12 @@ export interface TuneStepProps {
 
 /** 곁가지: 정확도 높이기. 사진 추가, 흰색 기준, 왜 이렇게 나왔나, 반응·전문가 진단, 다시 측정 */
 export function TuneStep({ onAddPhotos, onMeasureMore, photos, whiteFix, whiteFixUrgent }: TuneStepProps) {
+  const tone = useToneLabel();
   const result = useAnalysisStore((s) => s.result)!;
   const source = useAnalysisStore((s) => s.source);
   const remeasure = useAnalysisStore((s) => s.remeasure);
   return (
-    <StepFrame title="정확도 높이기" body="사진을 더하거나 흰색 기준을 맞추면 조명 운이 줄어요. 결과가 다르다고 느끼면 알려 주세요." onBack={() => window.history.back()}>
+    <StepFrame context={tone} title="정확도 높이기" body="사진을 더하거나 흰색 기준을 맞추면 조명 운이 줄어요. 결과가 다르다고 느끼면 알려 주세요." onBack={() => window.history.back()}>
       <div className="space-y-6">
         <ShotsPanel onAddPhotos={onAddPhotos} onMeasureMore={onMeasureMore} photos={photos} />
         <div className="border-b border-line">
