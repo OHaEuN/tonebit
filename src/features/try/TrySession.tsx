@@ -58,6 +58,8 @@ export function TrySession() {
   /** 사진을 보며 색을 고르는 발라 보기에서만 사진 무대를 화면 위에 고정한다 */
   const pinStage = stage === "done" && step === "tryon";
   const hideStage = stage === "done" && HIDE_STAGE_STEPS.has(step);
+  /** 내 톤 화면은 결과가 사진에 가리지 않게 폰에서 사진을 작게 둔다 */
+  const smallStage = stage === "done" && step === "tone";
   /** 흰색 기준을 찍는 중 */
   const [pickingWhite, setPickingWhite] = useState(false);
   const [whiteMessage, setWhiteMessage] = useState<string | null>(null);
@@ -176,7 +178,7 @@ export function TrySession() {
               onPointerLeave={cancelHold}
               onPointerCancel={cancelHold}
               onContextMenu={(e) => e.preventDefault()}
-              className={`relative block touch-manipulation select-none ${pickingWhite ? "cursor-crosshair" : ""} h-auto ${compact ? "max-h-[min(26svh,240px)]" : pinStage ? "max-h-[min(50svh,480px)]" : "max-h-[min(44svh,420px)]"} w-auto max-w-full md:max-h-[calc(100svh-7rem)] md:rounded-[12px] ${source === "camera" ? "-scale-x-100" : ""}`}
+              className={`relative block touch-manipulation select-none ${pickingWhite ? "cursor-crosshair" : ""} h-auto ${compact ? "max-h-[min(26svh,240px)]" : pinStage ? "max-h-[min(50svh,480px)]" : smallStage ? "max-h-[min(30svh,300px)]" : "max-h-[min(44svh,420px)]"} w-auto max-w-full md:max-h-[calc(100svh-7rem)] md:rounded-[12px] ${source === "camera" ? "-scale-x-100" : ""}`}
             />
             <StageOverlay pickingWhite={pickingWhite} />
             {stage === "done" && !pickingWhite && (
