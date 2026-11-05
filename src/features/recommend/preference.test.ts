@@ -19,6 +19,14 @@ describe("learnWeights", () => {
     for (const k of AXIS_KEYS) expect(w[k]).toBeGreaterThanOrEqual(0);
   });
 
+  it("한 항목을 늘 거스르는 선택이 쌓여도 그 항목은 출발값의 1/4 아래로 내려가지 않는다", () => {
+    const pick: Pick = { winner: { ...zeroVector(), texture: -1, impression: -1 }, loser: { ...zeroVector(), texture: 1, impression: 1 } };
+    const w = learnWeights(BASE_WEIGHTS, Array(14).fill(pick));
+    expect(w.texture).toBeGreaterThan(0);
+    expect(w.impression).toBeGreaterThan(0);
+    expect(w.texture).toBeGreaterThanOrEqual(0.25 * normalize(BASE_WEIGHTS).texture * 0.9);
+  });
+
   it("서로 반대되는 선택이면 그 항목은 조금 내려갈 뿐 출발값 근처에 남는다", () => {
     const a: Pick = { winner: { ...zeroVector(), chroma: 1 }, loser: { ...zeroVector(), chroma: -1 } };
     const b: Pick = { winner: a.loser, loser: a.winner };

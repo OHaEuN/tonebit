@@ -21,8 +21,8 @@ const FIRST = 5;
 const MORE = 5;
 /** 행마다 얼굴 그림의 가로 픽셀. 폰에서 88css px × 3배 */
 const CROP_WIDTH = 300;
-/** 유행 점수가 이 이상이면 "요즘 인기" 꼬리표 */
-const TREND_TAG_MIN = 0.6;
+/** 유행 점수가 이 이상이면 "요즘 인기" 꼬리표. 월간 베스트 15위 안 라인이 키워드까지 맞을 때쯤 */
+const TREND_TAG_MIN = 0.8;
 
 /** 5단계 내 립. 연구 기준 점수에 취향과 선택을 더한 순위를 내 얼굴에 바른 그림과 함께 */
 export function MatchStep() {

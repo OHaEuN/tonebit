@@ -312,17 +312,20 @@ const PRAISE_ABOVE = 0.6;
 
 /** 이보다 많이 깎인 항만 경고로 말한다. 살짝 모자란 정도는 다른 항이 메우니 굳이 흠을 잡지 않는다 */
 const WARN_BELOW = -0.3;
+/** 가중치가 이보다 작은 항(둘 중 고르기로 그 사람에겐 덜 중요해진 항)은 경고하지 않는다 */
+const WARN_MIN_WEIGHT = 0.05;
 
 /** 점수를 만든 이유 중 가장 도드라진 것 하나를 말로. 분명히 깎인 항이 있으면 그것부터, 없으면 가장 잘 맞는 항을 */
 export function harmonyNote(h: Harmony): string {
-  const { axes } = h;
-  if (axes.lightness < WARN_BELOW && h.lightnessGap < h.lightnessOptimum) return "피부와 밝기가 비슷하거나 더 밝아서 입술이 묻혀 보일 수 있어요";
-  if (axes.lightness < WARN_BELOW) return "피부보다 많이 어두워서 얼굴이 가라앉아 보일 수 있어요";
-  if (axes.undertone < WARN_BELOW && h.hueGap < 0) return "내 톤보다 차가운 핑크·보라 쪽이라 얼굴과 따로 놀 수 있어요";
-  if (axes.undertone < WARN_BELOW) return "내 톤보다 따뜻한 오렌지 쪽이라 얼굴이 노랗게 보일 수 있어요";
-  if (axes.chroma < WARN_BELOW && h.chromaGap > 0) return "피부에 비해 너무 선명해서 립만 튀어 보일 수 있어요";
-  if (axes.chroma < WARN_BELOW) return "피부에 비해 흐려서 밋밋해 보일 수 있어요";
-  if (axes.redness < 0) return "붉은기가 약해서 혈색이 덜 살아 보여요";
+  const { axes, weights } = h;
+  const warn = (k: AxisKey) => axes[k] < WARN_BELOW && weights[k] >= WARN_MIN_WEIGHT;
+  if (warn("lightness") && h.lightnessGap < h.lightnessOptimum) return "피부와 밝기가 비슷하거나 더 밝아서 입술이 묻혀 보일 수 있어요";
+  if (warn("lightness")) return "피부보다 많이 어두워서 얼굴이 가라앉아 보일 수 있어요";
+  if (warn("undertone") && h.hueGap < 0) return "내 톤보다 차가운 핑크·보라 쪽이라 얼굴과 따로 놀 수 있어요";
+  if (warn("undertone")) return "내 톤보다 따뜻한 오렌지 쪽이라 얼굴이 노랗게 보일 수 있어요";
+  if (warn("chroma") && h.chromaGap > 0) return "피부에 비해 너무 선명해서 립만 튀어 보일 수 있어요";
+  if (warn("chroma")) return "피부에 비해 흐려서 밋밋해 보일 수 있어요";
+  if (axes.redness < 0 && weights.redness >= WARN_MIN_WEIGHT) return "붉은기가 약해서 혈색이 덜 살아 보여요";
   if (h.score < 70) return "무난하게 어울려요";
   const best = PRAISE_KEYS.filter((k) => h.weights[k] > 0).reduce((a, b) => (axes[b] > axes[a] + 0.05 ? b : a));
   return axes[best] >= PRAISE_ABOVE ? (PRAISE[best] ?? "무난하게 어울려요") : "무난하게 어울려요";

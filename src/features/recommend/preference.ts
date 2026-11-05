@@ -76,6 +76,8 @@ export function normalize(w: AxisVector): AxisVector {
 
 /** 선택이 모일수록 출발 가중치에서 얼마나 멀리 갈 수 있는지. 클수록 출발값을 더 믿는다 */
 const PRIOR_STRENGTH = 4;
+/** 어떤 항목도 출발 가중치의 이 비율 아래로는 내려가지 않는다. 항목이 0이 되면 막대가 사라지고 점수 설명이 어긋난다 */
+const MIN_SHARE = 0.25;
 const STEPS = 300;
 const RATE = 0.03;
 
@@ -97,7 +99,7 @@ export function learnWeights(base: AxisVector, picks: Pick[]): AxisVector {
     }
     for (const k of AXIS_KEYS) {
       grad[k] += PRIOR_STRENGTH * (w[k] - base[k]);
-      w[k] = Math.max(0, w[k] - RATE * grad[k]);
+      w[k] = Math.max(MIN_SHARE * base[k], w[k] - RATE * grad[k]);
     }
   }
   return normalize(w);
