@@ -2,7 +2,7 @@ import type { FaceSnapshot } from "@/types/analysis";
 import type { Finish } from "@/types/product";
 import { createOffscreen } from "@/features/analysis/frame";
 import { faceBounds } from "@/features/landmark/geometry";
-import { DEFAULT_INTENSITY, drawOverlays, type LipStyle } from "./render";
+import { DEFAULT_INTENSITY, drawOverlays, lipStyleOf } from "./render";
 
 /** 얼굴 양옆 여백. 얼굴 폭의 비율 */
 const SIDE_PAD = 0.3;
@@ -10,13 +10,6 @@ const SIDE_PAD = 0.3;
 export const CROP_ASPECT = 4 / 5;
 /** 위아래 남는 여백 중 위쪽(머리)에 두는 몫. 랜드마크가 이마 위까지만 잡아서 머리가 잘리지 않게 위를 더 준다 */
 const TOP_SHARE = 0.6;
-
-/** 제형 → 바르는 방법 */
-export function lipStyleOf(finish?: Finish): LipStyle {
-  if (finish === "glossy") return "gloss";
-  if (finish === "matte") return "matte";
-  return "full";
-}
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 

@@ -8,7 +8,9 @@ import { useMyShadeStore, type MyShade } from "@/features/myShade/store";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { rankLips, type HarmonyItem, type RankedItem } from "./harmony";
 import { nearestSeason, SEASON_INFO, SEASONS } from "./palettes";
+import { useTasteStore } from "./tasteStore";
 import products from "./products.json";
+import { trendScore } from "./trend";
 
 export interface LipCandidate extends HarmonyItem {
   kind: "product" | "palette" | "mine";
@@ -30,6 +32,7 @@ function lipCandidates(mine: MyShade[]): LipCandidate[] {
         hex: p.hex,
         finish: p.finish,
         seasons: p.seasons,
+        trend: trendScore(p),
         kind: "product",
       }),
     );
@@ -45,13 +48,15 @@ export interface LipRanking {
   ranked: RankedItem<LipCandidate>[];
 }
 
-/** 지금 보고 있는 결과(피부·입술·시즌 확률)로 낸 립 순위. 결과가 없으면 null */
+/** 지금 보고 있는 결과(피부·입술·시즌 확률·세부 타입)와 취향으로 낸 립 순위. 결과가 없으면 null */
 export function useLipRanking(): LipRanking | null {
   const result = useAnalysisStore((s) => s.result);
   const mine = useMyShadeStore((s) => s.shades);
+  const taste = useTasteStore((s) => s.taste);
+  const weights = useTasteStore((s) => s.weights);
   return useMemo(() => {
     if (!result) return null;
     const odds = seasonOdds(result.lab, result.reference ?? "none");
-    return { odds, ranked: rankLips(result.lab, result.lip, odds, lipCandidates(mine), { brow: result.brow }) };
-  }, [result, mine]);
+    return { odds, ranked: rankLips(result.lab, result.lip, odds, lipCandidates(mine), { brow: result.brow, subtype: result.subtype, taste, weights }) };
+  }, [result, mine, taste, weights]);
 }

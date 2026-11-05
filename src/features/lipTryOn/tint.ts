@@ -1,4 +1,4 @@
-import type { LinearRgb } from "@/types/analysis";
+import type { Lab, LinearRgb } from "@/types/analysis";
 import { hexToRgb, labToLinear, linearize, linearRgbToLab } from "@/features/analysis/color";
 
 /** 0~255 인코딩 값 → 선형 값 */
@@ -75,6 +75,19 @@ const GLOSS_LIFT = 10;
 const MAX_CONTRAST_GAIN = 1.6;
 
 /**
+ * 입술(평균색) 위에 제품을 coverage만큼 발랐을 때 보이는 색. 아래 tintPixels가 픽셀마다 쓰는 것과 같은 이동이라
+ * 어울림 점수가 평가하는 색과 화면에 그려지는 색이 같다
+ */
+export function tintLab(base: Lab, product: Lab, coverage: number): Lab {
+  const c = coverage * CHROMA_SHIFT;
+  return {
+    L: base.L + coverage * LIGHTNESS_SHIFT * (product.L - base.L),
+    a: base.a + c * (product.a - base.a),
+    b: base.b + c * (product.b - base.b),
+  };
+}
+
+/**
  * 마스크 알파만큼 픽셀에 제품을 바른다(제자리 수정). CIELAB에서 계산한다.
  * - 밝기: 입술 평균 밝기를 제품 밝기 쪽으로 일부 옮기고, 픽셀마다 입술 원래 명암(L − 평균)을 texture만큼 남긴다
  * - 색: a*·b*를 제품 쪽으로 옮긴다. 제품 색은 사진의 흰색(조명·노출)을 곱한 값이라 어두운 사진에선 함께 어두워진다
@@ -95,7 +108,7 @@ export function tintPixels(pixels: Uint8ClampedArray, mask: Uint8ClampedArray, s
   // 사진의 흰색이 1을 넘으면(밝은 사진) 제품이 하얗게 날아가니 가장 센 채널을 1로 묶는다
   const peak = Math.max(1, camera.r, camera.g, camera.b);
   const product = linearRgbToLab((color.r * camera.r) / peak, (color.g * camera.g) / peak, (color.b * camera.b) / peak);
-  const targetL = meanL + coverage * LIGHTNESS_SHIFT * (product.L - meanL);
+  const targetL = tintLab({ L: meanL, a: 0, b: 0 }, product, coverage).L;
   const chroma = coverage * CHROMA_SHIFT;
   const contrast = texture * Math.min(MAX_CONTRAST_GAIN, Math.max(1, targetL / Math.max(1, meanL)));
 

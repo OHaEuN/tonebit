@@ -32,6 +32,8 @@ export interface ProductSource {
   note: string;
   /** 왜 인기 제품인지 한 줄 (예: 2025 올리브영 어워즈 립 1위). 목록 순서가 인기 순이다 */
   best?: string;
+  /** 이 라인의 올리브영 립 메이크업 월간 베스트 순위(2026년 9월, 100위 안). 유행 항에 쓴다 */
+  trendRank?: number;
 }
 
 export type PriceTier = "under20k" | "20k-40k" | "over40k";
