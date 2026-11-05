@@ -199,7 +199,7 @@ export function AdvisorPanel({ onPreview }: AdvisorPanelProps) {
                           >
                             발라 보기
                           </button>
-                          <a href={p.url} target="_blank" rel="sponsored noopener" className="text-[12px] text-muted underline underline-offset-2">
+                          <a href={p.url} target="_blank" rel="sponsored noopener" data-umami-event="product-click" data-umami-event-id={p.id} data-umami-event-from="advisor" className="text-[12px] text-muted underline underline-offset-2">
                             쿠팡에서 보기
                           </a>
                         </div>
