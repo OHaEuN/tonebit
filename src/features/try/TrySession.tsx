@@ -9,10 +9,11 @@ import { isFullyCorrected } from "@/features/analysis/tone";
 import { track } from "@/features/analytics/track";
 import { useCameraStream } from "@/features/camera/useCameraStream";
 import { useWhiteBalanceLock } from "@/features/camera/useWhiteBalanceLock";
+import { useStepHistory } from "@/features/flow/useStepHistory";
 import { useMyShadeStore } from "@/features/myShade/store";
 import { faceBounds } from "@/features/landmark/geometry";
 import { ensureVideoMode, useFaceLandmarker } from "@/features/landmark/useFaceLandmarker";
-import { useAnalysisStore } from "@/stores/analysisStore";
+import { useAnalysisStore, type Step } from "@/stores/analysisStore";
 import type { LightingIssue } from "@/types/analysis";
 import { AdvancedPanel } from "./AdvancedPanel";
 import { LightingBadges } from "./LightingBadges";
@@ -28,6 +29,8 @@ import { WhiteBalanceLockCard } from "./WhiteBalanceLockCard";
 
 /** 이보다 오래 누르면 "바르기 전" 비교, 짧게 떼면 크게 보기 */
 const HOLD_MS = 220;
+/** 폰에서 사진 무대를 숨기는 단계. 질문·고르기·순위 화면은 얼굴을 따로 그려 보여 주거나 사진이 필요 없다 */
+const HIDE_STAGE_STEPS = new Set<Step>(["feel", "texture", "pick", "match", "ask"]);
 
 export function TrySession() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -49,9 +52,12 @@ export function TrySession() {
   const measureMore = useAnalysisStore((s) => s.measureMore);
   const setComparing = useAnalysisStore((s) => s.setComparing);
   const comparing = useAnalysisStore((s) => s.comparing);
-  const resultTab = useAnalysisStore((s) => s.resultTab);
+  const step = useAnalysisStore((s) => s.step);
+  const setStep = useAnalysisStore((s) => s.setStep);
+  useStepHistory(step, setStep, stage === "done");
   /** 사진을 보며 색을 고르는 발라 보기에서만 사진 무대를 화면 위에 고정한다 */
-  const pinStage = stage === "done" && resultTab === "tryon";
+  const pinStage = stage === "done" && step === "tryon";
+  const hideStage = stage === "done" && HIDE_STAGE_STEPS.has(step);
   /** 흰색 기준을 찍는 중 */
   const [pickingWhite, setPickingWhite] = useState(false);
   const [whiteMessage, setWhiteMessage] = useState<string | null>(null);
@@ -153,7 +159,7 @@ export function TrySession() {
 
       {/* 모바일: 사진 무대를 가장자리까지 넓혀 위에 고정하고 아래 패널을 스크롤. 데스크톱: 왼쪽 무대 고정, 오른쪽 패널 */}
       <div className={showStage ? "md:grid md:grid-cols-[minmax(0,1fr)_minmax(360px,440px)] md:items-start md:gap-12" : "hidden"}>
-        <div ref={stageRef} className={`${pinStage ? "sticky top-0" : "relative"} z-10 -mx-4 bg-card md:sticky md:top-6 md:mx-0 md:rounded-[12px]`}>
+        <div ref={stageRef} className={`${pinStage ? "sticky top-0" : "relative"} ${hideStage ? "hidden md:block" : ""} z-10 -mx-4 bg-card md:sticky md:top-6 md:mx-0 md:rounded-[12px]`}>
           <div className="relative mx-auto w-fit max-w-full">
             <video
               ref={videoRef}
@@ -281,7 +287,7 @@ export function TrySession() {
                   ) : undefined
                 }
               />
-              {lighting.length > 0 && result && !isFullyCorrected(result.reference ?? "none") && (
+              {lighting.length > 0 && result && (step === "tone" || step === "tune") && !isFullyCorrected(result.reference ?? "none") && (
                 <p className="text-xs text-muted">
                   조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. {REFERENCE_LABEL[result.reference ?? "none"]}이라 결과가 평소와 다를 수 있어요.
                 </p>

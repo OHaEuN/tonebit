@@ -12,6 +12,8 @@ export type AnalyticsEvent =
   | { name: "wb-lock" }
   | { name: "drape-done"; season: string; same: boolean }
   | { name: "worldcup-done"; same: boolean }
+  | { name: "taste-set"; feel: string; texture: string }
+  | { name: "pick-skip" }
   | { name: "shade-saved"; kind: "lip" | "blush" }
   | { name: "advisor-ask" }
   | { name: "advisor-try-on" };

@@ -27,6 +27,13 @@ export interface WorldCupOutcome {
   same: boolean;
 }
 
+export interface LipWorldCupOptions {
+  /** 토너먼트 인원. 기본 16 */
+  size?: number;
+  /** 한 번 고를 때마다 이긴 쪽과 진 쪽 */
+  onChoose?: (winner: RankedItem<LipCandidate>, loser: RankedItem<LipCandidate>) => void;
+}
+
 export interface LipWorldCupState {
   /** 후보가 둘 이상 있어 시작할 수 있다 */
   ready: boolean;
@@ -40,27 +47,31 @@ export interface LipWorldCupState {
   choose: (id: string) => void;
 }
 
+type Entry = { r: RankedItem<LipCandidate>; rank: number; hex: string };
+
 /**
- * 립 월드컵: 순위 상위의 서로 다른 16색을 내 얼굴에 바른 그림으로 토너먼트를 한다.
- * 고르는 쪽은 이용자라 측정 정확도와 무관하고, 끝나면 AI 1등과 나란히 본다
+ * 립 월드컵: 순위 상위의 서로 다른 색을 내 얼굴에 바른 그림으로 토너먼트를 한다.
+ * 고르는 쪽은 이용자라 측정 정확도와 무관하고, 끝나면 AI 1등과 나란히 본다.
+ * 선택할 때마다 가중치가 다시 배워져 순위가 바뀌므로, 후보는 시작할 때 고정한다
  */
-export function useLipWorldCup(): LipWorldCupState {
+export function useLipWorldCup({ size = BRACKET_SIZE, onChoose }: LipWorldCupOptions = {}): LipWorldCupState {
   const snapshot = useAnalysisStore((s) => s.snapshot);
   const ranking = useLipRanking();
   const [bracket, setBracket] = useState<Bracket | null>(null);
+  const [pool, setPool] = useState<Entry[] | null>(null);
 
   const products = useMemo(
     () => (ranking ? ranking.ranked.map((r, i) => ({ r, rank: i + 1 })).filter(({ r }) => r.item.kind === "product") : []),
     [ranking],
   );
-  const contenders = useMemo(() => pickContenders(products.map((p) => ({ ...p, hex: p.r.item.hex }))), [products]);
+  const contenders = useMemo(() => pool ?? pickContenders(products.map((p) => ({ ...p, hex: p.r.item.hex })), size), [pool, products, size]);
 
   const pair = bracket ? currentMatch(bracket) : null;
   const winner = bracket ? champion(bracket) : null;
   const aiBest = products[0]?.r.item.id;
   const [idA, idB] = pair ?? [];
 
-  const find = (id: string) => contenders.find((c) => c.r.item.id === id) ?? products[0];
+  const find = (id: string) => contenders.find((c) => c.r.item.id === id) ?? products.find((p) => p.r.item.id === id) ?? products[0];
 
   /** 지금 화면에 보이는 얼굴 그림만 그린다(대결 둘 또는 결과 둘). 같은 제품이 다음 라운드에 다시 나오면 다시 그리는데 몇십 ms라 괜찮다 */
   const crops = useMemo(() => {
@@ -86,12 +97,17 @@ export function useLipWorldCup(): LipWorldCupState {
     started: bracket !== null,
     total: contenders.length,
     label: bracket ? matchLabel(bracket) : "",
-    progress: bracket ? progress(bracket, Math.min(BRACKET_SIZE, contenders.length)) : 0,
+    progress: bracket ? progress(bracket, Math.min(size, contenders.length)) : 0,
     match: pair ? [side(pair[0]), side(pair[1])] : null,
     outcome: winner && aiBest ? { mine: side(winner), ai: side(aiBest), same: winner === aiBest } : null,
-    start: () => setBracket(startBracket(shuffle(contenders.map((c) => c.r.item.id)))),
+    start: () => {
+      setPool(contenders);
+      setBracket(startBracket(shuffle(contenders.map((c) => c.r.item.id))));
+    },
     choose: (id) => {
-      if (!bracket) return;
+      if (!bracket || !pair) return;
+      const loserId = pair[0] === id ? pair[1] : pair[0];
+      onChoose?.(find(id).r, find(loserId).r);
       const next = pickWinner(bracket, id);
       const done = champion(next);
       if (done) track({ name: "worldcup-done", same: done === aiBest });

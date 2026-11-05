@@ -28,7 +28,7 @@ export function ResultReaction() {
   const result = useAnalysisStore((s) => s.result);
   const source = useAnalysisStore((s) => s.source);
   const shots = useAnalysisStore((s) => s.shots);
-  const setTab = useAnalysisStore((s) => s.setResultTab);
+  const setStep = useAnalysisStore((s) => s.setStep);
   const [sent, setSent] = useState<Verdict | null>(null);
   const [error, setError] = useState(false);
   if (!process.env.NEXT_PUBLIC_FEEDBACK_ENABLED || !result || !source) return null;
@@ -77,8 +77,8 @@ export function ResultReaction() {
               <button
                 type="button"
                 onClick={() => {
-                  // 진단 입력 칸은 "결과" 탭에 있다. 탭을 바꾼 뒤 그려지면 펼친다
-                  setTab("result");
+                  // 진단 입력 칸은 정확도 높이기 화면에 있다. 화면을 바꾼 뒤 그려지면 펼친다
+                  setStep("tune");
                   window.setTimeout(openExpertFeedback, 50);
                 }}
                 className="font-medium underline underline-offset-4"
