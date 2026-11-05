@@ -49,11 +49,11 @@ function lipCandidates(mine: MyShade[]): LipCandidate[] {
 /** 같은 라인(브랜드·제품명)은 이만큼까지만 순위에 보인다. 인기 라인의 색 서너 개가 상위를 다 차지하면 고를 폭이 줄어서 */
 export const MAX_PER_LINE = 2;
 
-/** 같은 라인이 maxPerLine개를 넘으면 뒤의 것을 뺀다. 점수 순서는 그대로 */
-export function diversifyByLine<T extends { item: LipCandidate }>(ranked: T[], maxPerLine = MAX_PER_LINE): T[] {
+/** 같은 라인이 maxPerLine개를 넘으면 뒤의 것을 뺀다. 점수 순서는 그대로. keep(내가 고른 1등)은 늘 남긴다 */
+export function diversifyByLine<T extends { item: LipCandidate }>(ranked: T[], keep: string | null = null, maxPerLine = MAX_PER_LINE): T[] {
   const seen = new Map<string, number>();
   return ranked.filter(({ item }) => {
-    if (item.kind !== "product") return true;
+    if (item.kind !== "product" || item.id === keep) return true;
     const line = `${item.brand} ${item.line}`;
     const n = seen.get(line) ?? 0;
     seen.set(line, n + 1);
