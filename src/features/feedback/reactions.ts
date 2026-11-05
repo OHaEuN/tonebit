@@ -19,7 +19,8 @@ export interface AdvisorRating {
 const VERDICTS: Verdict[] = ["agree", "unsure", "disagree"];
 const REFERENCES: ReferenceSource[] = ["white", "locked", "teeth", "sclera", "scene", "none"];
 const SLUG = /^(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/;
-const PRODUCT_ID = /^[a-z0-9-]{1,64}$/;
+/** products.json의 id 꼴: lip-브랜드-라인-호수. 브랜드·라인이 한글이고 호수에 대문자(N20, B07)가 섞인다 */
+const PRODUCT_ID = /^[A-Za-z0-9가-힣-]{1,64}$/;
 
 /** 결과 반응 본문 검사. 필요한 필드만 골라낸다 */
 export function parseReaction(body: unknown): ResultReaction | null {
