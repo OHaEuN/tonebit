@@ -1,4 +1,5 @@
 import { harmonyBreakdown, type HarmonyItem, type RankedItem } from "./harmony";
+import { AXIS_STATEMENT } from "./preference";
 
 interface HarmonyBarsProps {
   ranked: Pick<RankedItem<HarmonyItem>, "harmony">;
@@ -22,11 +23,12 @@ function barColor(value: number): string {
 export function HarmonyBars({ ranked, className = "" }: HarmonyBarsProps) {
   return (
     <ul aria-label="항목별 어울림" className={`space-y-1.5 text-[12px] leading-none ${className}`}>
+      <li className="pb-0.5 text-[11px] text-muted">막대가 길수록 그 말이 맞아요</li>
       {harmonyBreakdown(ranked).map((axis) => {
         const pct = Math.round(axis.value * 100);
         return (
           <li key={axis.key} className="flex items-center gap-2.5">
-            <span className="w-14 shrink-0 text-muted">{axis.label}</span>
+            <span className="w-[8.5rem] shrink-0 text-fg">{AXIS_STATEMENT[axis.key]}</span>
             <span aria-hidden="true" className="h-2 flex-1 overflow-hidden rounded-full bg-line">
               <span className={`block h-full rounded-full ${barColor(axis.value)}`} style={{ width: `${pct}%` }} />
             </span>

@@ -22,21 +22,36 @@ export const TEXTURE_LABEL: Record<Texture, { title: string; body: string }> = {
   any: { title: "상관없어요", body: "질감은 점수에 안 넣어요" },
 };
 
+/** 항목 키와 짧은 이름. 이름은 분석 용어 대신 이용자가 읽는 말로(가중치 변화 알약 등에 쓴다) */
 export const AXES = [
-  ["lightness", "밝기 대비"],
-  ["undertone", "색 방향"],
+  ["lightness", "진하기"],
+  ["undertone", "웜·쿨 방향"],
   ["redness", "혈색"],
-  ["chroma", "선명도"],
-  ["harmony", "색 조화"],
-  ["fit", "톤 팔레트"],
+  ["chroma", "선명함"],
+  ["harmony", "피부와 조화"],
+  ["fit", "내 톤 팔레트"],
   ["trend", "유행"],
-  ["impression", "인상"],
+  ["impression", "원하는 느낌"],
   ["texture", "질감"],
-  ["teeth", "치아"],
+  ["teeth", "치아 밝기"],
 ] as const;
 export type AxisKey = (typeof AXES)[number][0];
 export type AxisVector = Record<AxisKey, number>;
 export const AXIS_LABEL: Record<AxisKey, string> = Object.fromEntries(AXES) as Record<AxisKey, string>;
+
+/** 항목별 막대 옆에 쓰는 문장. 막대가 길수록 이 문장이 맞다 */
+export const AXIS_STATEMENT: Record<AxisKey, string> = {
+  lightness: "피부보다 알맞게 진해요",
+  undertone: "내 웜·쿨에 맞는 색이에요",
+  redness: "혈색이 살아 보여요",
+  chroma: "선명함이 알맞아요",
+  harmony: "피부색과 어우러져요",
+  fit: "내 톤 팔레트에 가까워요",
+  trend: "요즘 많이 찾는 색이에요",
+  impression: "원하는 느낌에 맞아요",
+  texture: "좋아하는 질감이에요",
+  teeth: "치아가 하얘 보여요",
+};
 
 /**
  * 출발 가중치. 문헌의 순서만 반영한 값이라(명도차 > 색상 > 채도, Hirayama 1998) 둘 중 고르기 선택으로 사람마다 다시 맞춘다.
