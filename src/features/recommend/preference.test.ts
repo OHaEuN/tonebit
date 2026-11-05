@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AXIS_KEYS, BASE_WEIGHTS, learnWeights, normalize, zeroVector, type Pick } from "./preference";
+import { AXIS_KEYS, BASE_WEIGHTS, describePicks, learnWeights, normalize, weightChanges, zeroVector, type Pick } from "./preference";
 
 const sum = (w: Record<string, number>) => Object.values(w).reduce((a, b) => a + b, 0);
 
@@ -34,5 +34,28 @@ describe("learnWeights", () => {
     const base = normalize(BASE_WEIGHTS).chroma;
     expect(w.chroma).toBeLessThanOrEqual(base);
     expect(w.chroma).toBeGreaterThan(base - 0.08);
+  });
+});
+
+describe("describePicks", () => {
+  it("이긴 쪽이 늘 더 진하고 차분하면 그렇게 말하고, 생김새가 없으면 아무 말도 안 한다", () => {
+    const pick: Pick = {
+      winner: zeroVector(),
+      loser: zeroVector(),
+      winnerTraits: { lightnessGap: 18, chromaGap: -6, hueGap: 2 },
+      loserTraits: { lightnessGap: 10, chromaGap: 4, hueGap: 0 },
+    };
+    expect(describePicks([pick, pick, pick])).toEqual(["더 진한 색", "더 차분한 색"]);
+    expect(describePicks([{ winner: zeroVector(), loser: zeroVector() }])).toEqual([]);
+  });
+});
+
+describe("weightChanges", () => {
+  it("많이 움직인 항부터 최대 셋, 15% 미만 변화는 뺀다", () => {
+    const learned = { ...BASE_WEIGHTS, undertone: BASE_WEIGHTS.undertone * 1.6, chroma: BASE_WEIGHTS.chroma * 0.5, redness: BASE_WEIGHTS.redness * 1.05 };
+    const changes = weightChanges(BASE_WEIGHTS, learned);
+    expect(changes[0].key).toBe("chroma");
+    expect(changes.map((c) => c.key)).not.toContain("redness");
+    expect(changes.length).toBeLessThanOrEqual(3);
   });
 });
