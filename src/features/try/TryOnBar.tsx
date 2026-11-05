@@ -45,6 +45,7 @@ export function TryOnBar({ part, selectedId }: TryOnBarProps) {
           rel="sponsored noopener"
           data-umami-event="product-click"
           data-umami-event-id={product.id}
+          data-umami-event-from="tryon"
           className={`${BUTTON.small} bg-fg text-white hover:opacity-85`}
         >
           {own ? "쿠팡에서 보기" : "비슷한 제품"}

@@ -36,7 +36,7 @@ function Side({ side, label, onTry }: SideProps) {
             발라 보기
           </button>
           {side.url && (
-            <a href={side.url} target="_blank" rel="sponsored noopener" data-umami-event="product-click" data-umami-event-id={item.id} className={`${BUTTON.small} bg-fg text-white hover:opacity-85`}>
+            <a href={side.url} target="_blank" rel="sponsored noopener" data-umami-event="product-click" data-umami-event-id={item.id} data-umami-event-from="faceoff" className={`${BUTTON.small} bg-fg text-white hover:opacity-85`}>
               구매
             </a>
           )}

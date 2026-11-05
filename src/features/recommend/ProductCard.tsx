@@ -33,6 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
         rel="sponsored noopener"
         data-umami-event="product-click"
         data-umami-event-id={product.id}
+        data-umami-event-from="result"
         className={BUTTON.small}
       >
         쿠팡에서 보기

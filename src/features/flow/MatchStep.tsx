@@ -249,6 +249,8 @@ export function MatchStep() {
                         rel="sponsored noopener"
                         data-umami-event="product-click"
                         data-umami-event-id={item.id}
+                        data-umami-event-from="match"
+                        data-umami-event-rank={i + 1}
                         className={`${BUTTON.small} bg-fg text-white hover:opacity-85`}
                       >
                         구매
