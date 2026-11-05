@@ -23,7 +23,16 @@ export function PickStep() {
   const addPick = useTasteStore((s) => s.addPick);
   const setChampion = useTasteStore((s) => s.setChampion);
   const clearPicks = useTasteStore((s) => s.clearPicks);
-  const cup = useLipWorldCup({ size: PICK_SIZE, onChoose: (winner, loser) => addPick({ winner: winner.harmony.axes, loser: loser.harmony.axes }) });
+  const cup = useLipWorldCup({
+    size: PICK_SIZE,
+    onChoose: (winner, loser) =>
+      addPick({
+        winner: winner.harmony.axes,
+        loser: loser.harmony.axes,
+        winnerTraits: { lightnessGap: winner.harmony.lightnessGap, chromaGap: winner.harmony.chromaGap, hueGap: winner.harmony.hueGap },
+        loserTraits: { lightnessGap: loser.harmony.lightnessGap, chromaGap: loser.harmony.chromaGap, hueGap: loser.harmony.hueGap },
+      }),
+  });
   const { ready, started, start, outcome } = cup;
 
   useEffect(() => {
@@ -57,7 +66,7 @@ export function PickStep() {
       context={tone}
       index={4}
       title="둘 중 더 마음에 드는 쪽을 골라 주세요"
-      body={`내 얼굴에 바른 모습이에요. ${PICK_SIZE - 1}번 고르면 내 취향이 점수에 들어가요.`}
+      body={`내 얼굴에 바른 모습이에요. ${PICK_SIZE - 1}번 고르면 어떤 밝기·색·선명도를 좋아하는지 배워서 순위의 가중치를 내 눈에 맞춰요.`}
       onBack={() => window.history.back()}
       aside={
         <button type="button" onClick={skip} className={BUTTON.text}>

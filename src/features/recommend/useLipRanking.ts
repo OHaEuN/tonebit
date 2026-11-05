@@ -64,6 +64,8 @@ export function diversifyByLine<T extends { item: LipCandidate }>(ranked: T[], k
 export interface LipRanking {
   odds: Record<Season, number>;
   ranked: RankedItem<LipCandidate>[];
+  /** 둘 중 고르기 반영 전(출발 가중치) 순위. id → 1부터. 선택이 없으면 비어 있다 */
+  baseRank: Map<string, number>;
 }
 
 /** 지금 보고 있는 결과(피부·입술·시즌 확률·세부 타입)와 취향으로 낸 립 순위. 결과가 없으면 null */
@@ -72,9 +74,15 @@ export function useLipRanking(): LipRanking | null {
   const mine = useMyShadeStore((s) => s.shades);
   const taste = useTasteStore((s) => s.taste);
   const weights = useTasteStore((s) => s.weights);
+  const learned = useTasteStore((s) => s.picks.length > 0);
   return useMemo(() => {
     if (!result) return null;
     const odds = seasonOdds(result.lab, result.reference ?? "none");
-    return { odds, ranked: rankLips(result.lab, result.lip, odds, lipCandidates(mine), { brow: result.brow, subtype: result.subtype, taste, weights }) };
-  }, [result, mine, taste, weights]);
+    const candidates = lipCandidates(mine);
+    const context = { brow: result.brow, subtype: result.subtype, taste };
+    const ranked = rankLips(result.lab, result.lip, odds, candidates, { ...context, weights });
+    const baseRank = new Map<string, number>();
+    if (learned) rankLips(result.lab, result.lip, odds, candidates, context).forEach((r, i) => baseRank.set(r.item.id, i + 1));
+    return { odds, ranked, baseRank };
+  }, [result, mine, taste, weights, learned]);
 }

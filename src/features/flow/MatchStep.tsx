@@ -9,6 +9,8 @@ import { bestTag, productById } from "@/features/recommend/getProducts";
 import { harmonyNote } from "@/features/recommend/harmony";
 import { HarmonyBars } from "@/features/recommend/HarmonyBars";
 import { LipFaceOff } from "@/features/recommend/LipFaceOff";
+import { activeWeights } from "@/features/recommend/harmony";
+import { BASE_WEIGHTS, describePicks, weightChanges } from "@/features/recommend/preference";
 import { useTasteStore } from "@/features/recommend/tasteStore";
 import { diversifyByLine, useLipRanking } from "@/features/recommend/useLipRanking";
 import { resultPath } from "@/features/share/resultUrl";
@@ -32,12 +34,19 @@ export function MatchStep() {
   const snapshot = useAnalysisStore((s) => s.snapshot);
   const selectLip = useAnalysisStore((s) => s.selectLip);
   const setStep = useAnalysisStore((s) => s.setStep);
-  const picks = useTasteStore((s) => s.picks.length);
+  const picks = useTasteStore((s) => s.picks);
+  const weights = useTasteStore((s) => s.weights);
+  const taste = useTasteStore((s) => s.taste);
   const champion = useTasteStore((s) => s.champion);
   const ranking = useLipRanking();
   const [shown, setShown] = useState(FIRST);
 
   const products = useMemo(() => (ranking ? diversifyByLine(ranking.ranked.filter((r) => r.item.kind === "product"), champion) : []), [ranking, champion]);
+  /** 전체 순위(1부터). 선택 반영 전 순위와 비교할 때 쓴다 */
+  const currentRank = useMemo(() => new Map((ranking?.ranked ?? []).map((r, i) => [r.item.id, i + 1])), [ranking]);
+  const learned = picks.length > 0 && ranking !== null && ranking.baseRank.size > 0;
+  const phrases = useMemo(() => describePicks(picks), [picks]);
+  const changes = useMemo(() => (learned ? weightChanges(activeWeights(BASE_WEIGHTS, taste), weights) : []), [learned, taste, weights]);
   const mine = useMemo(() => (ranking ? ranking.ranked.map((r, i) => ({ ...r, rank: i + 1 })).filter((r) => r.item.kind === "mine") : []), [ranking]);
   const visible = products.slice(0, shown);
   const crops = useMemo(() => {
@@ -59,7 +68,7 @@ export function MatchStep() {
       context={tone}
       index={5}
       title="내 얼굴에 어울리는 립"
-      body={picks > 0 ? "밝기 대비·색 방향·혈색·선명도·색 조화·톤 팔레트·유행에 방금 고른 취향을 더한 순위예요." : "밝기 대비·색 방향·혈색·선명도·색 조화·톤 팔레트·유행으로 매긴 순위예요."}
+      body={learned ? "밝기 대비·색 방향·혈색·선명도·색 조화·톤 팔레트·유행에 방금 고른 취향을 더한 순위예요." : "밝기 대비·색 방향·혈색·선명도·색 조화·톤 팔레트·유행으로 매긴 순위예요."}
       onBack={() => window.history.back()}
       cta={{ label: "1등 립 얼굴에 발라 보기", onClick: () => tryOn(best.item.id) }}
       aside={
@@ -75,10 +84,31 @@ export function MatchStep() {
         </>
       }
     >
+      {learned && (
+        <div className="mb-5 rounded-[12px] bg-card px-4 py-3.5 text-[13px] leading-relaxed" aria-label="방금 고른 선택이 바꾼 것">
+          <p className="text-[14px] font-semibold">방금 고른 {picks.length}번이 바꾼 것</p>
+          <p className="mt-1">
+            {phrases.length ? `${phrases.join(", ")}을 골랐어요.` : "한쪽으로 기운 취향은 없었어요."}
+            {champion && currentRank.has(champion) && ` 끝까지 이긴 립은 전체 ${currentRank.get(champion)}위예요.`}
+          </p>
+          {changes.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="바뀐 가중치">
+              {changes.map((c) => (
+                <li key={c.key} className="inline-flex h-7 items-center rounded-full border border-fg/20 px-2.5 text-[12px]">
+                  {c.label} {c.ratio > 1 ? "더" : "덜"} 중요하게 {c.ratio > 1 ? "+" : "−"}
+                  {Math.round(Math.abs(c.ratio - 1) * 100)}%
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-1.5 text-muted">행의 ▲▼는 선택을 반영하기 전 순위와의 차이예요.</p>
+        </div>
+      )}
       <ol aria-label="내 얼굴 기준 립 순위" className="divide-y divide-line border-y border-line">
         {visible.map(({ item, harmony, score }, i) => {
           const product = productById(item.id);
           const crop = crops.get(item.id);
+          const delta = learned ? (ranking!.baseRank.get(item.id) ?? 0) - (currentRank.get(item.id) ?? 0) : 0;
           return (
             <li key={item.id} className="flex gap-3.5 py-4">
               {crop ? (
@@ -90,6 +120,11 @@ export function MatchStep() {
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-1.5 text-[12px] text-muted">
                   <span className="font-mono">{String(i + 1).padStart(2, "0")}</span>
+                  {delta !== 0 && (
+                    <span className={`font-mono ${delta > 0 ? "text-emerald-700" : "text-muted"}`} aria-label={`선택 반영 전보다 ${Math.abs(delta)}계단 ${delta > 0 ? "위" : "아래"}`}>
+                      {delta > 0 ? `▲${delta}` : `▼${-delta}`}
+                    </span>
+                  )}
                   {item.brand}
                   {i === 0 && <span className={TAG}>Best</span>}
                   {item.id === champion && <span className={TAG}>내 1등</span>}
@@ -100,7 +135,7 @@ export function MatchStep() {
                 <p className="mt-0.5 text-[12px] leading-snug text-muted">{harmonyNote(harmony)}</p>
                 <details className="mt-1.5">
                   <summary className="cursor-pointer list-none text-[12px] text-muted underline underline-offset-4 [&::-webkit-details-marker]:hidden">항목별 점수</summary>
-                  <HarmonyBars ranked={{ harmony }} className="mt-1.5" />
+                  <HarmonyBars ranked={{ harmony }} className="mt-2.5 max-w-[320px]" />
                 </details>
                 <div className="mt-2.5 flex gap-1.5">
                   <button type="button" onClick={() => tryOn(item.id)} className={BUTTON.small}>

@@ -57,10 +57,22 @@ export const BASE_WEIGHTS: AxisVector = {
 
 export const AXIS_KEYS = AXES.map(([k]) => k);
 
-/** 둘 중 고르기 한 번. 이긴 쪽과 진 쪽의 항목별 값(−1~1) */
+/** 립 하나의 생김새. 선택의 경향을 말로 풀 때 쓴다 */
+export interface Traits {
+  /** 피부 L* − 입술 위 L*. 클수록 진하다 */
+  lightnessGap: number;
+  /** 입술 위 C* − 최적 C*. 클수록 선명하다 */
+  chromaGap: number;
+  /** 입술 위 색상각 − 최적 색상각. 양수면 오렌지 쪽, 음수면 핑크 쪽 */
+  hueGap: number;
+}
+
+/** 둘 중 고르기 한 번. 이긴 쪽과 진 쪽의 항목별 값(−1~1)과 생김새 */
 export interface Pick {
   winner: AxisVector;
   loser: AxisVector;
+  winnerTraits?: Traits;
+  loserTraits?: Traits;
 }
 
 export function zeroVector(): AxisVector {
@@ -75,7 +87,12 @@ export function normalize(w: AxisVector): AxisVector {
 }
 
 /** 선택이 모일수록 출발 가중치에서 얼마나 멀리 갈 수 있는지. 클수록 출발값을 더 믿는다 */
-const PRIOR_STRENGTH = 4;
+const PRIOR_STRENGTH = 12;
+/**
+ * 선택으로 배우는 항목. 일곱 번의 선택으로 열 항목을 다 맞추면 잡음에 맞춰지므로(치아 −70% 같은 엉뚱한 변화),
+ * 얼굴과 색의 관계를 말하는 큰 항목 다섯 개만 배우고 나머지는 출발값을 지킨다
+ */
+const LEARNABLE: AxisKey[] = ["lightness", "undertone", "redness", "chroma", "fit"];
 /** 어떤 항목도 출발 가중치의 이 비율 아래로는 내려가지 않는다. 항목이 0이 되면 막대가 사라지고 점수 설명이 어긋난다 */
 const MIN_SHARE = 0.25;
 const STEPS = 300;
@@ -89,18 +106,66 @@ const RATE = 0.03;
 export function learnWeights(base: AxisVector, picks: Pick[]): AxisVector {
   const w = { ...base };
   if (!picks.length) return normalize(w);
+  const active = LEARNABLE.filter((k) => base[k] > 0);
+  const meanBase = active.reduce((s, k) => s + base[k], 0) / Math.max(1, active.length);
   const diffs = picks.map(({ winner, loser }) => Object.fromEntries(AXIS_KEYS.map((k) => [k, winner[k] - loser[k]])) as AxisVector);
   for (let step = 0; step < STEPS; step++) {
     const grad = zeroVector();
     for (const d of diffs) {
       const margin = AXIS_KEYS.reduce((s, k) => s + w[k] * d[k], 0);
       const miss = 1 / (1 + Math.exp(margin));
-      for (const k of AXIS_KEYS) grad[k] -= miss * d[k];
+      for (const k of active) grad[k] -= miss * d[k];
     }
-    for (const k of AXIS_KEYS) {
-      grad[k] += PRIOR_STRENGTH * (w[k] - base[k]);
+    for (const k of active) {
+      // 출발값이 작은 항은 같은 절대 변화가 비율로는 크게 보이니, 평균보다 작은 항은 출발값에 반비례해 더 세게 되돌린다
+      grad[k] += PRIOR_STRENGTH * (w[k] - base[k]) * Math.max(1, meanBase / base[k]);
       w[k] = Math.max(MIN_SHARE * base[k], w[k] - RATE * grad[k]);
     }
   }
   return normalize(w);
+}
+
+/** 이긴 쪽과 진 쪽의 생김새 차이가 이보다 크면 경향으로 말한다 */
+const TREND_LIGHTNESS = 3;
+const TREND_CHROMA = 4;
+const TREND_HUE = 5;
+
+/** 선택이 한쪽으로 기운 생김새를 말로. 예: ["더 진한 색", "더 차분한 색"]. 기운 게 없으면 빈 배열 */
+export function describePicks(picks: Pick[]): string[] {
+  const pairs = picks.filter((p): p is Pick & { winnerTraits: Traits; loserTraits: Traits } => Boolean(p.winnerTraits && p.loserTraits));
+  if (!pairs.length) return [];
+  const mean = (k: keyof Traits) => pairs.reduce((s, p) => s + (p.winnerTraits[k] - p.loserTraits[k]), 0) / pairs.length;
+  const out: string[] = [];
+  const dl = mean("lightnessGap");
+  if (dl > TREND_LIGHTNESS) out.push("더 진한 색");
+  else if (dl < -TREND_LIGHTNESS) out.push("더 밝은 색");
+  const dc = mean("chromaGap");
+  if (dc > TREND_CHROMA) out.push("더 선명한 색");
+  else if (dc < -TREND_CHROMA) out.push("더 차분한 색");
+  const dh = mean("hueGap");
+  if (dh > TREND_HUE) out.push("더 오렌지 쪽 색");
+  else if (dh < -TREND_HUE) out.push("더 핑크 쪽 색");
+  return out;
+}
+
+export interface WeightChange {
+  key: AxisKey;
+  label: string;
+  /** 배운 가중치 ÷ 출발 가중치. 1보다 크면 더 중요해졌다 */
+  ratio: number;
+}
+
+/** 배운 가중치가 출발값에서 이 비율 이상 움직인 항만 보여 준다 */
+const CHANGE_MIN = 0.15;
+const CHANGE_MAX_ITEMS = 3;
+
+/** 선택으로 많이 움직인 가중치부터. 둘 다 합이 1로 맞춘 뒤 비교한다 */
+export function weightChanges(base: AxisVector, learned: AxisVector): WeightChange[] {
+  const b = normalize(base);
+  const w = normalize(learned);
+  return AXIS_KEYS.filter((k) => b[k] > 0 && w[k] > 0)
+    .map((key) => ({ key, label: AXIS_LABEL[key], ratio: w[key] / b[key] }))
+    .filter((c) => Math.abs(c.ratio - 1) >= CHANGE_MIN)
+    .sort((x, y) => Math.abs(y.ratio - 1) - Math.abs(x.ratio - 1))
+    .slice(0, CHANGE_MAX_ITEMS);
 }

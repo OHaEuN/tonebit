@@ -130,6 +130,8 @@ test("둘 중 고르기를 일곱 번 하면 내 립 순위에 내 1등 꼬리�
   await expect(page.getByRole("heading", { name: "내 얼굴에 어울리는 립" })).toBeVisible();
   await expect(page.getByText("내 1등", { exact: true })).toBeVisible();
   await expect(page.getByText("방금 고른 취향을 더한 순위예요")).toBeVisible();
+  await expect(page.getByText("방금 고른 7번이 바꾼 것")).toBeVisible();
+  await expect(page.getByText(/끝까지 이긴 립은 전체 \d+위예요/)).toBeVisible();
 });
 
 test("두 색 중 고르기를 여섯 번 하면 직접 고른 톤을 알려 준다", async ({ page }) => {

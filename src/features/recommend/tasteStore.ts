@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { activeWeights } from "./harmony";
 import { BASE_WEIGHTS, learnWeights, type AxisVector, type Pick, type Taste } from "./preference";
 
 interface TasteState {
@@ -28,7 +29,8 @@ export const useTasteStore = create<TasteState>((set, get) => ({
   setChampion: (champion) => set({ champion }),
   addPick: (pick) => {
     const picks = [...get().picks, pick];
-    set({ picks, weights: learnWeights(BASE_WEIGHTS, picks) });
+    // 취향을 안 답해 꺼진 항목(가중치 0)은 배우지 않는다
+    set({ picks, weights: learnWeights(activeWeights(BASE_WEIGHTS, get().taste), picks) });
   },
   clearPicks: () => set({ picks: [], weights: BASE_WEIGHTS, champion: null }),
   reset: () => set({ taste: {}, picks: [], weights: BASE_WEIGHTS, champion: null }),
