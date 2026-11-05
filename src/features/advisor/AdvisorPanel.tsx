@@ -136,7 +136,7 @@ export function AdvisorPanel({ onPreview }: AdvisorPanelProps) {
 
   return (
     <section aria-labelledby="advisor-heading">
-      <h3 id="advisor-heading" className="text-[20px] font-semibold">
+      <h3 id="advisor-heading" className="sr-only">
         {info.label} {info.tone}에게 물어보세요
       </h3>
 
