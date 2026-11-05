@@ -290,7 +290,7 @@ export function TrySession() {
               />
               {lighting.length > 0 && result && (step === "tone" || step === "tune") && !isFullyCorrected(result.reference ?? "none") && (
                 <p className="text-xs text-muted">
-                  {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조명이라 결과가 평소와 다를 수 있어요. 사진을 더하면 정확해져요.
+                  {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이라 결과가 평소와 다를 수 있어요. 사진을 더하면 정확해져요.
                 </p>
               )}
             </>

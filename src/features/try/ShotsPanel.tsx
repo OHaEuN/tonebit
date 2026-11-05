@@ -38,7 +38,6 @@ export function ShotsPanel({ onAddPhotos, onMeasureMore, photos }: ShotsPanelPro
     <div className="space-y-3 text-sm">
       <p>
         {n === 1 ? `${source === "camera" ? "측정 1번" : "사진 1장"}으로 본 결과예요.` : `${n}${unit}을 합친 결과예요.`}
-        {n < RECOMMENDED_SHOTS && <span className="text-muted"> 다른 곳에서 찍은 사진을 더하면 더 정확해져요.</span>}
       </p>
 
       {n > 1 && (
