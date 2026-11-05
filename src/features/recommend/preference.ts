@@ -11,7 +11,7 @@ export interface Taste {
 }
 
 export const FEEL_LABEL: Record<Feel, { title: string; body: string }> = {
-  natural: { title: "자연스럽고 세련된", body: "내 입술색 같은 MLBB, 차분한 색" },
+  natural: { title: "자연스럽고 세련된", body: "내 입술색 같은 차분한 색" },
   vivid: { title: "화사하고 생기 있는", body: "밝고 맑은 핑크·코랄" },
   bold: { title: "또렷하고 매혹적인", body: "진하고 붉은 레드·베리" },
 };
@@ -19,7 +19,7 @@ export const FEEL_LABEL: Record<Feel, { title: string; body: string }> = {
 export const TEXTURE_LABEL: Record<Texture, { title: string; body: string }> = {
   glossy: { title: "촉촉하게 반짝이는", body: "글로스·시럽·물광 틴트" },
   blur: { title: "보송하게 번지는", body: "블러·벨벳·매트" },
-  any: { title: "상관없어요", body: "질감은 점수에 안 넣어요" },
+  any: { title: "상관없어요", body: "질감은 안 따져요" },
 };
 
 /** 항목 키와 짧은 이름. 이름은 분석 용어 대신 이용자가 읽는 말로(가중치 변화 알약 등에 쓴다) */

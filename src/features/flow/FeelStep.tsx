@@ -22,7 +22,7 @@ export function FeelStep() {
   const setStep = useAnalysisStore((s) => s.setStep);
   const setTaste = useTasteStore((s) => s.setTaste);
   return (
-    <StepFrame context={tone} index={2} title="어떤 느낌의 립을 원해요?" body="평소 손이 가는 쪽이면 돼요. 답에 따라 점수의 기준이 조금 움직여요." onBack={() => window.history.back()}>
+    <StepFrame context={tone} index={2} title="어떤 느낌의 립을 원해요?" body="평소 손이 가는 쪽이면 돼요." onBack={() => window.history.back()}>
       <OptionList
         label="원하는 느낌"
         options={FEELS.map((key) => ({

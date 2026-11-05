@@ -24,7 +24,6 @@ export function HarmonyBars({ ranked, className = "" }: HarmonyBarsProps) {
   return (
     <div className={`@container ${className}`}>
       <ul aria-label="항목별 어울림" className="space-y-1.5 text-[12px] leading-none @xs:space-y-1.5">
-        <li className="pb-0.5 text-[11px] text-muted">막대가 길수록 그 말이 맞아요</li>
         {harmonyBreakdown(ranked).map((axis) => {
           const pct = Math.round(axis.value * 100);
           return (

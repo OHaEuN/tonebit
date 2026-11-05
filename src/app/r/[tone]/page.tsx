@@ -215,8 +215,7 @@ export default async function ResultPage({ params }: PageProps<"/r/[tone]">) {
               이 톤에 많이 찾는 제품
             </h2>
             <p className="mt-1.5 text-[13px] text-muted">
-              체험 페이지에서 이 제품들의 색을 입술과 볼에 바로 얹어 볼 수
-              있어요.
+              컬러 테스트에서 내 얼굴에 바로 발라 볼 수 있어요.
             </p>
             <div className="mt-6 grid gap-10 md:grid-cols-2 md:gap-16">
               <div>
@@ -237,7 +236,7 @@ export default async function ResultPage({ params }: PageProps<"/r/[tone]">) {
               </div>
             </div>
             <p className="mt-5 text-xs leading-relaxed text-muted">
-              색상 칩은 브랜드 공식 색상 칩에서 잰 값(일부는 근사치)이라 실제 발색과 다를 수 있어요. 이
+              색은 브랜드 공식 칩 기준이라 실제 발색과 다를 수 있어요. 이
               페이지의 제품 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른
               일정액의 수수료를 제공받습니다.
             </p>

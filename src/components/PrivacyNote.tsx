@@ -16,8 +16,7 @@ export function PrivacyNote({ compact = false }: PrivacyNoteProps) {
         <p className="font-semibold">사진은 기기 밖으로 나가지 않아요</p>
         {!compact && (
           <p className="mt-1 text-muted">
-            얼굴 인식과 색 분석은 전부 브라우저 안에서 끝나요. 서버로 보내는 이미지는 없고, 공유 카드에도 얼굴은 들어가지 않아요.
-            개발자 도구 네트워크 탭에서 직접 확인할 수 있어요.
+            얼굴 인식과 색 분석이 전부 브라우저 안에서 끝나요. 서버로 보내는 사진이 없어요.
           </p>
         )}
       </div>

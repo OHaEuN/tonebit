@@ -9,9 +9,9 @@ import { resultPath } from "@/features/share/resultUrl";
 import { HeroSwipes } from "@/features/swatch/HeroSwipes";
 
 const STEPS = [
-  { title: "카메라를 켜거나 사진을 올려요", body: "자연광 아래 정면이 가장 정확해요. 조명이 치우치면 측정 전에 알려 줘요." },
-  { title: "볼과 이마의 색을 읽어요", body: "노란기와 붉은기, 밝기, 채도를 재서 웜·쿨과 12가지 시즌 중 가능성이 높은 톤을 골라요. 왜 그렇게 봤는지도 보여 줘요." },
-  { title: "취향을 답하고 립을 골라요", body: "원하는 느낌과 질감을 답하고, 내 얼굴에 바른 두 립 중 나은 쪽을 고르면 내 눈에 맞춘 순위가 나와요. 색을 바꿔 가며 실시간으로 얹어 봐요." },
+  { title: "카메라를 켜거나 사진을 올려요", body: "자연광 아래 정면이 가장 정확해요." },
+  { title: "볼과 이마의 색을 읽어요", body: "웜·쿨과 12가지 시즌 중 가능성이 높은 톤을 골라요." },
+  { title: "둘 중 고르고, 내 립을 받아요", body: "내 얼굴에 바른 두 립 중 나은 쪽을 고르면 내 순위가 나와요." },
 ];
 
 /** 결과 미리보기에 쓰는 예시 톤. 실제 팔레트·제품 데이터를 그대로 보여 준다 */
@@ -36,7 +36,7 @@ export default function LandingPage() {
                 얼굴에 먼저 발라 보세요
               </h1>
               <p className="mt-5 max-w-md break-keep text-[15px] leading-relaxed text-muted md:text-[17px]">
-                셀카 한 장으로 웜·쿨과 12가지 시즌 톤을 가늠하고, 어울리는 립과 블러셔를 내 얼굴에 실시간으로 발라 봐요.
+                셀카 한 장으로 내 톤을 가늠하고, 어울리는 립을 얼굴에 발라 봐요.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
                 <Link href="/try" className={BUTTON.primary}>
@@ -88,13 +88,13 @@ export default function LandingPage() {
             </h2>
             <ul className="mt-6 space-y-4 text-[15px] leading-relaxed">
               <li>
-                <span className="font-semibold">가능성까지 같이.</span> <span className="text-muted">한 시즌으로 단정하지 않고 다음 후보와 그렇게 본 이유를 함께 보여 줘요.</span>
+                <span className="font-semibold">가능성까지 같이.</span> <span className="text-muted">한 시즌으로 단정하지 않고 다음 후보도 보여 줘요.</span>
               </li>
               <li>
-                <span className="font-semibold">내 얼굴 기준 순위.</span> <span className="text-muted">피부와 입술 색에 비춰 실제 제품을 어울리는 순서로 줄 세워요.</span>
+                <span className="font-semibold">내 얼굴 기준 순위.</span> <span className="text-muted">실제 제품을 나에게 어울리는 순서로 보여 줘요.</span>
               </li>
               <li>
-                <span className="font-semibold">내가 가진 립도.</span> <span className="text-muted">흰 종이에 발라 찍으면 색을 재서 순위에 넣고, 더 어울리는 제품을 알려 줘요.</span>
+                <span className="font-semibold">내가 가진 립도.</span> <span className="text-muted">흰 종이에 발라 찍으면 순위에 넣어 줘요.</span>
               </li>
             </ul>
           </div>
@@ -143,8 +143,7 @@ export default function LandingPage() {
               사진은 기기 밖으로 나가지 않아요
             </h2>
             <p className="text-[15px] leading-relaxed">
-              얼굴 인식과 색 분석은 전부 브라우저 안에서 끝나요. 서버로 보내는 이미지가 없고, 외부 서버 연결 자체를 브라우저 보안 정책으로 막아 두었어요. 공유 카드에도
-              얼굴은 들어가지 않아요. 개발자 도구의 네트워크 탭을 열어 두고 써 보면 직접 확인할 수 있어요.
+              얼굴 인식과 색 분석이 전부 브라우저 안에서 끝나요. 서버로 보내는 사진이 없어요.
             </p>
           </div>
         </section>

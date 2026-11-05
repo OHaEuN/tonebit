@@ -28,7 +28,7 @@ export function TuneStep({ onAddPhotos, onMeasureMore, photos, whiteFix, whiteFi
   const source = useAnalysisStore((s) => s.source);
   const remeasure = useAnalysisStore((s) => s.remeasure);
   return (
-    <StepFrame context={tone} title="정확도 높이기" body="사진을 더하거나 흰색 기준을 맞추면 조명 운이 줄어요. 결과가 다르다고 느끼면 알려 주세요." onBack={() => window.history.back()}>
+    <StepFrame context={tone} title="정확도 높이기" body="사진을 더하거나 흰 종이를 찍으면 더 정확해져요." onBack={() => window.history.back()}>
       <div className="space-y-6">
         <ShotsPanel onAddPhotos={onAddPhotos} onMeasureMore={onMeasureMore} photos={photos} />
         <div className="border-b border-line">
@@ -36,7 +36,7 @@ export function TuneStep({ onAddPhotos, onMeasureMore, photos, whiteFix, whiteFi
             <Disclosure
               key={whiteFixUrgent ? "urgent" : "normal"}
               title="흰색 기준으로 더 정확하게"
-              hint={whiteFixUrgent ? "조명 색이 섞인 사진이라 맞추는 걸 권해요" : "사진 속 흰 종이·흰 벽을 눌러 조명 색을 되돌려요"}
+              hint={whiteFixUrgent ? "조명 색이 섞인 사진이라 맞추는 걸 권해요" : "사진 속 흰 종이나 흰 벽을 눌러요"}
               defaultOpen={whiteFixUrgent}
             >
               {whiteFix}

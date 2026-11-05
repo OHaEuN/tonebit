@@ -119,7 +119,7 @@ test("둘 중 고르기를 일곱 번 하면 내 립 순위에 내 1등 꼬리�
   await page.getByRole("button", { name: "어울리는 립 찾기" }).click();
   await page.getByRole("button", { name: /또렷하고 매혹적인/ }).click();
   await page.getByRole("button", { name: /촉촉하게 반짝이는/ }).click();
-  await expect(page.getByRole("heading", { name: "둘 중 더 마음에 드는 쪽을 골라 주세요" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "어느 쪽이 더 마음에 들어요?" })).toBeVisible();
   await expect(page.getByText("8강 1/4")).toBeVisible();
   for (let i = 0; i < 7; i++) {
     const picks = page.getByRole("button", { name: /바른 얼굴 고르기$/ });
@@ -129,7 +129,7 @@ test("둘 중 고르기를 일곱 번 하면 내 립 순위에 내 1등 꼬리�
   }
   await expect(page.getByRole("heading", { name: "내 얼굴에 어울리는 립" })).toBeVisible();
   await expect(page.getByText("내 1등", { exact: true })).toBeVisible();
-  await expect(page.getByText("방금 고른 취향을 더한 순위예요")).toBeVisible();
+  await expect(page.getByText("방금 고른 취향에 맞춘 순위예요")).toBeVisible();
   await expect(page.getByText("방금 고른 7번이 바꾼 것")).toBeVisible();
   await expect(page.getByText(/끝까지 이긴 립은 전체 \d+위예요/)).toBeVisible();
 });
