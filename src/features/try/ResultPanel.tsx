@@ -24,7 +24,7 @@ export function ResultPanel({ onPreview, ...tune }: ResultPanelProps) {
 
   switch (step) {
     case "tone":
-      return <ToneStep />;
+      return <ToneStep photos={tune.photos} />;
     case "feel":
       return <FeelStep />;
     case "texture":

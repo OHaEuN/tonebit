@@ -23,7 +23,7 @@ interface Umami {
 }
 
 export function track(event: AnalyticsEvent) {
-  const umami = (window as unknown as { umami?: Umami }).umami;
+  const umami = (globalThis as { umami?: Umami }).umami;
   if (!umami) return;
   const { name, ...data } = event;
   umami.track(name, data);

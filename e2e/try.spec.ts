@@ -72,6 +72,16 @@ test("셀카를 올리면 내 톤이 나오고, 취향을 답해 내 립을 거�
   await expect(page).toHaveURL(/\/r\/(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/);
 });
 
+test("사진 두 장을 올리면 내 톤 화면에 합쳤다는 머리말과 사진별 탭이 보인다", async ({ page }) => {
+  await waitForModel(page);
+  await page.getByLabel(/사진 올리기|사진으로 시작하기/).first().setInputFiles(["e2e/fixtures/face.jpg", "e2e/fixtures/face-paper.jpg"]);
+  await expect(page.getByText("사진 2장을 합친 내 퍼스널 컬러")).toBeVisible({ timeout: MODEL_TIMEOUT });
+  await expect(page.getByRole("tab")).toHaveCount(3);
+  await page.getByRole("tab", { name: /^2번째 사진 결과/ }).click();
+  await expect(page.getByText("사진 한 장으로 본 내 퍼스널 컬러")).toBeVisible();
+  await expect(page.getByText("이 사진 한 장만 본 결과예요")).toBeVisible();
+});
+
 test("브라우저 뒤로 가기가 이전 단계로 돌아간다", async ({ page }) => {
   await waitForModel(page);
   await uploadFace(page);

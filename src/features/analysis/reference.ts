@@ -33,14 +33,6 @@ export const REFERENCE_LABEL: Record<ReferenceSource, string> = {
   none: "조명 보정 없음",
 };
 
-/** 사진 탭에 붙는 짧은 표시. 완전 보정일 때만 */
-export const REFERENCE_SHORT: Partial<Record<ReferenceSource, string>> = {
-  white: "흰색 기준",
-  locked: "흰 종이 고정",
-  teeth: "치아 기준",
-  sclera: "흰자 기준",
-};
-
 /** 이용자가 찍은 흰색의 목표: 배경 보정 공간의 "흰 종이" */
 export const WHITE_TARGET: LinearRgb = {
   r: SCENE_REFERENCE.r * WHITE_TARGET_Y,

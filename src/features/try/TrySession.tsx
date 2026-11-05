@@ -243,7 +243,7 @@ export function TrySession() {
 
           {stage === "measuring" && (
             <div role="status" aria-live="polite" className="space-y-2">
-              <p className="text-sm">가만히 있어 주세요… {Math.round(progress * 100)}%</p>
+              <p className="text-sm">{source === "image" ? "사진을 보는 중…" : "가만히 있어 주세요…"} {Math.round(progress * 100)}%</p>
               <div className="h-1 overflow-hidden rounded-full bg-line">
                 <div className="h-full bg-accent transition-[width]" style={{ width: `${progress * 100}%` }} />
               </div>
