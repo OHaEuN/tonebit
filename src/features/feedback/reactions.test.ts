@@ -19,6 +19,8 @@ describe("parseReaction", () => {
 describe("parseRating", () => {
   it("제품 id는 3개까지, 형식이 맞아야 한다", () => {
     expect(parseRating({ helpful: true, mode: "ai", products: ["lip-mac-rubywoo"] })).toEqual({ helpful: true, mode: "ai", products: ["lip-mac-rubywoo"] });
+    // 실제 id는 한글 브랜드·라인과 대문자 호수가 섞인다
+    expect(parseRating({ helpful: false, mode: "search", products: ["lip-롬앤-더-쥬시-래스팅-틴트-03", "lip-토니모리-퍼펙트립스-쇼킹립-틴트-N20"] })?.products).toHaveLength(2);
     expect(parseRating({ helpful: true, mode: "ai", products: ["a", "b", "c", "d"] })).toBeNull();
     expect(parseRating({ helpful: true, mode: "ai", products: ["<script>"] })).toBeNull();
     expect(parseRating({ helpful: "yes", mode: "ai" })).toBeNull();
