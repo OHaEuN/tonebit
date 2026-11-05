@@ -107,6 +107,14 @@
 - Russell, A sex difference in facial contrast and its exaggeration by cosmetics, Perception 38(8), 2009; Jones, Russell, Ward, Cosmetics alter biologically-based factors of beauty: evidence from facial contrast, Evolutionary Psychology 13(1), 2015. 입술·눈과 피부의 명도 대비는 여성성·건강의 단서이고 화장은 이 대비를 키운다. 밝기 대비 항에 최적점을 두는 근거.
 - Maki & Yamamoto 1998(위)에서 어울림의 개인차를 가장 잘 설명한 변수가 머리색이었다. 눈썹 밝기로 그 사람의 자연 대비를 재서 밝기 최적점을 옮기는 근거.
 - 민혜조, 원광대 석사논문 2011. 한국 20대 여성 500명 맨입술 평균 L* 47.6, a* 20.2, b* 13.6. 입술을 못 읽었을 때 쓰는 입술-피부 차이의 근거.
+- 김도은·김영삼 2020(위). 사례별로 봄·가을은 옐로베이스(오렌지·레드), 겨울은 블루베이스 레드가, 가을 딥·겨울 딥은 저명도 립이, 여름 미디엄은 저채도 핑크가 best였다. 색 방향을 웜·쿨로, 밝기·선명도 최적점을 세부 타입으로 두는 근거.
+- Kiritani, Tong, Chang, Prior Makeup Experience Determines Whether Similar Colors Are Suitable for Complexions, Journal of the Science of Design 5(1), 2021. 노란 기 얼굴에 오렌지~레드핑크 립을 일본·중국 평가자 모두 혈색 있고 자연스럽다고 봤고, 일본 여성은 오렌지를 가장 높게 봤다. 어울림 판단은 학습된다.
+- Wu et al., A study on the impressions induced by lipstick colors, Color Research & Application, 2024 (doi 10.1002/col.22922). 평가자 35명, 립 20색 × 인상 23개 → 매력·귀여움·세련됨 세 요인. 매력은 립 a*·밝기·피부와의 색차, 귀여움은 낮은 색상각·작은 밝기차, 세련됨은 채도차·낮은 b*. 인상 항과 "원하는 느낌" 질문의 근거.
+- Ou & Luo, A colour harmony model for two-colour combinations, Color Research & Application 31(3), 2006. 54색으로 만든 1,431쌍을 10단계로 평가해 세운 모델. 밝기차 15 이상, 채도·색상이 비슷한 쌍, 밝은 쌍이 조화롭다. 색 조화 항의 식.
+- Assessment of color preference, purchase intention and sexual attractiveness of lipstick colors under multiple lighting conditions, 2023 (PMC10693985). 우한대 60명, 매트 립 15색 × 조명 5종. 푸른 기 레드(cameo red)가 매력 최하, 여성은 오렌지 레드를 선호. 2,500K 조명에서 선호가 가장 낮았다.
+- Investigation on Facial Skin Colour Perception Induced by Lipstick, 리즈 대학 석사 논문(White Rose eTheses 35290). 중국·백인 얼굴에서 붉은 기 높은 채도 립이 매력·밝기 지각을 올렸고 바이올렛이 가장 낮았다. 보라 쪽 추가 감점의 근거.
+- Lipstick influence on teeth colour appearance, Medicine and Pharmacy Reports, 2023. 평가자 100명, 미소 사진 4종. 누드 립에서 치아 색 평가가 가장 낮고 레드·퍼플에서 가장 높았다. 치아 항의 근거.
+- 2026 F/W 립 유행: 얼루어 코리아 2026-01-20(글로시 립), W코리아 2026-07-28(매트 베리·클래식 레드 + 안쪽 글로스·벨벳·절반만 채운 립), Edgar 2026-10(클라우드 립), 2026 K-뷰티 립 가이드(Water-Volume·Blur-Filter·Muted Neutral: 쿨 모브 핑크·웜 누디 애프리콧), 올리브영 립메이크업 2026년 9월 월간 베스트. 유행 항의 근거.
 
 **발색과 제품 색**
 - Shiseido US10939742, Panasonic US9603437. 립 렌더링은 입술의 평균 밝기를 제품 밝기로 옮기고 결(명암)만 남긴다. canvas `color` 합성처럼 입술 밝기를 그대로 쓰면 입술보다 밝은 누드 립이 표현되지 않는다.

@@ -8,7 +8,7 @@
 src/
   app/
     page.tsx                        랜딩. 서버 컴포넌트, 클라이언트 JS 거의 없음
-    try/page.tsx                    카메라·업로드 → 조명 체크 → 측정 → 립 체험 (한 화면)
+    try/page.tsx                    카메라·업로드 → 조명 체크 → 측정 → 단계 흐름(내 톤 → 느낌 → 질감 → 둘 중 고르기 → 내 립 → 발라 보기)
     r/[tone]/page.tsx               결과 페이지. 12톤 + 시즌 별칭 4개 정적 생성
     r/[tone]/opengraph-image.tsx    톤별 공유 카드. 한글 서브셋 폰트 동봉, 정적 생성
     opengraph-image.tsx             사이트 공통 링크 썸네일
@@ -19,8 +19,9 @@ src/
     analysis/    color · sample · lighting · tone · explain · constants  ← 순수 함수, Vitest 대상
                  frame.ts  ← 캔버스에서 픽셀을 읽어 순수 함수에 넘기는 유일한 DOM 어댑터
     lipTryOn/    render.ts (마스크·페더링), tint.ts (선형 RGB 발색 모델, 순수 함수), ColorPicker
-    try/         useTryOnLoop (rAF 루프), useStillAnalysis (업로드), TrySession 및 하위 UI
-    recommend/   palettes(시즌·12톤 설명), products.json(인기 립·블러셔), harmony(립 어울림 점수), drape(셀프 비교), getProducts, affiliate
+    try/         useTryOnLoop (rAF 루프), useStillAnalysis (업로드), TrySession, ResultPanel(단계 라우터), TryOnControls
+    flow/        측정 뒤 단계 화면. StepFrame(진행 막대·제목·주 행동 하나), ToneStep·FeelStep·TextureStep·PickStep·MatchStep, 곁가지 TuneStep(정확도 높이기)·AskStep(AI 상담), useStepHistory(뒤로 가기)
+    recommend/   palettes(시즌·12톤 설명), products.json(인기 립·블러셔), harmony(립 어울림 점수, 열 각도), preference(취향·가중치 학습), tasteStore, trend(유행), worldCup(둘 중 고르기 대진), drape(셀프 비교), getProducts, affiliate
     myShade/     measure(흰 종이 스와치 → 반사율), store(내 제품 색, 이 브라우저에만), ShadeScanner
     analytics/   track (Umami 이벤트), Analytics (스크립트 로더)
     feedback/    전문가 진단 입력·검사·저장(Postgres), 일치율 집계 SQL
@@ -29,7 +30,7 @@ src/
   app/accuracy/  전문가 진단 일치율 공개 페이지
   lib/db.ts      Postgres 연결(postgres.js, 풀러용 prepare: false)
     share/       resultUrl, ShareButtons (Web Share API, 복사 fallback)
-  stores/analysisStore.ts           Zustand. 단계·조명·결과·선택 색
+  stores/analysisStore.ts           Zustand. 측정 단계(stage)·결과 화면 단계(step)·조명·결과·선택 색
   types/                            도메인 타입
 db/migrations/                      SQL 마이그레이션 (pnpm db:migrate)
 scripts/                            migrate · seed-knowledge · calibrate (tsx로 실행)
@@ -45,6 +46,8 @@ video frame ─ detectForVideo ─▶ 478 landmarks
 ```
 
 업로드 경로는 같은 함수를 한 번만 호출하고, 색을 고를 때마다 정지 화면을 다시 그립니다.
+
+측정 뒤 화면은 한 화면에 한 가지 일만 둡니다(`stores/analysisStore.ts`의 `step`). 본 흐름은 내 톤 → 느낌 → 질감 → 둘 중 고르기 → 내 립 → 발라 보기 다섯 단계이고, 화면마다 질문(제목) 하나와 주 행동 버튼 하나, 위에 진행 막대가 있습니다. 질문 화면은 답을 누르면 바로 다음으로 넘어갑니다. 정확도 높이기(사진 추가·흰색 기준·왜 이렇게 나왔나·반응·전문가 진단·다시 측정)와 AI 상담은 곁가지 화면입니다. 단계는 `history.pushState`에 얹혀 브라우저 뒤로 가기가 이전 화면으로 갑니다(`flow/useStepHistory`). 폰에서는 질문·고르기·순위 화면에서 사진 무대를 숨기고(얼굴은 그 화면이 따로 그려 보여 줌), 발라 보기에서만 사진을 위에 고정합니다.
 
 tasks-vision(약 10MB)은 `/try`의 훅이 마운트될 때 `import()`로 처음 내려받습니다. 랜딩 페이지 번들에는 들어가지 않습니다. 모델·wasm은 `Cache-Control: immutable`이라 재방문은 즉시 뜹니다.
 
