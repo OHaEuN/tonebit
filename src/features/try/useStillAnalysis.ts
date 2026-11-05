@@ -7,7 +7,7 @@ import { createContext, createOffscreen, fitSize, measureLighting, patchAt, samp
 import { STILL_ANALYSIS_WIDTH, WHITE_PATCH_RATIO } from "@/features/analysis/constants";
 import { checkWhitePatch } from "@/features/analysis/whitePoint";
 import { cameraWhite } from "@/features/analysis/reference";
-import { MAX_SHOTS } from "@/features/analysis/shots";
+import { MAX_SHOTS, type Shot } from "@/features/analysis/shots";
 import { detectImage } from "@/features/landmark/useFaceLandmarker";
 import { drawOverlays } from "@/features/lipTryOn/render";
 import { resolveSwatchHex, useMyShadeStore } from "@/features/myShade/store";
@@ -71,7 +71,12 @@ function makeThumb(img: HTMLImageElement): string {
   return c.canvas.toDataURL("image/jpeg", 0.7);
 }
 
-type AnalyzeOutcome = "ok" | "noFace" | "noSkin";
+/** 분석이 끝난 사진. 스토어에 더하면서 id가 붙는다 */
+interface Analyzed {
+  skin: Omit<Shot, "id">;
+  photo: Omit<StillPhoto, "id">;
+}
+type AnalyzeOutcome = Analyzed | "noFace" | "noSkin";
 
 /**
  * 업로드 사진 분석 + 선택이 바뀔 때마다 정지 화면 다시 그리기.
@@ -108,17 +113,13 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
       store.setLighting(lighting);
       const skin = sampleSkin(ctx, points, w, h);
       if (!skin) return "noSkin";
-      const id = store.addShot(skin);
-      const kept = new Set(useAnalysisStore.getState().shots.map((s) => s.id));
-      const photo = { id, img, landmarks: points, thumb: makeThumb(img), whiteHint: suggestWhitePoint(ctx, points, w, h), lighting };
-      setPhotos((prev) => [...prev, photo].filter((p) => kept.has(p.id)));
-      return "ok";
+      return { skin, photo: { img, landmarks: points, thumb: makeThumb(img), whiteHint: suggestWhitePoint(ctx, points, w, h), lighting } };
     },
     [landmarkerRef],
   );
 
   /**
-   * 사진 여러 장을 차례로 분석해 합친다. append가 아니면 새로 시작한다.
+   * 사진 여러 장을 차례로 분석한 뒤 한 번에 합친다. append가 아니면 새로 시작한다.
    * 남은 칸(MAX_SHOTS)을 넘는 사진은 버린다
    */
   const analyze = useCallback(
@@ -131,9 +132,19 @@ export function useStillAnalysis({ canvasRef, landmarkerRef }: Params) {
       }
       const room = MAX_SHOTS - useAnalysisStore.getState().shots.length;
       const picked = files.slice(0, Math.max(0, room));
+      // 고른 사진을 다 본 뒤 한 번에 판정한다. 한 장씩 판정하면 첫 장 결과가 떴다가 바뀐다
+      useAnalysisStore.getState().startMeasuring();
       const outcomes: AnalyzeOutcome[] = [];
-      for (const f of picked) outcomes.push(await analyzeOne(f));
-      const failed = outcomes.filter((o) => o !== "ok").length;
+      for (let i = 0; i < picked.length; i++) {
+        useAnalysisStore.getState().setProgress(i / picked.length);
+        outcomes.push(await analyzeOne(picked[i]));
+      }
+      const done = outcomes.filter((o): o is Analyzed => typeof o !== "string");
+      const ids = useAnalysisStore.getState().addShots(done.map((o) => o.skin));
+      const kept = new Set(useAnalysisStore.getState().shots.map((s) => s.id));
+      const added = done.map((o, i) => ({ ...o.photo, id: ids[i] }));
+      setPhotos((prev) => [...prev, ...added].filter((p) => kept.has(p.id)));
+      const failed = outcomes.length - done.length;
       const dropped = files.length - picked.length;
       const notes: string[] = [];
       if (failed === outcomes.length) notes.push(outcomes.includes("noFace") ? STILL_ERRORS.noFace : STILL_ERRORS.noSkin);

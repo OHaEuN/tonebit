@@ -53,6 +53,8 @@ interface AnalysisState {
   setProgress: (p: number) => void;
   /** 사진 한 장(또는 카메라 측정 한 번)을 더해 다시 판정한다. 붙인 id를 돌려준다 */
   addShot: (shot: Omit<Shot, "id">) => number;
+  /** 여러 장을 한 번에 더해 한 번만 판정한다. 한 장씩 더하면 첫 장 결과가 떴다가 바뀐다. 더한 게 없으면 측정 전 화면으로 돌아간다 */
+  addShots: (shots: Omit<Shot, "id">[]) => number[];
   /** 한 장의 측정값을 바꿔(흰색 기준 보정 등) 다시 합친다. 보고 있던 화면은 유지한다 */
   updateShot: (id: number, patch: Partial<Omit<Shot, "id">>) => void;
   /** 꾹 눌러 바르기 전 모습을 보는 중 */
@@ -114,13 +116,19 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   setLighting: (lighting) => set({ lighting }),
   setFaceFound: (faceFound) => set({ faceFound }),
   setProgress: (progress) => set({ progress }),
-  addShot: (shot) => {
-    const id = ++shotSeq;
-    const shots = [...get().shots, { ...shot, id }].slice(-MAX_SHOTS);
+  addShot: (shot) => get().addShots([shot])[0],
+  addShots: (added) => {
+    const prev = get().shots;
+    if (added.length === 0) {
+      set({ stage: prev.length ? "done" : "live", progress: 0 });
+      return [];
+    }
+    const ids = added.map(() => ++shotSeq);
+    const shots = [...prev, ...added.map((shot, i) => ({ ...shot, id: ids[i] }))].slice(-MAX_SHOTS);
     const { result, votes } = combineShots(shots);
     track({ name: "measure-done", tone: result.tone, confidence: result.confidence, source: get().source ?? "camera" });
     set({ shots, votes, result, combined: result, view: null, stage: "done", progress: 1 });
-    return id;
+    return ids;
   },
   updateShot: (id, patch) => {
     const shots = get().shots.map((s) => (s.id === id ? { ...s, ...patch } : s));
