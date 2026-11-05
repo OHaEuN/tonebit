@@ -296,16 +296,19 @@ export function harmonyBreakdown(ranked: Pick<RankedItem<HarmonyItem>, "harmony"
   return AXIS_KEYS.filter((k) => weights[k] > 0).map((key) => ({ key, label: AXIS_LABEL[key], value: (axes[key] + 1) / 2 }));
 }
 
+/** 칭찬 문구. 값이 같으면 앞에 있는 항을 말한다 */
 const PRAISE: Partial<Record<AxisKey, string>> = {
-  lightness: "피부보다 알맞게 진해서 입술이 또렷해 보여요",
   undertone: "내 톤 방향의 색이라 얼굴과 잘 어우러져요",
-  redness: "혈색이 살아 생기 있어 보여요",
+  lightness: "피부보다 알맞게 진해서 입술이 또렷해 보여요",
   chroma: "피부의 선명도와 잘 맞아요",
   harmony: "피부색과 조화로운 색이에요",
+  redness: "혈색이 살아 생기 있어 보여요",
   trend: "요즘 많이 찾는 색이에요",
   teeth: "치아가 더 하얘 보여요",
 };
 const PRAISE_KEYS = Object.keys(PRAISE) as AxisKey[];
+/** 이 값 이상인 항만 칭찬한다 */
+const PRAISE_ABOVE = 0.6;
 
 /** 이보다 많이 깎인 항만 경고로 말한다. 살짝 모자란 정도는 다른 항이 메우니 굳이 흠을 잡지 않는다 */
 const WARN_BELOW = -0.3;
@@ -321,6 +324,6 @@ export function harmonyNote(h: Harmony): string {
   if (axes.chroma < WARN_BELOW) return "피부에 비해 흐려서 밋밋해 보일 수 있어요";
   if (axes.redness < 0) return "붉은기가 약해서 혈색이 덜 살아 보여요";
   if (h.score < 70) return "무난하게 어울려요";
-  const best = PRAISE_KEYS.filter((k) => h.weights[k] > 0).reduce((a, b) => (axes[b] * h.weights[b] > axes[a] * h.weights[a] ? b : a));
-  return PRAISE[best] ?? "무난하게 어울려요";
+  const best = PRAISE_KEYS.filter((k) => h.weights[k] > 0).reduce((a, b) => (axes[b] > axes[a] + 0.05 ? b : a));
+  return axes[best] >= PRAISE_ABOVE ? (PRAISE[best] ?? "무난하게 어울려요") : "무난하게 어울려요";
 }

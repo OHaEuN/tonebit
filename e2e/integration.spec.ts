@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /**
  * DB·AI가 붙은 상태의 흐름. CI의 integration 잡에서만 돈다(pgvector 컨테이너 + 가짜 Gemini).
@@ -14,11 +14,21 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/try");
   await expect(page.getByText("준비됐어요")).toBeVisible({ timeout: MODEL_TIMEOUT });
   await page.getByLabel(/사진 올리기|사진으로 시작하기/).first().setInputFiles("e2e/fixtures/face.jpg");
-  await expect(page.getByText("왜 이렇게 나왔나요")).toBeVisible({ timeout: MODEL_TIMEOUT });
+  await expect(page.getByRole("heading", { level: 2, name: /(봄|여름|가을|겨울) (웜|쿨)/ })).toBeVisible({ timeout: MODEL_TIMEOUT });
 });
 
+/** 내 톤 → 취향 → 고르기 건너뛰기 → 내 립 → AI 상담 */
+async function toAdvisor(page: Page) {
+  await page.getByRole("button", { name: "어울리는 립 찾기" }).click();
+  await page.getByRole("button", { name: /자연스럽고 세련된/ }).click();
+  await page.getByRole("button", { name: /상관없어요/ }).click();
+  await page.getByRole("button", { name: "건너뛰기" }).click();
+  await page.getByRole("button", { name: "AI에게 더 물어보기" }).click();
+  return page.locator("section[aria-labelledby=advisor-heading]");
+}
+
 test("AI 상담: 추천 질문을 누르면 제품 카드가 나오고, 고른 색이 사진에 발린다", async ({ page }) => {
-  const panel = page.locator("section[aria-labelledby=advisor-heading]");
+  const panel = await toAdvisor(page);
   await panel.getByRole("button", { name: "출근할 때 바를 립 골라 줘" }).click();
   await expect(panel.getByText("첫 번째 색을 사진에 발라 뒀어요")).toBeVisible({ timeout: 30_000 });
   await expect(panel.getByText(/사진에 발라 봤어요/)).toBeVisible();
@@ -29,7 +39,8 @@ test("AI 상담: 추천 질문을 누르면 제품 카드가 나오고, 고른 �
   await expect(page.getByRole("dialog").locator("legend span")).not.toHaveText("선택 안 함");
 });
 
-test("결과 바로 아래에서 한 번에 반응을 남기고, 달라요면 전문가 진단 입력으로 이어진다", async ({ page }) => {
+test("정확도 높이기에서 한 번에 반응을 남기고, 달라요면 전문가 진단 입력으로 이어진다", async ({ page }) => {
+  await page.getByRole("button", { name: "정확도 높이기" }).click();
   const box = page.getByText("이 결과, 내 생각과 비슷해요?");
   await expect(box).toBeVisible();
   await page.getByRole("button", { name: "달라요" }).click();
@@ -42,7 +53,7 @@ test("결과 바로 아래에서 한 번에 반응을 남기고, 달라요면 �
 });
 
 test("AI 상담 답에 도움이 됐는지 남긴다", async ({ page }) => {
-  const panel = page.locator("section[aria-labelledby=advisor-heading]");
+  const panel = await toAdvisor(page);
   await panel.getByRole("button", { name: "출근할 때 바를 립 골라 줘" }).click();
   await expect(panel.getByText("첫 번째 색을 사진에 발라 뒀어요")).toBeVisible({ timeout: 30_000 });
   const rated = page.waitForResponse((r) => r.url().endsWith("/api/advisor/rating") && r.ok());
@@ -55,6 +66,7 @@ test("진단 피드백을 보내면 정확도 페이지에 집계된다", async 
   const count = async () => Number(/지금까지 (?:<!-- -->)?(\d+)(?:<!-- -->)?건/.exec(await (await page.request.get("/accuracy")).text())?.[1]);
   const before = await count();
   expect(before).toBeGreaterThanOrEqual(0);
+  await page.getByRole("button", { name: "정확도 높이기" }).click();
   const form = page.locator("details", { hasText: "전문가에게 퍼스널 컬러 진단을 받아 봤나요?" });
   await form.locator("summary").click();
   await form.locator("label", { hasText: "여름 쿨" }).first().click();

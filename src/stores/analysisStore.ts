@@ -6,8 +6,11 @@ import { DEFAULT_INTENSITY, type BlushStyle, type LipStyle } from "@/features/li
 
 export type Stage = "setup" | "live" | "measuring" | "done";
 export type Source = "camera" | "image";
-/** 결과 화면 탭. 발라 보기에서만 사진을 화면 위에 고정한다 */
-export type ResultTab = "result" | "tryon" | "worldcup";
+/**
+ * 측정이 끝난 뒤의 화면. 한 화면에 한 가지 일만 둔다:
+ * tone 내 톤 → feel·texture 취향 질문 → pick 둘 중 고르기 → match 내 립 → tryon 발라 보기. tune(정확도 높이기)·ask(더 물어보기)는 곁가지
+ */
+export type Step = "tone" | "feel" | "texture" | "pick" | "match" | "tryon" | "tune" | "ask";
 
 interface AnalysisState {
   stage: Stage;
@@ -39,7 +42,7 @@ interface AnalysisState {
   fps: number;
   /** 실시간 카메라에서 화이트밸런스를 고정할 때 잰 흰 종이. 카메라를 끄면 사라진다 */
   lockedWhite: LinearRgb | null;
-  resultTab: ResultTab;
+  step: Step;
   /** 결과 화면의 비교·순위에 립을 얹어 볼 얼굴 */
   snapshot: FaceSnapshot | null;
 
@@ -71,7 +74,7 @@ interface AnalysisState {
   setDebug: (on: boolean) => void;
   setFps: (fps: number) => void;
   setLockedWhite: (white: LinearRgb | null) => void;
-  setResultTab: (tab: ResultTab) => void;
+  setStep: (step: Step) => void;
   setSnapshot: (snapshot: FaceSnapshot | null) => void;
   reset: () => void;
 }
@@ -98,7 +101,7 @@ const initial = {
   debug: false,
   fps: 0,
   lockedWhite: null,
-  resultTab: "result" as ResultTab,
+  step: "tone" as Step,
   snapshot: null,
 };
 
@@ -133,7 +136,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     set({ view: shot ? view : null, result: shot ? shotResult(shot) : combined, paletteSeason: null });
   },
   measureMore: () => set({ stage: "live", progress: 0 }),
-  remeasure: () => set({ stage: "live", result: null, combined: null, view: null, shots: [], votes: {}, lipId: null, blushId: null, paletteSeason: null, progress: 0 }),
+  remeasure: () => set({ stage: "live", result: null, combined: null, view: null, shots: [], votes: {}, lipId: null, blushId: null, paletteSeason: null, progress: 0, step: "tone" }),
   selectLip: (lipId) => {
     if (lipId) track({ name: "swatch-select", kind: "lip", product: lipId.startsWith("lip-") });
     set({ lipId });
@@ -150,7 +153,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   setDebug: (debug) => set({ debug }),
   setFps: (fps) => set({ fps }),
   setLockedWhite: (lockedWhite) => set({ lockedWhite }),
-  setResultTab: (resultTab) => set({ resultTab }),
+  setStep: (step) => set({ step }),
   setSnapshot: (snapshot) => set({ snapshot }),
   reset: () => set(initial),
 }));
