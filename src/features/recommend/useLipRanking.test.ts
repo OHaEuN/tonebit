@@ -13,6 +13,8 @@ describe("diversifyByLine", () => {
   it("내가 고른 1등은 같은 라인이 이미 둘 있어도 남긴다", () => {
     const rows = [row("a", "롬앤", "더 쥬시 래스팅 틴트", "07"), row("b", "롬앤", "더 쥬시 래스팅 틴트", "21"), row("c", "롬앤", "더 쥬시 래스팅 틴트", "22")];
     expect(diversifyByLine(rows, "c").map((r) => r.item.id)).toEqual(["a", "b", "c"]);
+    const more = [...rows, row("d", "롬앤", "더 쥬시 래스팅 틴트", "24")];
+    expect(diversifyByLine(more, "b").map((r) => r.item.id)).toEqual(["a", "b"]);
   });
   it("팔레트 색과 내 제품은 거르지 않는다", () => {
     const rows = [row("p1", "", "", "로즈", "palette"), row("p2", "", "", "모브", "palette"), row("p3", "", "", "핑크", "palette")];

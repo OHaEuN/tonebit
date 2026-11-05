@@ -53,11 +53,11 @@ export const MAX_PER_LINE = 2;
 export function diversifyByLine<T extends { item: LipCandidate }>(ranked: T[], keep: string | null = null, maxPerLine = MAX_PER_LINE): T[] {
   const seen = new Map<string, number>();
   return ranked.filter(({ item }) => {
-    if (item.kind !== "product" || item.id === keep) return true;
+    if (item.kind !== "product") return true;
     const line = `${item.brand} ${item.line}`;
     const n = seen.get(line) ?? 0;
     seen.set(line, n + 1);
-    return n < maxPerLine;
+    return item.id === keep || n < maxPerLine;
   });
 }
 
