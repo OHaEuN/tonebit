@@ -89,4 +89,4 @@ Vercel Hobby 플랜은 비상업 용도 조건이 있어서, 광고·제휴 수�
 
 1. Website ID는 `features/analytics/Analytics.tsx`에 기본값으로 들어 있습니다 (HTML에 노출되는 공개값). 바꾸려면 환경변수 `NEXT_PUBLIC_UMAMI_WEBSITE_ID`로 덮어씁니다.
 2. `data-domains`로 배포 도메인에서만 수집합니다. 로컬 개발과 E2E는 집계되지 않습니다. 도메인을 바꾸면 `NEXT_PUBLIC_UMAMI_DOMAINS`를 같이 바꿉니다.
-3. 이벤트: `try-start`(source), `camera-denied`, `model-error`, `face-not-found`, `measure-done`(tone, confidence, source), `swatch-select`(kind, product), `wb-lock`, `drape-done`(season, same), `shade-saved`(kind), `share`, `card-download`, `product-click`(id). 얼굴·측정 수치는 싣지 않습니다. `features/analytics/track.ts`에 타입으로 고정되어 있습니다.
+3. 이벤트: `try-start`(source), `camera-denied`, `model-error`, `face-not-found`, `measure-done`(tone, confidence, source), `swatch-select`(kind, product), `wb-lock`, `drape-done`(season, same), `taste-set`(feel, texture), `pick-skip`, `worldcup-done`(same: 둘 중 고르기에서 끝까지 이긴 립이 AI 1등과 같은지), `shade-saved`(kind), `advisor-ask`, `advisor-try-on`, `share`, `card-download`, `product-click`(id). 얼굴·측정 수치는 싣지 않습니다. `features/analytics/track.ts`에 타입으로 고정되어 있습니다.
