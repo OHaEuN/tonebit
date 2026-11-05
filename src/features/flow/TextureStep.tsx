@@ -23,7 +23,7 @@ export function TextureStep() {
   const setTaste = useTasteStore((s) => s.setTaste);
   const feel = useTasteStore((s) => s.taste.feel);
   return (
-    <StepFrame context={tone} index={3} title="어떤 질감을 좋아해요?" body="요즘은 촉촉한 물광과 보송한 블러 둘 다 유행이라, 좋아하는 쪽을 점수에 더해요." onBack={() => window.history.back()}>
+    <StepFrame context={tone} index={3} title="어떤 질감을 좋아해요?" body="좋아하는 쪽을 골라 주세요." onBack={() => window.history.back()}>
       <OptionList
         label="좋아하는 질감"
         options={TEXTURES.map((key) => ({ key, ...TEXTURE_LABEL[key], visual: <Visual texture={key} /> }))}

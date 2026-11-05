@@ -55,7 +55,7 @@ export function LipFaceOff({ onTry }: LipFaceOffProps) {
       <h3 id="faceoff-heading" className="text-[20px] font-semibold">
         안 어울리는 립 vs 어울리는 립
       </h3>
-      <p className="mt-1 text-[13px] text-muted">인기 제품 {faceOff.total}개를 내 얼굴에 얹어 AI가 재미로 매긴 점수예요. 꼴찌와 1등을 바른 얼굴을 나란히 봐요.</p>
+      <p className="mt-1 text-[13px] text-muted">인기 제품 {faceOff.total}개 중 꼴찌와 1등이에요.</p>
       <div className="mt-4 grid grid-cols-2 gap-3 md:gap-5">
         <Side side={faceOff.worst} label="Worst" onTry={onTry} />
         <Side side={faceOff.best} label="Best" onTry={onTry} />

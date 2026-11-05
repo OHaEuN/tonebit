@@ -139,7 +139,6 @@ export function AdvisorPanel({ onPreview }: AdvisorPanelProps) {
       <h3 id="advisor-heading" className="text-[20px] font-semibold">
         {info.label} {info.tone}에게 물어보세요
       </h3>
-      <p className="mt-1 text-[13px] text-muted">제품 DB와 퍼스널 컬러 가이드를 찾아 답하고, 고른 색은 사진에 바로 발라 봐요. 진단 숫자와 질문만 보내고 사진은 보내지 않아요.</p>
 
       {messages.length === 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">

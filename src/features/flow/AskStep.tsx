@@ -15,7 +15,7 @@ export function AskStep({ onPreview }: AskStepProps) {
   const slug = useAnalysisStore((s) => s.result!.tone);
   const tone = useToneLabel();
   return (
-    <StepFrame context={tone} title="더 물어보기" body="출근용 립, 피할 색, 가격대 같은 걸 물어보면 제품 DB와 가이드를 찾아 답해요." onBack={() => window.history.back()}>
+    <StepFrame context={tone} title="AI에게 물어보기" body="내 톤에 맞는 립이나 피할 색을 물어보세요. 사진은 보내지 않아요." onBack={() => window.history.back()}>
       {process.env.NEXT_PUBLIC_ADVISOR_ENABLED ? <AdvisorPanel key={slug} onPreview={onPreview} /> : <p className="text-[14px] text-muted">지금은 상담을 쓸 수 없어요.</p>}
     </StepFrame>
   );

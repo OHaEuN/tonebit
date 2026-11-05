@@ -65,8 +65,8 @@ export function PickStep() {
     <StepFrame
       context={tone}
       index={4}
-      title="둘 중 더 마음에 드는 쪽을 골라 주세요"
-      body={`내 얼굴에 바른 모습이에요. ${PICK_SIZE - 1}번 고르면 어떤 밝기·색·선명도를 좋아하는지 배워서 순위의 가중치를 내 눈에 맞춰요.`}
+      title="어느 쪽이 더 마음에 들어요?"
+      body={`내 얼굴에 바른 모습이에요. ${PICK_SIZE - 1}번 고르면 내 눈에 맞춰 순위가 바뀌어요.`}
       onBack={() => window.history.back()}
       aside={
         <button type="button" onClick={skip} className={BUTTON.text}>
@@ -75,10 +75,7 @@ export function PickStep() {
       }
     >
       <div aria-live="polite">
-        <div className="flex items-baseline justify-between text-[13px] text-muted">
-          <span>{cup.label}</span>
-          <span>더 나아 보이는 얼굴을 누르세요</span>
-        </div>
+        <p className="text-[13px] text-muted">{cup.label}</p>
         <div className="mt-2 h-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={Math.round(cup.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
           <div className="h-full bg-fg transition-[width]" style={{ width: `${cup.progress * 100}%` }} />
         </div>

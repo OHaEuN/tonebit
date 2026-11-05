@@ -17,7 +17,7 @@ interface PaletteSeasonPickerProps {
 export function PaletteSeasonPicker({ mine, shown, onChange }: PaletteSeasonPickerProps) {
   return (
     <fieldset className="min-w-0">
-      <legend className="mb-2 text-[13px] text-muted">팔레트 시즌. 다른 시즌 색과도 비교해 보세요</legend>
+      <legend className="mb-2 text-[13px] text-muted">다른 시즌 색과 비교해 보기</legend>
       <div className="relative -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
         {SEASONS.map((s) => {
           const info = SEASON_INFO[s];

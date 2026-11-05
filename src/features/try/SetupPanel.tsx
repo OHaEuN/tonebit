@@ -14,10 +14,10 @@ const CAMERA_MESSAGES = {
 
 /** 잘 나오는 사진의 조건. 순서가 아니라 체크 항목이라 번호를 붙이지 않는다 */
 const PHOTO_TIPS = [
-  { title: "자연광 아래 정면", body: "창가에서, 앞머리가 이마와 볼을 가리지 않게" },
-  { title: "흰 종이를 얼굴 옆에", body: "결과 화면에서 종이를 누르면 조명 색을 가장 정확히 되돌려요. 햇빛보다 실내 조명 아래가 좋아요" },
-  { title: "이가 보이게 웃기", body: "치아와 눈 흰자를 기준으로 조명을 자동으로 되돌려요" },
-  { title: "여러 장일수록 정확", body: "다른 장소·시간 사진을 5장까지 합쳐서 조명 운을 줄여요" },
+  { title: "자연광 아래 정면", body: "창가에서, 앞머리는 넘기고" },
+  { title: "이가 보이게 웃기", body: "치아를 기준으로 조명을 맞춰요" },
+  { title: "흰 종이를 얼굴 옆에", body: "같이 찍으면 조명을 더 정확히 맞춰요" },
+  { title: "여러 장이면 더 정확", body: "다른 곳에서 찍은 사진을 더하면 더 정확해요. 최대 5장" },
 ];
 
 interface SetupPanelProps {
@@ -53,7 +53,7 @@ export function SetupPanel({ modelStatus, modelError, modelProgress, cameraStatu
   return (
     <section className="mx-auto max-w-xl pt-4 md:pt-10">
       <h2 className="text-[28px] font-bold leading-tight md:text-[40px]">내 얼굴로 하는 컬러 테스트</h2>
-      <p className="mt-3 text-[15px] text-muted">셀카 한 장이면 돼요. 사진은 이 기기 안에서만 분석하고 어디에도 보내지 않아요.</p>
+      <p className="mt-3 text-[15px] text-muted">셀카 한 장이면 돼요.</p>
 
       <div className="mt-8">
         {modelStatus === "loading" ? (

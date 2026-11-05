@@ -4,7 +4,6 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Pointer
 import { Disclaimer } from "@/components/Disclaimer";
 import { BUTTON } from "@/components/styles";
 import { LIGHTING_LABELS } from "@/features/analysis/lighting";
-import { REFERENCE_LABEL } from "@/features/analysis/reference";
 import { isFullyCorrected } from "@/features/analysis/tone";
 import { track } from "@/features/analytics/track";
 import { useCameraStream } from "@/features/camera/useCameraStream";
@@ -291,16 +290,18 @@ export function TrySession() {
               />
               {lighting.length > 0 && result && (step === "tone" || step === "tune") && !isFullyCorrected(result.reference ?? "none") && (
                 <p className="text-xs text-muted">
-                  조명 참고: {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조건이었어요. {REFERENCE_LABEL[result.reference ?? "none"]}이라 결과가 평소와 다를 수 있어요.
+                  {lighting.map((i) => LIGHTING_LABELS[i]).join(", ")} 조명이라 결과가 평소와 다를 수 있어요. 사진을 더하면 정확해져요.
                 </p>
               )}
             </>
           )}
 
-          <div className="space-y-4 border-t border-line pt-5">
-            <Disclaimer />
-            <AdvancedPanel />
-          </div>
+          {(step === "tone" || step === "tune") && (
+            <div className="space-y-4 border-t border-line pt-5">
+              {step === "tone" && <Disclaimer />}
+              {step === "tune" && <AdvancedPanel />}
+            </div>
+          )}
         </div>
       </div>
     </div>

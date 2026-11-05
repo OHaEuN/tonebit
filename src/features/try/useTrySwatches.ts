@@ -34,6 +34,6 @@ export function useTrySwatches(part: Part): SwatchSection[] {
   return [
     ...(myShades.length ? [{ title: "내 제품", swatches: myShades }] : []),
     { title: `${info.label} ${info.tone} 팔레트`, swatches: shown === result.season ? sortSwatches(palette, result.subtype) : palette },
-    { title: isLip ? "많이 찾는 제품 · 어울리는 순" : "많이 찾는 제품", swatches: byRank(productSwatches(shown, part), order) },
+    { title: isLip ? "인기 제품, 어울리는 순" : "인기 제품", swatches: byRank(productSwatches(shown, part), order) },
   ];
 }

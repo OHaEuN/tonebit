@@ -109,8 +109,8 @@ export function MatchStep() {
       title="내 얼굴에 어울리는 립"
       body={
         learned
-          ? "내 피부와의 진하기·웜쿨·혈색·선명함 궁합에 내 톤 팔레트, 유행, 방금 고른 취향을 더한 순위예요."
-          : "내 피부와의 진하기·웜쿨·혈색·선명함 궁합에 내 톤 팔레트와 유행을 더한 순위예요."
+          ? "내 피부와 방금 고른 취향에 맞춘 순위예요."
+          : "내 피부에 맞춘 순위예요."
       }
       onBack={() => window.history.back()}
       cta={{
@@ -168,7 +168,7 @@ export function MatchStep() {
             </ul>
           )}
           <p className="mt-1.5 text-muted">
-            행의 ▲▼는 선택을 반영하기 전 순위와의 차이예요.
+            ▲▼는 고르기 전 순위와의 차이예요.
           </p>
         </div>
       )}
@@ -312,7 +312,6 @@ export function MatchStep() {
       <div className="mt-6 border-b border-line">
         <Disclosure
           title="가장 안 어울리는 립과 나란히 보기"
-          hint="꼴찌와 1등을 바른 얼굴을 같이 봐요"
         >
           <LipFaceOff onTry={tryOn} />
         </Disclosure>
