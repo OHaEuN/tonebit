@@ -91,7 +91,7 @@ test("내 톤에 시즌 가능성이 나오고, 내 립 순위의 각 행에 항
   await expect(picks.locator("> li")).toHaveCount(5);
   await picks.getByText("왜 이 점수예요?").first().click();
   // 취향(느낌)을 답했으니 원하는 느낌 항이 켜져 아홉 각도 + 설명 줄 하나
-  await expect(picks.getByRole("list", { name: "항목별 어울림" }).first().getByRole("listitem")).toHaveCount(10);
+  await expect(picks.getByRole("list", { name: "항목별 어울림" }).first().getByRole("listitem")).toHaveCount(9);
   await picks.getByRole("button", { name: "발라 보기" }).first().click();
   await expect(page.getByText(/어울림 \d+점 · 전체 \d+개 중 \d+위/)).toBeVisible();
 });

@@ -113,7 +113,7 @@
 - Ou & Luo, A colour harmony model for two-colour combinations, Color Research & Application 31(3), 2006. 54색으로 만든 1,431쌍을 10단계로 평가해 세운 모델. 밝기차 15 이상, 채도·색상이 비슷한 쌍, 밝은 쌍이 조화롭다. 색 조화 항의 식.
 - Assessment of color preference, purchase intention and sexual attractiveness of lipstick colors under multiple lighting conditions, 2023 (PMC10693985). 우한대 60명, 매트 립 15색 × 조명 5종. 푸른 기 레드(cameo red)가 매력 최하, 여성은 오렌지 레드를 선호. 2,500K 조명에서 선호가 가장 낮았다.
 - Investigation on Facial Skin Colour Perception Induced by Lipstick, 리즈 대학 석사 논문(White Rose eTheses 35290). 중국·백인 얼굴에서 붉은 기 높은 채도 립이 매력·밝기 지각을 올렸고 바이올렛이 가장 낮았다. 보라 쪽 추가 감점의 근거.
-- Lipstick influence on teeth colour appearance, Medicine and Pharmacy Reports, 2023. 평가자 100명, 미소 사진 4종. 누드 립에서 치아 색 평가가 가장 낮고 레드·퍼플에서 가장 높았다. 치아 항의 근거.
+- Lipstick influence on teeth colour appearance, Medicine and Pharmacy Reports, 2023. 평가자 100명, 미소 사진 4종. 누드 립에서 치아 색 평가가 가장 낮고 레드·퍼플에서 가장 높았다. 한때 점수의 '치아' 항 근거였으나, 사람과 무관하게 차가운 색을 미는 항이라 2026-11-05에 뺐다.
 - 2026 F/W 립 유행: 얼루어 코리아 2026-01-20(글로시 립), W코리아 2026-07-28(매트 베리·클래식 레드 + 안쪽 글로스·벨벳·절반만 채운 립), Edgar 2026-10(클라우드 립), 2026 K-뷰티 립 가이드(Water-Volume·Blur-Filter·Muted Neutral: 쿨 모브 핑크·웜 누디 애프리콧), 올리브영 립메이크업 2026년 9월 월간 베스트. 유행 항의 근거.
 
 **발색과 제품 색**

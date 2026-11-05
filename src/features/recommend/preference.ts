@@ -33,7 +33,6 @@ export const AXES = [
   ["trend", "유행"],
   ["impression", "원하는 느낌"],
   ["texture", "질감"],
-  ["teeth", "치아 밝기"],
 ] as const;
 export type AxisKey = (typeof AXES)[number][0];
 export type AxisVector = Record<AxisKey, number>;
@@ -50,12 +49,11 @@ export const AXIS_STATEMENT: Record<AxisKey, string> = {
   trend: "요즘 많이 찾는 색이에요",
   impression: "원하는 느낌에 맞아요",
   texture: "좋아하는 질감이에요",
-  teeth: "치아가 하얘 보이는 색",
 };
 
 /**
  * 출발 가중치. 문헌의 순서만 반영한 값이라(명도차 > 색상 > 채도, Hirayama 1998) 둘 중 고르기 선택으로 사람마다 다시 맞춘다.
- * 인상·질감은 취향을 답했을 때만, 치아는 늘 조금만
+ * 인상·질감은 취향을 답했을 때만
  */
 export const BASE_WEIGHTS: AxisVector = {
   lightness: 0.22,
@@ -67,7 +65,6 @@ export const BASE_WEIGHTS: AxisVector = {
   trend: 0.05,
   impression: 0.06,
   texture: 0.06,
-  teeth: 0.04,
 };
 
 export const AXIS_KEYS = AXES.map(([k]) => k);
@@ -104,7 +101,7 @@ export function normalize(w: AxisVector): AxisVector {
 /** 선택이 모일수록 출발 가중치에서 얼마나 멀리 갈 수 있는지. 클수록 출발값을 더 믿는다 */
 const PRIOR_STRENGTH = 12;
 /**
- * 선택으로 배우는 항목. 일곱 번의 선택으로 열 항목을 다 맞추면 잡음에 맞춰지므로(치아 −70% 같은 엉뚱한 변화),
+ * 선택으로 배우는 항목. 일곱 번의 선택으로 항목을 다 맞추면 잡음에 맞춰지므로(작은 항이 −70%처럼 튀는 엉뚱한 변화),
  * 얼굴과 색의 관계를 말하는 큰 항목 다섯 개만 배우고 나머지는 출발값을 지킨다
  */
 const LEARNABLE: AxisKey[] = ["lightness", "undertone", "redness", "chroma", "fit"];
