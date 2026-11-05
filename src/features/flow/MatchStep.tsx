@@ -35,7 +35,7 @@ export function MatchStep() {
   const ranking = useLipRanking();
   const [shown, setShown] = useState(FIRST);
 
-  const products = useMemo(() => (ranking ? diversifyByLine(ranking.ranked.filter((r) => r.item.kind === "product")) : []), [ranking]);
+  const products = useMemo(() => (ranking ? diversifyByLine(ranking.ranked.filter((r) => r.item.kind === "product"), champion) : []), [ranking, champion]);
   const mine = useMemo(() => (ranking ? ranking.ranked.map((r, i) => ({ ...r, rank: i + 1 })).filter((r) => r.item.kind === "mine") : []), [ranking]);
   const visible = products.slice(0, shown);
   const crops = useMemo(() => {
