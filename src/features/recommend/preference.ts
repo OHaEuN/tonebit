@@ -50,7 +50,7 @@ export const AXIS_STATEMENT: Record<AxisKey, string> = {
   trend: "요즘 많이 찾는 색이에요",
   impression: "원하는 느낌에 맞아요",
   texture: "좋아하는 질감이에요",
-  teeth: "치아가 하얘 보여요",
+  teeth: "치아가 하얘 보이는 색",
 };
 
 /**

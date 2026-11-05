@@ -304,7 +304,7 @@ const PRAISE: Partial<Record<AxisKey, string>> = {
   harmony: "피부색과 조화로운 색이에요",
   redness: "혈색이 살아 생기 있어 보여요",
   trend: "요즘 많이 찾는 색이에요",
-  teeth: "치아가 더 하얘 보여요",
+  teeth: "웃을 때 치아가 더 하얘 보이는 색이에요",
 };
 const PRAISE_KEYS = Object.keys(PRAISE) as AxisKey[];
 /** 이 값 이상인 항만 칭찬한다 */
