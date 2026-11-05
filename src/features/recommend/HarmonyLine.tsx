@@ -13,7 +13,7 @@ export function HarmonyLine({ lipId }: HarmonyLineProps) {
   const ranking = useLipRanking();
   const index = ranking && lipId ? ranking.ranked.findIndex((r) => r.item.id === lipId) : -1;
   if (!ranking || index < 0) return null;
-  const { harmony, fit, score } = ranking.ranked[index];
+  const { harmony, score } = ranking.ranked[index];
   return (
     <div role="status" className="space-y-1.5 border-l-2 border-fg pl-3 text-sm">
       <p>
@@ -23,7 +23,7 @@ export function HarmonyLine({ lipId }: HarmonyLineProps) {
           · 전체 {ranking.ranked.length}개 중 {index + 1}위 · {harmonyNote(harmony)}
         </span>
       </p>
-      <HarmonyBars ranked={{ harmony, fit }} />
+      <HarmonyBars ranked={{ harmony }} />
     </div>
   );
 }

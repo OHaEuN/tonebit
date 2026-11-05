@@ -1,4 +1,5 @@
 import type { LinearRgb, Point, Rect } from "@/types/analysis";
+import type { Finish } from "@/types/product";
 import { hexToRgb } from "@/features/analysis/color";
 import { cheekAnchors, interocular, lipOuterPolygon, mouthFrame, skinPatches } from "@/features/landmark/geometry";
 import { LIP_INNER, LIP_OUTER } from "@/features/landmark/indices";
@@ -47,6 +48,18 @@ const BLUSH_TEXTURE = 1;
 
 /** 진하기 기본값. 제품을 한 번 제대로 바른 정도. 1이면 제형이 정한 덮임 그대로 */
 export const DEFAULT_INTENSITY = 0.8;
+
+/** 제형 → 바르는 방법. 얼굴 비교 그림과 어울림 점수가 같은 덮임을 쓴다 */
+export function lipStyleOf(finish?: Finish): LipStyle {
+  if (finish === "glossy") return "gloss";
+  if (finish === "matte") return "matte";
+  return "full";
+}
+
+/** 제형대로 기본 진하기로 한 번 발랐을 때 입술색을 덮는 정도 */
+export function coverageOf(finish?: Finish): number {
+  return LIP_STYLES[lipStyleOf(finish)].coverage * DEFAULT_INTENSITY;
+}
 
 export interface OverlayOptions {
   /** 이 사진에서 완전한 흰색이 찍혔을 선형 RGB(측정 결과). 제품 색을 사진 조명에 맞춘다 */

@@ -57,9 +57,9 @@ test("결과에 시즌 가능성과 내 얼굴 기준 립 순위가 나오고, �
   await page.getByLabel("사진 올리기").first().setInputFiles("e2e/fixtures/face.jpg");
   await expect(page.getByText(/가능성 \d+% · 다음 후보/)).toBeVisible({ timeout: MODEL_TIMEOUT });
   const picks = page.getByRole("region", { name: "내 얼굴 기준 립 순위" });
-  // 행마다 항목별 막대(li 5개)가 들어 있어서 순위 행만 센다
+  // 행마다 항목별 막대(li 8개)가 들어 있어서 순위 행만 센다
   await expect(picks.locator("ol > li")).toHaveCount(5);
-  await expect(picks.getByRole("list", { name: "항목별 어울림" }).first().getByRole("listitem")).toHaveCount(5);
+  await expect(picks.getByRole("list", { name: "항목별 어울림" }).first().getByRole("listitem")).toHaveCount(8);
   await picks.getByRole("button", { name: "발라 보기" }).first().click();
   await expect(page.getByRole("tab", { name: "발라 보기", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByText(/어울림 \d+점 · 전체 \d+개 중 \d+위/)).toBeVisible();
