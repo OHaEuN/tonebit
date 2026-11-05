@@ -10,7 +10,7 @@ import { harmonyNote } from "@/features/recommend/harmony";
 import { HarmonyBars } from "@/features/recommend/HarmonyBars";
 import { LipFaceOff } from "@/features/recommend/LipFaceOff";
 import { useTasteStore } from "@/features/recommend/tasteStore";
-import { useLipRanking } from "@/features/recommend/useLipRanking";
+import { diversifyByLine, useLipRanking } from "@/features/recommend/useLipRanking";
 import { resultPath } from "@/features/share/resultUrl";
 import { SwatchSmear } from "@/features/swatch/SwatchSmear";
 import { seedOf, smearFinish } from "@/features/swatch/smear";
@@ -35,7 +35,7 @@ export function MatchStep() {
   const ranking = useLipRanking();
   const [shown, setShown] = useState(FIRST);
 
-  const products = useMemo(() => (ranking ? ranking.ranked.filter((r) => r.item.kind === "product") : []), [ranking]);
+  const products = useMemo(() => (ranking ? diversifyByLine(ranking.ranked.filter((r) => r.item.kind === "product")) : []), [ranking]);
   const mine = useMemo(() => (ranking ? ranking.ranked.map((r, i) => ({ ...r, rank: i + 1 })).filter((r) => r.item.kind === "mine") : []), [ranking]);
   const visible = products.slice(0, shown);
   const crops = useMemo(() => {

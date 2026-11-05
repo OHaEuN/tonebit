@@ -17,6 +17,8 @@ export interface LipCandidate extends HarmonyItem {
   /** 제품이면 브랜드와 라인·색 이름을 따로 보여 준다 */
   brand?: string;
   shade?: string;
+  /** 제품 라인 이름(예: 더 쥬시 래스팅 틴트). 같은 라인끼리 묶을 때 쓴다 */
+  line?: string;
 }
 
 /** 순위에 올릴 립: 제품, 시즌 팔레트 색, 이용자가 잰 자기 제품 */
@@ -29,6 +31,7 @@ function lipCandidates(mine: MyShade[]): LipCandidate[] {
         name: `${p.brand} ${p.name} ${p.shade}`,
         brand: p.brand,
         shade: `${p.name} ${p.shade}`,
+        line: p.name,
         hex: p.hex,
         finish: p.finish,
         seasons: p.seasons,
@@ -41,6 +44,21 @@ function lipCandidates(mine: MyShade[]): LipCandidate[] {
     .filter((m) => m.category === "lip")
     .map((m): LipCandidate => ({ id: m.id, name: m.name, hex: m.hex, seasons: [nearestSeason(m.hex, "lips")], kind: "mine" }));
   return [...fromProducts, ...fromPalettes, ...fromMine];
+}
+
+/** 같은 라인(브랜드·제품명)은 이만큼까지만 순위에 보인다. 인기 라인의 색 서너 개가 상위를 다 차지하면 고를 폭이 줄어서 */
+export const MAX_PER_LINE = 2;
+
+/** 같은 라인이 maxPerLine개를 넘으면 뒤의 것을 뺀다. 점수 순서는 그대로 */
+export function diversifyByLine<T extends { item: LipCandidate }>(ranked: T[], maxPerLine = MAX_PER_LINE): T[] {
+  const seen = new Map<string, number>();
+  return ranked.filter(({ item }) => {
+    if (item.kind !== "product") return true;
+    const line = `${item.brand} ${item.line}`;
+    const n = seen.get(line) ?? 0;
+    seen.set(line, n + 1);
+    return n < maxPerLine;
+  });
 }
 
 export interface LipRanking {

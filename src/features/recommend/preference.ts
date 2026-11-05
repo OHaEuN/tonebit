@@ -49,7 +49,7 @@ export const BASE_WEIGHTS: AxisVector = {
   chroma: 0.12,
   harmony: 0.08,
   fit: 0.14,
-  trend: 0.08,
+  trend: 0.05,
   impression: 0.06,
   texture: 0.06,
   teeth: 0.04,
