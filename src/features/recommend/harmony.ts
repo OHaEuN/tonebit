@@ -14,7 +14,7 @@ import { AXIS_KEYS, AXIS_LABEL, BASE_WEIGHTS, normalize, zeroVector, type AxisKe
 const LIP_FROM_SKIN: Lab = { L: -12.4, a: 6.7, b: -3.4 };
 
 /**
- * 립이 피부와 어울리는지를 열 각도로 본다. 각 항은 −1~1이고, 최적점에서 1·멀어질수록 깎이는 봉우리 꼴이라 제품마다 갈린다.
+ * 립이 피부와 어울리는지를 아홉 각도로 본다. 각 항은 −1~1이고, 최적점에서 1·멀어질수록 깎이는 봉우리 꼴이라 제품마다 갈린다.
  * 최적점은 그 사람의 세부 타입(라이트·브라이트·트루·뮤트·딥), 시즌 확률, 눈썹 자연 대비, 취향으로 움직인다.
  * 같은 피부색이면 누구에게나 같은 중간 핑크가 1등이 되던 이전 점수(피부 색상각 기준 47°)를 버리고 웜·쿨과 깊이가 답을 가르게 했다.
  *
@@ -31,7 +31,9 @@ const LIP_FROM_SKIN: Lab = { L: -12.4, a: 6.7, b: -3.4 };
  * 7. 유행 — 2026 F/W 키워드(물광·글레이즈 / 블러·매트 / 뮤트 뉴트럴 / 매트 베리·레드)와 올리브영 2026년 9월 월간 순위
  * 8. 인상 — Wu 2024: 매력은 립 a*·밝기·피부와의 색차, 귀여움은 낮은 색상각·작은 밝기차, 세련됨은 채도차·낮은 b*. 원하는 느낌을 답했을 때만
  * 9. 질감 — 좋아하는 질감을 답했을 때만, 제형이 맞으면 +
- * 10. 치아 — 레드·퍼플은 치아가 희게, 누드는 노랗게 보인다(Med Pharm Reports 2023, 100명). 립 색만으로 보는 작은 항
+ *
+ * 사람과 무관하게 한 방향으로만 미는 항은 두지 않는다. "차갑고 선명한 립이 치아를 희게 보이게 한다"(Med Pharm Reports 2023)는 항을
+ * 잠깐 뒀다가 뺐다. 웜·뮤트인 사람에게도 블루 베이스 레드를 밀어서 "최적점은 사람마다"라는 원칙과 어긋났기 때문이다
  */
 const LIGHTNESS_WIDTH = 12;
 /** 세부 타입별 최적 밝기 차이(피부 L* − 입술 위 L*) */
@@ -178,11 +180,6 @@ function impression(feel: Feel, skin: Lab, onLip: Lab, lightnessGap: number): nu
   return 0.5 * Math.tanh((8 - (chroma(onLip) - chroma(skin))) / 10) + 0.5 * Math.tanh((8 - onLip.b) / 8);
 }
 
-/** 차갑고 선명하고 진할수록 치아가 희게 보인다. 누드는 반대 */
-function teethLook(onLip: Lab): number {
-  return clamp(0.5 * Math.tanh((15 - hueDeg(onLip)) / 12) + 0.5 * Math.tanh((chroma(onLip) - 28) / 10), -1, 1);
-}
-
 /** 좋아하는 질감과 제형이 맞는지 */
 function textureMatch(texture: Taste["texture"], finish?: Finish): number {
   if (!texture || texture === "any" || !finish) return 0;
@@ -202,7 +199,6 @@ export function faceAxes(skin: Lab, onLip: Lab, prior: HarmonyPrior): Pick<Harmo
   const chromaGap = chroma(onLip) - prior.chromaOptimum;
   axes.chroma = peak(chromaGap, 0, CHROMA_WIDTH);
   axes.harmony = clamp((ouLuoHarmony(skin, onLip) - prior.harmonyMid) / HARMONY_HALF, -1, 1);
-  axes.teeth = teethLook(onLip);
   axes.impression = prior.feel ? impression(prior.feel, skin, onLip, lightnessGap) : 0;
   return { axes, lightnessGap, lightnessOptimum: prior.lightnessOptimum, hueGap, chromaGap, naturalContrast: prior.naturalContrast };
 }
@@ -214,7 +210,7 @@ export function combine(axes: AxisVector, weights: AxisVector): number {
   return Math.round(clamp((h + 1) * 50, 0, 100));
 }
 
-/** 취향·치아 사정에 따라 쓰지 않는 항목의 가중치를 0으로 */
+/** 취향을 답하지 않아 쓰지 않는 항목의 가중치를 0으로 */
 export function activeWeights(base: AxisVector, taste?: Taste): AxisVector {
   return {
     ...base,
@@ -304,7 +300,6 @@ const PRAISE: Partial<Record<AxisKey, string>> = {
   harmony: "피부색과 조화로운 색이에요",
   redness: "혈색이 살아 생기 있어 보여요",
   trend: "요즘 많이 찾는 색이에요",
-  teeth: "웃을 때 치아가 더 하얘 보이는 색이에요",
 };
 const PRAISE_KEYS = Object.keys(PRAISE) as AxisKey[];
 /** 이 값 이상인 항만 칭찬한다 */

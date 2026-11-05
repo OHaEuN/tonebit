@@ -54,9 +54,6 @@ describe("faceAxes", () => {
     expect(faceAxes(SKIN, lipAt(14, h, 50), prior).axes.redness).toBeGreaterThan(faceAxes(SKIN, lipAt(14, h, 20), prior).axes.redness);
   });
 
-  it("치아 항은 차갑고 선명한 립이 높고 누드가 낮다", () => {
-    expect(faceAxes(SKIN, lipAt(18, 0, 45), prior).axes.teeth).toBeGreaterThan(faceAxes(SKIN, lipAt(6, 35, 15), prior).axes.teeth);
-  });
 });
 
 describe("harmonyPrior", () => {
@@ -138,7 +135,7 @@ describe("rankLips", () => {
     for (const t of tops) expect(t[0].score).toBeLessThan(100);
   });
 
-  it("점수가 0~100이고 중앙값이 35~72 사이다", () => {
+  it("점수가 0~100이고 중앙값이 35~76 사이다", () => {
     const scores = rankLips(skin, lip, even, ITEMS, { subtype: "true" }).map((r) => r.score);
     for (const s of scores) {
       expect(s).toBeGreaterThanOrEqual(0);
@@ -146,13 +143,13 @@ describe("rankLips", () => {
     }
     const median = [...scores].sort((a, b) => a - b)[Math.floor(scores.length / 2)];
     expect(median).toBeGreaterThanOrEqual(35);
-    expect(median).toBeLessThanOrEqual(72);
+    expect(median).toBeLessThanOrEqual(76);
   });
 
   it("취향을 답하면 인상·질감 항이 생기고, 촉촉한 질감을 고르면 글로시 제품이 올라간다", () => {
     const plain = rankLips(skin, lip, even, ITEMS, { subtype: "true" });
     const glossy = rankLips(skin, lip, even, ITEMS, { subtype: "true", taste: { feel: "vivid", texture: "glossy" } });
-    expect(harmonyBreakdown(plain[0]).map((a) => a.key)).toEqual(["lightness", "undertone", "redness", "chroma", "harmony", "fit", "trend", "teeth"]);
+    expect(harmonyBreakdown(plain[0]).map((a) => a.key)).toEqual(["lightness", "undertone", "redness", "chroma", "harmony", "fit", "trend"]);
     expect(harmonyBreakdown(glossy[0]).map((a) => a.key)).toContain("texture");
     expect(harmonyBreakdown(glossy[0]).map((a) => a.key)).toContain("impression");
     const glossyShare = (r: typeof plain) => r.slice(0, 10).filter((x) => x.item.finish === "glossy").length;

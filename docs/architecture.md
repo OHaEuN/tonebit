@@ -21,7 +21,7 @@ src/
     lipTryOn/    render.ts (마스크·페더링), tint.ts (선형 RGB 발색 모델, 순수 함수), ColorPicker
     try/         useTryOnLoop (rAF 루프), useStillAnalysis (업로드), TrySession, ResultPanel(단계 라우터), TryOnControls
     flow/        측정 뒤 단계 화면. StepFrame(진행 막대·제목·주 행동 하나), ToneStep·FeelStep·TextureStep·PickStep·MatchStep, 곁가지 TuneStep(정확도 높이기)·AskStep(AI 상담), useStepHistory(뒤로 가기)
-    recommend/   palettes(시즌·12톤 설명), products.json(인기 립·블러셔), harmony(립 어울림 점수, 열 각도), preference(취향·가중치 학습), tasteStore, trend(유행), worldCup(둘 중 고르기 대진), drape(셀프 비교), getProducts, affiliate
+    recommend/   palettes(시즌·12톤 설명), products.json(인기 립·블러셔), harmony(립 어울림 점수, 아홉 각도), preference(취향·가중치 학습), tasteStore, trend(유행), worldCup(둘 중 고르기 대진), drape(셀프 비교), getProducts, affiliate
     myShade/     measure(흰 종이 스와치 → 반사율), store(내 제품 색, 이 브라우저에만), ShadeScanner
     analytics/   track (Umami 이벤트), Analytics (스크립트 로더)
     feedback/    전문가 진단 입력·검사·저장(Postgres), 일치율 집계 SQL
