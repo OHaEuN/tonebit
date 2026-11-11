@@ -39,13 +39,13 @@ test("AI 상담: 추천 질문을 누르면 제품 카드가 나오고, 고른 �
   await expect(page.getByRole("dialog").locator("legend span")).not.toHaveText("선택 안 함");
 });
 
-test("정확도 높이기에서 한 번에 반응을 남기고, 달라요면 전문가 진단 입력으로 이어진다", async ({ page }) => {
-  await page.getByRole("button", { name: "정확도 높이기" }).click();
+test("내 톤 화면에서 한 번에 반응을 남기고, 달라요면 정확도 높이기의 전문가 진단 입력으로 이어진다", async ({ page }) => {
   const box = page.getByText("이 결과, 내 생각과 비슷해요?");
   await expect(box).toBeVisible();
   await page.getByRole("button", { name: "달라요" }).click();
   await expect(page.getByText("알려 주셔서 고마워요")).toBeVisible();
   await page.getByRole("button", { name: "전문가 진단을 받아 봤다면 알려 주세요" }).click();
+  await expect(page.getByRole("heading", { name: "정확도 높이기" })).toBeVisible();
   const form = page.locator("details#expert-feedback");
   await expect(form).toHaveAttribute("open", "");
   await expect(form).toHaveAttribute("data-spotlight", "");
