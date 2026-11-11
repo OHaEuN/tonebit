@@ -8,7 +8,9 @@ import { renderFaceCrop } from "@/features/lipTryOn/faceCrop";
 import { bestTag, productById } from "@/features/recommend/getProducts";
 import { harmonyNote } from "@/features/recommend/harmony";
 import { HarmonyBars } from "@/features/recommend/HarmonyBars";
+import { AffiliateNote } from "@/features/recommend/AffiliateNote";
 import { LipFaceOff } from "@/features/recommend/LipFaceOff";
+import { TREND_AS_OF } from "@/features/recommend/trend";
 import { activeWeights } from "@/features/recommend/harmony";
 import {
   BASE_WEIGHTS,
@@ -316,10 +318,7 @@ export function MatchStep() {
           <LipFaceOff onTry={tryOn} />
         </Disclosure>
       </div>
-      <p className="mt-4 text-xs leading-relaxed text-muted">
-        제품 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를
-        제공받습니다.
-      </p>
+      <AffiliateNote lead={`인기 순위는 ${TREND_AS_OF} 기준이에요.`} />
     </StepFrame>
   );
 }

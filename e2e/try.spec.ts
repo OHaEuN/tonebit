@@ -72,6 +72,13 @@ test("셀카를 올리면 내 톤이 나오고, 취향을 답해 내 립을 거�
   await expect(page).toHaveURL(/\/r\/(spring|summer|autumn|winter)-(light|bright|true|soft|deep)$/);
 });
 
+test("EXIF로 눕혀 저장된 사진도 바로 세워 측정한다", async ({ page }) => {
+  await waitForModel(page);
+  await uploadFace(page, "e2e/fixtures/face-rotated.jpg");
+  const [w, h] = await page.locator("canvas[aria-label]").evaluate((c) => [(c as HTMLCanvasElement).width, (c as HTMLCanvasElement).height]);
+  expect(h).toBeGreaterThan(w);
+});
+
 test("사진 두 장을 올리면 내 톤 화면에 합쳤다는 머리말과 사진별 탭이 보인다", async ({ page }) => {
   await waitForModel(page);
   await page.getByLabel(/사진 올리기|사진으로 시작하기/).first().setInputFiles(["e2e/fixtures/face.jpg", "e2e/fixtures/face-paper.jpg"]);

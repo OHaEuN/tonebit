@@ -22,6 +22,9 @@ export function trendKeywords(p: Pick<ProductSource, "hex" | "finish">): number 
   return texture + (mutedNeutral || berry || classicRed ? 0.5 : 0);
 }
 
+/** 인기 순위의 기준 시점. 순위 화면에 그대로 보여 주고, 데이터를 갱신하면 같이 바꾼다 */
+export const TREND_AS_OF = "2026년 9월";
+
 /** 0~1. 요즘 얼마나 찾는 색인지. 올리브영 2026년 9월 월간 순위 60% + 키워드 40% */
 export function trendScore(p: Pick<ProductSource, "hex" | "finish" | "trendRank">): number {
   const rank = p.trendRank && p.trendRank <= RANK_RANGE ? 1 - (p.trendRank - 1) / RANK_RANGE : 0;

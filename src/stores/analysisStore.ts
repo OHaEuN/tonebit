@@ -126,7 +126,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     const ids = added.map(() => ++shotSeq);
     const shots = [...prev, ...added.map((shot, i) => ({ ...shot, id: ids[i] }))].slice(-MAX_SHOTS);
     const { result, votes } = combineShots(shots);
-    track({ name: "measure-done", tone: result.tone, confidence: result.confidence, source: get().source ?? "camera" });
+    track({ name: "measure-done", tone: result.tone, confidence: result.confidence, source: get().source ?? "camera", shots: shots.length });
     set({ shots, votes, result, combined: result, view: null, stage: "done", progress: 1 });
     return ids;
   },

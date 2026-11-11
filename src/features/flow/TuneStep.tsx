@@ -5,7 +5,6 @@ import { Disclosure } from "@/components/Disclosure";
 import { BUTTON } from "@/components/styles";
 import { explainTone } from "@/features/analysis/explain";
 import { FeedbackForm } from "@/features/feedback/FeedbackForm";
-import { ResultReaction } from "@/features/feedback/ResultReaction";
 import { ShotsPanel } from "@/features/try/ShotsPanel";
 import { useAnalysisStore } from "@/stores/analysisStore";
 import { StepFrame } from "./StepFrame";
@@ -51,7 +50,6 @@ export function TuneStep({ onAddPhotos, onMeasureMore, photos, whiteFix, whiteFi
           </Disclosure>
           <FeedbackForm />
         </div>
-        <ResultReaction key={`${result.tone}-${result.reference}`} />
         {source === "camera" && (
           <button type="button" onClick={remeasure} className={BUTTON.secondary}>
             다시 측정

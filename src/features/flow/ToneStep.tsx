@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BUTTON } from "@/components/styles";
 import { seasonOdds } from "@/features/analysis/tone";
+import { ResultReaction } from "@/features/feedback/ResultReaction";
 import { PaletteBand } from "@/features/recommend/PaletteBand";
 import { SEASON_INFO, sortSwatches, TONE_INFO, toneLabel } from "@/features/recommend/palettes";
 import { resultPath } from "@/features/share/resultUrl";
@@ -73,6 +74,8 @@ export function ToneStep({ photos }: ShotTabsProps) {
           두 톤의 경계예요. 사진을 더하면 더 또렷해져요.
         </p>
       )}
+      {/* 측정을 끝낸 모두에게 한 번 묻는다. 정확도 높이기에만 두면 거기까지 들어온 사람의 반응만 모인다 */}
+      <ResultReaction key={`${result.tone}-${result.reference}`} />
     </StepFrame>
   );
 }

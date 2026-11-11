@@ -54,6 +54,10 @@ export function TrySession() {
   const step = useAnalysisStore((s) => s.step);
   const setStep = useAnalysisStore((s) => s.setStep);
   useStepHistory(step, setStep, stage === "done");
+  // 측정 뒤 어느 화면까지 닿았는지. 퍼널의 단계별 이탈을 이 이벤트로 본다
+  useEffect(() => {
+    if (stage === "done") track({ name: "step-view", step });
+  }, [stage, step]);
   /** 사진을 보며 색을 고르는 발라 보기에서만 사진 무대를 화면 위에 고정한다 */
   const pinStage = stage === "done" && step === "tryon";
   const hideStage = stage === "done" && HIDE_STAGE_STEPS.has(step);

@@ -62,6 +62,7 @@ src/features/
 - [docs/architecture.md](docs/architecture.md) — 화면 구조, 프레임 흐름, 서버 데이터 루프, AI 상담 설계
 - [docs/color-analysis.md](docs/color-analysis.md) — 샘플링, 조명 보정, 판정 기준, 문헌과 FairFace 실측
 - [docs/lip.md](docs/lip.md) — 립 어울림 점수(아홉 각도·취향 학습), 발색 모델, 둘 중 고르기, 제품 데이터
+- [docs/planning/README.md](docs/planning/README.md) — 기획 문서 8편(시장조사·기획서·요구사항·정책·IA·화면설계·지표·출시)과 셀프 리뷰. 만든 뒤에 팀 기준으로 역산한 것
 - [docs/privacy.md](docs/privacy.md) — 프라이버시 설계
 - [docs/operations.md](docs/operations.md) — 개발, 배포, 분석 이벤트, 검색엔진, 수익화
 
